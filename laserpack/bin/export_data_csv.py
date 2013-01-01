@@ -69,7 +69,7 @@ def poseStamped2Array(data, RollPitch=False):
     return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(yaw))]
 
 def distance2Array(data):
-    return [ str(data[0]), str(data[1]), str(data[2]), str(data[3]), str(data[4]), str(data[5])]
+    return [ str(data.lasers[0]), str(data.lasers[1]), str(data.lasers[2]), str(data.lasers[3]), str(data.lasers[4]), str(data.lasers[5])]
 
 def writer():
     global setpoint
@@ -87,17 +87,17 @@ def writer():
         initial_time = time()
 
        #while writing:
-	diff_time = 0
-        while diff_time < 60:
+        diff_time = 0
+        while diff_time < 120:
             diff_time = time()-initial_time
             data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw)
             rate.sleep()
-	    print diff_time
+            print diff_time
 	    
 
 
 def subscribers():
-    setpoint_position   = rospy.Subscriber('mavros/setpoint_position/pose', PoseStamped, setpointCB)
+    setpoint_position   = rospy.Subscriber('mavros/setpoint_position/local', PoseStamped, setpointCB)
     local_position      = rospy.Subscriber('mavros/local_position/pose', PoseStamped, positionCB)
     pose_lasers         = rospy.Subscriber('lasers/pose', PoseStamped, lasersposeCB)
     raw_lasers          = rospy.Subscriber('lasers/raw', distance, lasersrawCB)

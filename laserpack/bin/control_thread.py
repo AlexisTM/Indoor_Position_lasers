@@ -64,7 +64,7 @@ def sendSetpoint():
     global run
     setPointsCount = 0
     local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
-    rate = rospy.Rate(20.0)
+    rate = rospy.Rate(5.0)
     while run:
         msg = PoseStamped()
         msg.pose.position.x = float(xSetPoint)
@@ -84,21 +84,21 @@ def sendPosition():
     global run
     global laser_position_count
     global local_pos_pub
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(30)
     while run:
-	msg = PoseStamped()
-	msg.header.stamp = rospy.Time.now()
-	msg.header.seq=laser_position_count
-        msg.pose.position.x = 1
-        msg.pose.position.y = float(2.0)
-        msg.pose.position.z = 3.0
-        msg.pose.orientation.x = 0.0
-        msg.pose.orientation.y = 0.0
-        msg.pose.orientation.z = 0.0
-        msg.pose.orientation.w = 1.0
-        local_pos_pub.publish(msg)
-        laser_position_count = laser_position_count + 1
-        rate.sleep()
+	#msg = PoseStamped()
+	#msg.header.stamp = rospy.Time.now()
+	#msg.header.seq=laser_position_count
+        #msg.pose.position.x = 1
+        #msg.pose.position.y = float(2.0)
+        #msg.pose.position.z = 3.0
+        #msg.pose.orientation.x = 0.0
+        #msg.pose.orientation.y = 0.0
+        #msg.pose.orientation.z = 0.0
+        #msg.pose.orientation.w = 1.0
+        #local_pos_pub.publish(msg)
+        #laser_position_count = laser_position_count + 1
+        #rate.sleep()
         
         #msg = PoseStamped()
 	#msg.header.stamp = rospy.Time.now()
@@ -111,11 +111,11 @@ def sendPosition():
         #msg.pose.orientation.z = float(laserposition.pose.orientation.z)
         #msg.pose.orientation.w = float(laserposition.pose.orientation.w)
         
-	#laserposition.header.stamp = rospy.Time.now()
-	#laserposition.header.seq=laser_position_count
-        #local_pos_pub.publish(laserposition)
-        #laser_position_count = laser_position_count + 1
-        #rate.sleep()
+	laserposition.header.stamp = rospy.Time.now()
+	laserposition.header.seq=laser_position_count
+        local_pos_pub.publish(laserposition)
+        laser_position_count = laser_position_count + 1
+        rate.sleep()
 
 def InterfaceKeyboard():
     global xSetPoint
@@ -129,17 +129,17 @@ def InterfaceKeyboard():
     global laser_position_count
 
     what = getch()
-    if what == "z":
+    if what == "t":
         xSetPoint = xSetPoint + 0.1
-    if what == "s":
+    if what == "g":
         xSetPoint = xSetPoint - 0.1
-    if what == "q":
+    if what == "f":
         ySetPoint = ySetPoint + 0.1
-    if what == "d":
+    if what == "h":
         ySetPoint = ySetPoint - 0.1
-    if what == "u":
+    if what == "i":
         zSetPoint = zSetPoint + 0.1
-    if what == "j":
+    if what == "k":
         zSetPoint = zSetPoint - 0.1
     if what == "q":
         arming_client(False)
@@ -207,7 +207,7 @@ def init():
     # mavros/setpoint_position/local
     # mavros/mocap/pose
 
-    #tSetPoints = Thread(target=sendSetpoint).start()
+    tSetPoints = Thread(target=sendSetpoint).start()
     # In case we want to send positions
     tPositions = Thread(target=sendPosition).start()
     

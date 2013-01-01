@@ -42,6 +42,7 @@ from laserpack.msg import distance
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Imu
 from threading import Thread
+from getch import getch
 
 # update IMU
 def imu_callback(data):
@@ -54,6 +55,7 @@ def raw_lasers_callback(data):
     global imu
     global lasers
     global pub_position
+    global yawprint
     # preCorrectionLasers is TODO
     raw = preCorrectionLasers(data)
     
@@ -81,6 +83,8 @@ def raw_lasers_callback(data):
     #print "Z1:", target[4][2], "Z2 :", target[5][2]
     
     #print "roll:",rad2degf(roll), "pitch:",rad2degf(pitch), "yaw:",rad2degf(yaw)
+
+    yawprint=(rad2degf(yawMeasured), rad2degf(yaw))
 
     # target[i][j]
     # i = index of the laser extrapolated (0 => 5)
@@ -116,6 +120,8 @@ def preCorrectionLasers(data):
 def init():
     global raw
     global lasers
+    global yawprint
+    yawprint = (0,0)
     rospy.init_node('position_algorithm')
     lasers = lasersController()
     raw = distance()
@@ -126,17 +132,20 @@ def subscribers():
     global imu
     imu = Imu()
     imu.orientation.w = 1
-
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', distance, raw_lasers_callback)
     pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=3)
     
 
 def main():
+    global yawprint
     while not rospy.is_shutdown(): 
-        raw_input("Press anything to quit")
+        what = getch()
+        if what == "q":
+            break
+        print "m:", yawprint[0]
+        print "y:", yawprint[1]
         # rospy.spin()
-        break
 
 if __name__ == '__main__':
     rospy.loginfo("Position algorithm started")
