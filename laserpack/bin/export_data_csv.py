@@ -26,20 +26,35 @@ project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
 """
-
+from __future__ import division
 import rospy
 import csv
 import tf
+from getch import getch
 from algorithm_functions import rad2degf
 from time import time
 from laserpack.msg import distance
 from std_msgs.msg import Bool
-from geometry_msgs.msg import PoseStamped, TwistStamped, Accel
+from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion
 from sensor_msgs.msg import Imu
 from transformations import *
 from threading import Thread
 
-def accel_no_gravity(data):
+
+def XkpCB(data):
+    global Xkp 
+    Xkp = [str(data.x), str(data.y),str(data.z),str(rad2degf(data.w))]
+
+def XkCB(data):
+    global Xk 
+    Xk = [str(data.x), str(data.y),str(data.z),str(rad2degf(data.w))]
+
+def KCB(data):
+    global K 
+    K = [str(data.x), str(data.y),str(data.z),str(data.w)]
+
+
+def accel_no_gravityCB(data):
     global accel_no_gravity
     accel_no_gravity = [str(data.linear.x), str(data.linear.y), str(data.linear.z)]
 
@@ -86,7 +101,7 @@ def poseStamped2Array(data, RollPitch=False):
     return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(yaw))]
 
 def distance2Array(data):
-    return [ str(data.lasers[0]), str(data.lasers[1]), str(data.lasers[2]), str(data.lasers[3]), str(data.lasers[4]), str(data.lasers[5])]
+    return [ str(data.lasers[0]/100), str(data.lasers[1]/100), str(data.lasers[2]/100), str(data.lasers[3]/100), str(data.lasers[4]/100), str(data.lasers[5]/100)]
 
 def writer():
     global setpoint
@@ -99,8 +114,12 @@ def writer():
     global velocity
     global filtered 
     global accel_no_gravity
+    global K
+    global Xk
+    global Xkp
+    global write
 
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(100)
     
     with open('result.csv', 'w') as csvfile:
         data_writer = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -112,7 +131,10 @@ def writer():
                       'accel_lin_x', 'accel_lin_y', 'accel_lin_z', \
                       'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w', \
                       'filtered_x', 'filtered_y', 'filtered_z', 'filtered_yaw', \
-                      'accel_no_gravity_x', 'accel_no_gravity_y', 'accel_no_gravity_z']
+                      'accel_no_gravity_x', 'accel_no_gravity_y', 'accel_no_gravity_z', \
+                      'Xk_x', 'Xk_y', 'Xk_z', 'Xk_yaw',  \
+                      'K_x', 'K_y', 'K_z', 'K_yaw',  \
+                      'Xkp_x', 'Xkp_y', 'Xkp_z', 'Xkp_yaw']
 
 
         data_writer.writerow(fieldnames)
@@ -120,11 +142,10 @@ def writer():
 
        #while writing:
         diff_time = 0
-        while diff_time < 120:
+        while diff_time < 120 and write:
             diff_time = time()-initial_time
-            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity)
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity + Xk + K + Xkp)
             rate.sleep()
-            print diff_time
 	    
 
 
@@ -137,8 +158,11 @@ def subscribers():
     velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
     filtered_sub        = rospy.Subscriber('lasers/filtered', PoseStamped, filteredCB)
-    accel_sub           = rospy.Subscriber('lasers/accel_without_gravity', Accel, accel_no_gravity)
+    accel_sub           = rospy.Subscriber('lasers/accel_without_gravity', Accel, accel_no_gravityCB)
 
+    pub_Xkp             = rospy.Subscriber('lasers/Xkp', Quaternion, XkpCB)
+    pub_K               = rospy.Subscriber('lasers/K', Quaternion, KCB)
+    pub_Xk              = rospy.Subscriber('lasers/Xk', Quaternion, XkCB)
 
 def main():
     global setpoint
@@ -151,9 +175,11 @@ def main():
     global velocity
     global filtered 
     global accel_no_gravity
+    global K, Xk, Xkp
+    global write
 
+    write = True
     # init global objects
-    writing = False
     setpoint = ['', '', '', '']
     lasers_pose = ['', '', '', '']
     position = ['', '', '', '', '', '',]
@@ -163,11 +189,17 @@ def main():
     velocity = ['', '', '', '']
     filtered = ['', '', '', '']
     accel_no_gravity = ['', '', '']
+    K = ['', '', '', '']
+    Xk = ['', '', '', '']
+    Xkp = ['', '', '', '']
     
     listener = Thread(target=writer).start()
     
     while not rospy.is_shutdown(): 
-        rospy.spin()
+        what = getch()
+        if what == "q":
+            write = False
+            break
 
 if __name__ == '__main__':
     rospy.loginfo("Data export started")

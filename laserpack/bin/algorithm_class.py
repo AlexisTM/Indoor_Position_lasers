@@ -35,16 +35,18 @@ from __future__ import division
 import rospy
 import mavros
 import tf
+import csv
 from time import time
 from lasers import lasersController
 from transformations import *
 from algorithm_functions import *
 from laserpack.msg import distance
-from geometry_msgs.msg import PoseStamped, Accel, TwistStamped
+from geometry_msgs.msg import PoseStamped, Accel, TwistStamped, Quaternion
 from sensor_msgs.msg import Imu
 from threading import Thread
 from getch import getch
 from Kalman import Custom3DKalman
+
 
 # update the velocity
 def velocity_callback(data):
@@ -96,6 +98,9 @@ def raw_lasers_callback(data):
     global angular_velocity
     global last_time_kalman
     global linearAcceleration
+    global pub_Xkp
+    global pub_K
+    global pub_Xk
 
     raw = preCorrectionLasers(data)
     
@@ -156,7 +161,12 @@ def raw_lasers_callback(data):
     dt = now - last_time_kalman
     last_time_kalman = now
 
-    Xk, K = kalmanFilter.next(Measurements, linear_velocity,linearAcceleration, angular_velocity, dt)
+    Xk, K, Xkp = kalmanFilter.next(Measurements, linear_velocity,linearAcceleration, angular_velocity, dt)
+    
+    # rospy.loginfo("Xk x: %s y: %s z: %s yaw: %s", Xk[0], Xk[1], Xk[2], Xk[3])
+    # rospy.loginfo("K x: %s y: %s z: %s yaw: %s", K[0], K[1], K[2], K[3])
+    # rospy.loginfo("Xkp x: %s y: %s z: %s yaw: %s", Xkp[0], Xkp[1], Xkp[2], Xkp[3])
+    # rospy.loginfo("---")
     q = quaternion_from_euler(roll, pitch, Xk[3], axes="sxyz")
 
     msg = PoseStamped()
@@ -169,6 +179,13 @@ def raw_lasers_callback(data):
     msg.pose.orientation.w = float(q[3])
 
     pub_filtered.publish(msg)
+
+    qua = Quaternion(x=Xkp[0], y=Xkp[1], z=Xkp[2], w=Xkp[3])
+    pub_Xkp.publish(qua)
+    qua = Quaternion(x=K[0], y=K[1], z=K[2], w=K[3])
+    pub_K.publish(qua)
+    qua = Quaternion(x=Xk[0], y=Xk[1], z=Xk[2], w=Xk[3])
+    pub_Xk.publish(qua)
 
     last_time_kalman = time()
 
@@ -204,9 +221,10 @@ def init():
     angular_velocity = 0.0
     kalmanFilter = Custom3DKalman(0.025, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, deg2radf(1))
     yawprint = (0,0)
-    rospy.init_node('position_algorithm')
     lasers = lasersController()
     raw = distance()
+
+
 
 # listerners listen to ROS
 def subscribers():
@@ -214,24 +232,38 @@ def subscribers():
     global pub_filtered
     global accel_pub
     global imu
+
+    global pub_Xkp
+    global pub_K
+    global pub_Xk
+
+    rospy.init_node('position_algorithm')
+
     imu = Imu()
     imu.orientation.w = 1 
+
     accel_pub       = rospy.Publisher('lasers/accel_without_gravity', Accel, queue_size=1)
     pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=1)
     pub_filtered    = rospy.Publisher('lasers/filtered', PoseStamped, queue_size=1)
+    pub_Xkp         = rospy.Publisher('lasers/Xkp', Quaternion, queue_size=1)
+    pub_K           = rospy.Publisher('lasers/K', Quaternion, queue_size=1)
+    pub_Xk          = rospy.Publisher('lasers/Xk', Quaternion, queue_size=1)
     
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', distance, raw_lasers_callback)
     velocity_sub    = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
-   
+
+
+
 def main():
     global yawprint
     while not rospy.is_shutdown(): 
+        #rospy.spin()
         what = getch()
         if what == "q":
             break
-        print "m:", yawprint[0]
-        print "y:", yawprint[1]
+        # print "m:", yawprint[0]
+        # print "y:", yawprint[1]
         # rospy.spin()
 
 if __name__ == '__main__':

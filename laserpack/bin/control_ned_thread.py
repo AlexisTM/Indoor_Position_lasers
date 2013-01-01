@@ -60,6 +60,13 @@ def laser_callback(data):
     global activeX
 
     laserposition = data
+    Q = (
+        laserposition.pose.orientation.x,
+        laserposition.pose.orientation.y,
+        laserposition.pose.orientation.z,
+        laserposition.pose.orientation.w)
+    euler = tf.transformations.euler_from_quaternion(Q)
+    q = quaternion_from_euler(0, 0, -euler[2], axes="sxyz")
 
     msg = PoseStamped()
     msg.header.stamp=rospy.Time.now()
@@ -67,13 +74,13 @@ def laser_callback(data):
     # msg.pose.position.x = msg.pose.position.x
     # msg.pose.position.y = msg.pose.position.y
     # msg.pose.position.z = msg.pose.position.z
-    msg.pose.position.x = laserposition.pose.position.x
+    msg.pose.position.x = -laserposition.pose.position.x
     msg.pose.position.y = laserposition.pose.position.y
     msg.pose.position.z = -laserposition.pose.position.z
-    msg.pose.orientation.x = laserposition.pose.orientation.x
-    msg.pose.orientation.y = laserposition.pose.orientation.y
-    msg.pose.orientation.z = laserposition.pose.orientation.z
-    msg.pose.orientation.w = laserposition.pose.orientation.w
+    msg.pose.orientation.x = q[0]
+    msg.pose.orientation.y = q[1]
+    msg.pose.orientation.z = q[2]
+    msg.pose.orientation.w = q[3]
     local_pos_pub.publish(msg)
     laser_position_count = laser_position_count + 1
 

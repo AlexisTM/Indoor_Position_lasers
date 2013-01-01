@@ -144,7 +144,7 @@ class Custom3DKalman:
         self.Pk[1] = (1-K[1])*Pkp[1]
         self.Pk[2] = (1-K[2])*Pkp[2]
         self.Pk[3] = (1-K[3])*Pkp[3]
-        return self.Xk, K
+        return self.Xk, K, Xkp
 
 def square(array):
   for a in range(len(array)):
