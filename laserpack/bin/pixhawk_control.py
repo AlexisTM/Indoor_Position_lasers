@@ -7,7 +7,7 @@ import mavros
 import time
 import tf
 import numpy as np
-from getch import *
+from laserpack.getch import *
 from threading import Thread
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Imu
@@ -47,7 +47,8 @@ def sendSetpoint():
 def sendPosition():
     global zPosition
     global PositionsCount
-    local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=10)
+    #local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=10)
+    local_pos_pub   = rospy.Publisher('mavros/vision_pose/pose', PoseStamped, queue_size=10)
     rate = rospy.Rate(20.0)
     while not rospy.is_shutdown():
         msg = PoseStamped()
@@ -63,7 +64,9 @@ def sendPosition():
         PositionsCount = PositionsCount+ 1
 
 def True_Position_Callback(pose):
-    local_true_pos_pub(pose)
+    global local_true_pos_pub
+    local_true_pos_pub.publish(pose)
+
 
 def State_Callback(data):
     global state
@@ -101,8 +104,8 @@ def InterfaceKeyboard():
         arming_client(True)
     if what == "e":
         set_mode_client(custom_mode = "OFFBOARD")
-    if what == "d":
-        set_mode_client(base_mode = "MANUAL")
+    if what == "m":
+        exit()
 
     Q = (
         imu.orientation.x,
@@ -149,48 +152,14 @@ def init():
     rospy.wait_for_service('mavros/set_mode')
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
 
-    local_true_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=10)
-    lasers_pose       = rospy.Subscriber('lasers/pose', PoseStamped, True_Position_Callback)
+    local_true_pos_pub   = rospy.Publisher('mavros/vision_pose/pose', PoseStamped, queue_size=10)
+    state_sub       = rospy.Subscriber('lasers/pose', PoseStamped, True_Position_Callback)
     
 
     tSetPoints = Thread(target=sendSetpoint).start()
     #tPositions = Thread(target=sendPosition).start()
-
-    time.sleep(5)
-    rospy.loginfo("We should have 100 setpoints sent now")
-
-
-    #while(state.mode != "OFFBOARD"):
-    #    time.sleep(1)
-    #    try : 
-    #        rospy.loginfo("Trying to set to OFFBOARD mode")
-    #        set_mode_client(custom_mode = "OFFBOARD")
-    #    except rospy.ServiceException as ex:
-    #        rospy.loginfo("OFFBOARD FAILED")
-            
-
-    #rospy.loginfo("OFFBOARD SUCCESS")
-    #time.sleep(1)
-
-    #count = 0
-    #while(state.armed != True):
-    #    time.sleep(10)
-    #    if count == 10 : 
-    #        exit()
-    #    try : 
-    #        rospy.loginfo("Trying to ARM")
-    #        arming_client(True)
-    #        count = count + 1
-    #    except rospy.ServiceException as ex:
-    #        rospy.loginfo("ARM FAILED")
-
-
-    #rospy.loginfo("ARM SUCCESS")
+    
     while not rospy.is_shutdown(): 
-        
-        #if disarm:
-        #    arming_client(False)
-
         InterfaceKeyboard()
 
 

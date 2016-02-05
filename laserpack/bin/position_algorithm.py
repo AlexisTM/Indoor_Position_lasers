@@ -73,7 +73,7 @@ def position(data):
         imu.orientation.z,
         imu.orientation.w)
     euler = tf.transformations.euler_from_quaternion(Q)
-    XYZ[2] = mean*math.cos(euler[0])*math.cos(euler[1])
+    XYZ[2] = mean
     return XYZ
 
 def LaserDistances_Callback(data):
