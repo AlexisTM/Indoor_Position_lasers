@@ -127,7 +127,7 @@ La normale étant N = (a,b,c) et sachant que nous avons un point Px1(Px1x, Px1y,
     Px === ax + by + bz -(a*Px1x + b*Px1y + c*Px1z) = 0
 
 ### Calcul de la distance au mur
-
+ 
 [Source](https://fr.wikipedia.org/wiki/Distance_d%27un_point_%C3%A0_un_plan)
 
 Il suffit désormais de déterminer la distance au plan du point (0,0,0) afin de déteminer la position du drone.
