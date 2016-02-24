@@ -28,7 +28,7 @@ def rotate(p, q):
 # input p : point with the laser
 # input v : the vector direction
 # input M : distance measured
-def interpolate(p,v,M):
+def extrapolate(p,v,M):
 	# p is the origin
 	# M = 20-5000 [cm]
 	# find k, the factor to multiply v to get length(v) = M (interpolation)
@@ -110,7 +110,7 @@ FLP = rotate(Laser, q)
 print "Final Laser Position:", FLP
 FLO = rotate(Orientation, q)
 print "Final Laser Orientation:", FLO
-X = interpolate(FLP, FLO, M)
+X = extrapolate(FLP, FLO, M)
 print "Pointed point on the wall:", X
 N = rotate(X, quaternion_inverse(q))
 # Possible solution => From Quaternion to Axis Angle => http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
