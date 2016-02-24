@@ -113,6 +113,7 @@ def InterfaceKeyboard():
         imu.orientation.z,
         imu.orientation.w)
     euler = tf.transformations.euler_from_quaternion(Q)
+    
     rospy.loginfo("Positions sent : %i, Setpoints sent : %i",PositionsCount, setPointsCount )
     rospy.loginfo("Manual position %s", zPosition)
     rospy.loginfo("Position     is %s", pose.pose.position.z)
