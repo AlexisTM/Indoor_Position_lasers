@@ -128,6 +128,8 @@ La normale étant N = (a,b,c) et sachant que nous avons un point Px1(Px1x, Px1y,
 
 ### Calcul de la distance au mur
 
+[Source](https://fr.wikipedia.org/wiki/Distance_d%27un_point_%C3%A0_un_plan)
+
 Il suffit désormais de déterminer la distance au plan du point (0,0,0) afin de déteminer la position du drone.
     
     # L'équation de la distance d'un point à un plan étant :
@@ -140,6 +142,22 @@ Il suffit désormais de déterminer la distance au plan du point (0,0,0) afin de
 
     # Cette étape est donc inutile, de par la convention des axes. Cela dit, il est intéressant de la réaliser afin que cet algorithme puisse être utilisé et modifié par d'autres, avec éventuellement un autre système d'axe.
 
+### Améliorations possibles
+
+#### Solution 2 : Trouver Yaw
+
+Nous trouvons non le point du mur, mais AUSSI le point qui touche le mur sachant qu'il est encore touché par le yaw. (implication de pitch et roll nulle), via deux rotations.
+
+L'une par le quaternion inverse => Retour à la position initiale, l'autre par le yaw que l'on trouve dans le quaternion (original), soit le yaw du drone. 
+
+-- Là, Nous devrions trouver l'intersection entre le point et la droite qui est la droite passant par le laser avec l'orientation du laser quand il est touché seulement par yaw, afin d'avoir la distance et commencer le calcul du yaw --
+
+#### Solution 3 : Axe-Rotation
+
+[Source](
+http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm)
+
+Nous représentons les 3 (ou deux) rotations qu'a fait le laser via UNE rotation autour d'un axe. Ainsi, les angles sont facile à corriger (UN SEUL COS) et pouf, on a la réponse 
 
 
 Algorithme à six lasers
@@ -147,37 +165,5 @@ Algorithme à six lasers
 
 TODO
 
-LA SUITE D'HIER  (solution1) : 
-
-Une fois que j'ai  : Le laser, son orienation, sa position finale, son orientation finale, le point touchant le mur, ALORS  => J'ai le mur ! 
-
-Plan === ax + by + cz + d = 0
-Point sur le plan = (kvx + lx, kvy + ly, kvz + lz) 
-Laser à son origine (!)  =  (lx, ly, lz)
- 
-Équation du plan : 
-(a,b,c) = sa normale = l'orientation initiale du laser = (pour x) (-1,0,0) 
-d => utilisation du point existant, qui APPARTIENT au plan => 
-plan === ax + by + cz + d = 0 => a*(kvx + lx) + b*(kvy + ly) + c*(kvz + lz) + d = 0 => (pour X, a = -1) a * (kvx + lx) + d = 0 => d = kvx + lx 
-plan === x = kvx + lx
-
-Intersection d'un point et d'un plan :
-https://fr.wikipedia.org/wiki/Distance_d%27un_point_%C3%A0_un_plan
-d = abs(a*lx + b*ly + c*lz + d)/sqrt(a² + b² + c²)
-d = Valeur de X
 
 
---------------------------------------------
-
-Solution 2 : Cherche à trouver yaw 
-Je trouve non le point du mur, mais AUSSI le point qui touche le mur sachant qu'il est encore touché par le yaw. (implication de pitch et roll nulle), via deux rotations.
-
-L'une par le quaternion inverse => Retour à la position initiale, l'autre par le yaw que l'on trouve dans le quaternion (original), soit le yaw du drone. 
-
--- Là, je devrais trouver l'intersection entre le point et la droite qui est la droite passant par le laser avec l'orientation du laser quand il est touché seulement par yaw, afin d'avoir la distance et commencer le calcul du yaw --
-
---------------------------------------------
-
-Solution 3 : Je représente les 3 rotations qu'a fait le laser via UNE rotation autour d'un axe. Ainsi, les angles sont facile à corriger (UN SEUL COS) et pouf, on a la réponse 
-
-http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm 
