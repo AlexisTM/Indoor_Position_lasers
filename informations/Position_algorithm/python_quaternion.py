@@ -195,10 +195,10 @@ result2 = list()
 distances = list()
 p = (1,1,1)
 v = (1,0,0)
-M = 100
-p2 = (-1,1,1)
+M = 50
+p2 = (10,10,10)
 v2 = (1,0,0)
-M2 = 110
+M2 = 55
 for x in range(-180,181):
     ro = deg2radf(10)
     pi = deg2radf(20)
@@ -207,11 +207,15 @@ for x in range(-180,181):
     orientation = quaternionRotation(v, qua)
     point2 = quaternionRotation(p2, qua)
     orientation2 = quaternionRotation(v2, qua)
+    print point, orientation, M
+    print point2, orientation2, M2
+
+
     pointOnWall = extrapolate(point, orientation, M)
     pointOnWall2 = extrapolate(point2, orientation2, M2)
     result.append(pointOnWall)
     result2.append(pointOnWall2)
-    print distance(pointOnWall, pointOnWall2)
+    print distance(pointOnWall, pointOnWall2), distance(point, point2)
     #distances.append(distance(pointOnWall, pointOnWall2))
 
 #print result
