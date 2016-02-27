@@ -7,62 +7,112 @@ Second, rotate the vector from the original position to the rotated position
 Third, with M, the distance to the wall meseared, define the point where is the wall, from the laser through the vector direction to the distance measured
 """
 
-from numpy import dot
-from numpy import pad
+from __future__ import division
+from numpy import dot, pad
 from transformations import *
 from dumb_functions import *
-from math import sqrt
+from math import sqrt, asin, acos, sin, cos
+from time import time
+
+SPEED_TEST_ENABLE = False
 
 # rotate a point, vector or quaternion by a quaternion
 # The rotation DO NOT change the size of the distance to the origin
 # input p : a tuple (x,y,z) or a quaternion (x,y,z,w)
 # Create a matrix from the quaternion q and return the dot product of the vector/point/quaternion & p
 def rotate(p, q):
-	# if we got only a point/vector, convert it to (x,y,z,w), with w = 0
-	if(len(p) == 3):
-		p = p + (0,)
-	m = quaternion_matrix(q)
-	return dot(m, p)
+    # if we got only a point/vector, convert it to (x,y,z,w), with w = 0
+    if(len(p) == 3):
+        p = p + (0,)
+    m = quaternion_matrix(q)
+    return dot(m, p)
 
 # computes the X point where the laser points to on the well
 # input p : point with the laser
 # input v : the vector direction
 # input M : distance measured
 def extrapolate(p,v,M):
-	# p is the origin
-	# M = 20-5000 [cm]
-	# find k, the factor to multiply v to get length(v) = M (interpolation)
-	# Then add p to v to get the result
-	K = sqrt(M*M/(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
-	v = (K*v[0]+p[0], K*v[1]+p[1], K*v[2]+p[2])
-	return v
+    # p is the origin
+    # M = 20-5000 [cm]
+    # find k, the factor to multiply v to get length(v) = M (interpolation)
+    # Then add p to v to get the result
+    K = sqrt(M*M/(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
+    v = (K*v[0]+p[0], K*v[1]+p[1], K*v[2]+p[2])
+    return v
 
 # input point  : A point in space on which we applied a quaternion q
 # input q      : The quaternion applied to point
 # output point : The posistion of the point if there where NO roll/pitch (yaw only)
 def getYawPosition(p, q): 
-	# if we got only a point/vector, convert it to (x,y,z,w), with w = 0
-	if(len(p) == 3):
-		p = p + (0,)
-	zaxis = (0, 0, 1)
-	qi = quaternion_inverse(q)
-	p = rotate(p, qi)
-	_, _, yaw = list(euler_from_quaternion(q, axes='sxyz'))
-	qz = quaternion_about_axis(yaw, zaxis)
-	return rotate(p, qz)
+    # if we got only a point/vector, convert it to (x,y,z,w), with w = 0
+    if(len(p) == 3):
+        p = p + (0,)
+    zaxis = (0, 0, 1)
+    qi = quaternion_inverse(q)
+    p = rotate(p, qi)
+    _, _, yaw = list(euler_from_quaternion(q, axes='sxyz'))
+    qz = quaternion_about_axis(yaw, zaxis)
+    return rotate(p, qz)
 
 def length(point):
-	return sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2])
+    return sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2])
+
+
+# input q : Quaternion
+# output normalized quaternion
+def normalizeQ(q):
+    l = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+    if(l == 1 or l == 0):
+        return q
+    return (q[0]/l, q[1]/l, q[2]/l, q[3]/l)
+
+# input q : Quaternion
+# output axis (x,y,z) and angle
+def Quaternion2AxisAngle(q):
+    q = normalizeQ(q)
+    angle = 2 * acos(q[3]);
+    s = sqrt(1-q[3]*q[3]);
+    if(s <= 0.001):
+        return (q[0], q[1], q[2]), angle
+    return (q[0]/s, q[1]/s, q[2]/s), angle
+
+
+# input q : Quaternion
+# output axis (x,y,z) and angle
+def fastQuaternion2AxisAngle(q):
+    l = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+    q3 = q[3]/l
+    angle = 2 * acos(q3/l);
+    s = sqrt(1-q3*q3);
+    if(s <= 0.001):
+        return (q[0], q[1], q[2]), angle
+    return (q[0]/s, q[1]/s, q[2]/s), angle
+
+# CARE : Counterclock rotation whenn u point towards observer
+# input vector3
+# input axis (x,y,z) NORMALIZED
+# input angle NORMALIZED
+def rotationAxisAngle(vector, axis, angle):
+    cost = cos(angle)
+    omcost = 1-cost
+    sint = sin(angle)
+    return ((omcost*axis[0]*axis[2] + sint*axis[1])*vector[2] + (-sint*axis[2] + omcost*axis[0]*axis[1])*vector[1] + (omcost*axis[0]*axis[0]  + cost)*vector[0], \
+    (omcost*axis[1]*axis[2] - sint*axis[0])*vector[2] + (omcost*axis[1]*axis[1]  + cost)*vector[1] + (omcost*axis[0]*axis[1] + sint*axis[2])*vector[0], \
+    (omcost*axis[2]*axis[2]  + cost)*vector[2] + (omcost*axis[1]*axis[2] + sint*axis[0])*vector[1] + (omcost*axis[0]*axis[2] - sint*axis[1])*vector[0])
+
+def quaternionRotation(p, q):
+    axis, angle = Quaternion2AxisAngle(q)
+    return  rotationAxisAngle(p, axis, angle)
 
 ### Known values
 # Mesure
 M = 200
-Laser = (10,10,20)
+Laser = (10,20,30)
 Orientation = (1,0,0)
 
 ### PixHawk values
-roll = 5
-pitch = 10
+roll = 10
+pitch = 20
 yaw = 30
 origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 
@@ -99,7 +149,7 @@ print "----------------------------------"
 print "# KNOWN #"
 print "Measure:", M
 print "Angles XYZ:", (roll, pitch, yaw)
-q = quaternion_from_euler(roll, pitch, yaw, axes="sxyz")
+q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), deg2radf(yaw), axes="sxyz")
 print "Quaternion:", q
 print "Laser position:", Laser
 print "Laser orientation:", Orientation
@@ -122,3 +172,44 @@ print "Original distance : ",N
 Yaw = getYawPosition(X, q)
 print "Yaw distance : ",Yaw
 
+print "--- TESTS ---"
+axis, angle = Quaternion2AxisAngle(q)
+print axis, angle, rad2degf(angle), Laser
+k = rotationAxisAngle(Laser, axis, -angle)
+print k, length(k), length(Laser)
+
+
+if(SPEED_TEST_ENABLE):
+    print "--- SPEED TESTS ---"
+    print "--- Quaternion To Axis Angle Without complete normalization ---"
+    startTimeSlow = time()
+    for x in xrange(10000):
+        Quaternion2AxisAngle(q)
+    stopTimeSlow = time()
+
+    startTimeFast = time()
+    for x in xrange(10000):
+        fastQuaternion2AxisAngle(q)
+    stopTimeFast = time()
+
+    print stopTimeSlow-startTimeSlow, stopTimeFast-startTimeFast
+    print ((stopTimeSlow-startTimeSlow)-(stopTimeFast-startTimeFast))/ (stopTimeSlow-startTimeSlow) *100
+    # GAIN 18% speed with reduced normalization
+
+    print "--- Quaternion rotation vs Quaternion via Axis Angle rotation ---"
+    q = quaternion_from_euler(roll, pitch, yaw, axes="sxyz")
+    p = (10,20,30)
+    startTimeSlow = time()
+    for x in xrange(1000):
+        rotate(p, q)
+    stopTimeSlow = time()
+
+    startTimeFast = time()
+    for x in xrange(1000):
+        quaternionRotation(p,q)
+    stopTimeFast = time()
+
+    print stopTimeSlow-startTimeSlow, stopTimeFast-startTimeFast
+    print ((stopTimeSlow-startTimeSlow)-(stopTimeFast-startTimeFast))/ (stopTimeSlow-startTimeSlow) *100
+    # GAIN 25% speed with axis angle rotation
+#print 

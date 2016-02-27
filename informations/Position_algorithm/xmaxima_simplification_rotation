@@ -1,0 +1,28 @@
+XMAXIMA
+
+R: matrix([cos(t)+ux^2*(1-cos(t)), uy*ux*(1-cos(t)) + uz * sin(t), uz*ux*(1-cos(t))-uy*sin(t)], 
+[ux*uy*(1-cos(t))-uz*sin(t), cos(t) + uy^2*(1-cos(t)), uz*uy*(1-cos(t)) +ux*sin(t)], 
+[ux*uz*(1-cos(t))+uy*sin(t), uy*uz*(1-cos(t))-ux*sin(t), cos(t) - uz^2*(1-cos(t))]);
+
+V: matrix([x],[y],[z]);
+
+P: R.V;
+
+[                                                                                           2             ]
+[ ((1 - cos(t)) ux uz - sin(t) uy) z + (sin(t) uz + (1 - cos(t)) ux uy) y + ((1 - cos(t)) ux  + cos(t)) x ]
+[                                                                                                         ]
+[                                                      2                                                  ]
+[ ((1 - cos(t)) uy uz - sin(t) ux) z + ((1 - cos(t)) uy  + cos(t)) y + ((1 - cos(t)) ux uy + sin(t) uz) x ]
+[                                                                                                         ]
+[                 2                                                                                       ]
+[ ((1 - cos(t)) uz  + cos(t)) z + ((1 - cos(t)) uy uz - sin(t) ux) y + ((1 - cos(t)) ux uz - sin(t) uy) x ]
+
+
+To python implementation :
+def rotationAxisAngle(vector, axis, angle):
+    cost = cos(angle)
+    omcost = 1-cost
+    sint = sin(angle)
+    return ((omcost*axis[0]*axis[2] + sint*axis[1])*vector[2] + (-sint*axis[2] + omcost*axis[0]*axis[1])*vector[1] + (omcost*axis[0]*axis[0]  + cost)*vector[0], \
+    (omcost*axis[1]*axis[2] - sint*axis[0])*vector[2] + (omcost*axis[1]*axis[1]  + cost)*vector[1] + (omcost*axis[0]*axis[1] + sint*axis[2])*vector[0], \
+    (omcost*axis[2]*axis[2]  + cost)*vector[2] + (omcost*axis[1]*axis[2] + sint*axis[0])*vector[1] + (omcost*axis[0]*axis[2] - sint*axis[1])*vector[0])

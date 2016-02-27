@@ -13,3 +13,6 @@ def rad2deg(arr):
 def rad2degf(a): 
 	return float(a)*180/pi
 
+def deg2radf(a): 
+	return float(a)*pi/180
+

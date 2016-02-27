@@ -144,6 +144,8 @@ Il suffit désormais de déterminer la distance au plan du point (0,0,0) afin de
 
 ### Améliorations possibles
 
+Le problème est qu'on ne récupère pas encore le yaw.
+
 #### Solution 2 : Trouver Yaw
 
 Nous trouvons non le point du mur, mais AUSSI le point qui touche le mur sachant qu'il est encore touché par le yaw. (implication de pitch et roll nulle), via deux rotations.
@@ -157,7 +159,48 @@ L'une par le quaternion inverse => Retour à la position initiale, l'autre par l
 [Source](
 http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm)
 
-Nous représentons les 3 (ou deux) rotations qu'a fait le laser via UNE rotation autour d'un axe. Ainsi, les angles sont facile à corriger (UN SEUL COS) et pouf, on a la réponse 
+Nous représentons les 3 (ou deux) rotations qu'a fait le laser via UNE rotation autour d'un axe. Ainsi, les angles sont facile à corriger (UN SEUL COS) et pouf, on a la réponse.
+
+#### Réalisation
+
+Afin de réaliser cette transformation, il faut normaliser le quaternion. Tout comme la normalisation d'un vecteur, il suffit de diviser chaque facteur du quaternion par sa longueur. Ainsi, la racine carrée de la somme des carrés des coéfficients du quaternions vaudra 1. Cela évitera par la suite d'avoir des problèmes pour le calcul de l'angle ou de l'axe.
+
+    # input q : Quaternion
+    # output normalized quaternion
+    def normalizeQ(q):
+        l = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+        if(l == 1 or l == 0):
+            return q
+        return (q[0]/l, q[1]/l, q[2]/l, q[3]/l)
+
+    # input q : Quaternion
+    # output a tuple of a tuple (axis (x,y,z)) and  an angle
+    def Quaternion2AxisAngle(q):
+        q = normalizeQ(q)
+        angle = 2 * acos(q[3]);
+        s = sqrt(1-q[3]*q[3]);
+        if(s <= 0.001):
+            return (q[0], q[1], q[2]), angle
+        return (q[0]/s, q[1]/s, q[2]/s), angle
+
+
+    q = random_quaternion()
+    print q, normalizeQ(q), Quaternion2AxisAngle(q)
+
+ Il est aussi possible de réaliser cette transformation plus rapidement, en effet, que le vecteur soit plus long ou pas ne nous intéresse pas, c'est pour l'angle que nous devons avoir un quaternion normalisé. Ainsi, il est possible de réaliser les deux en même temps. Via la fonction ci-dessous (qui donne le même résultat), le calcul est 15% plus rapide. Sachant que cela doit être réalisé 800 à 1200 -selon le nombre de lasers- fois par seconde sur du matériel embarqué, ce n'est pas négligeable.
+
+    # input q : Quaternion
+    # output axis (x,y,z) and angle
+    def fastQuaternion2AxisAngle(q):
+        l = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+        q3 = q[3]/l
+        angle = 2 * acos(q3/l);
+        s = sqrt(1-q3*q3);
+        if(s <= 0.001):
+            return (q[0], q[1], q[2]), angle
+        return (q[0]/s, q[1]/s, q[2]/s), angle
+
+Il est possible ensuite de réaliser la transformation via : https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
 
 
 Algorithme à six lasers
