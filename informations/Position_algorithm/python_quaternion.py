@@ -104,6 +104,13 @@ def quaternionRotation(p, q):
     axis, angle = Quaternion2AxisAngle(q)
     return  rotationAxisAngle(p, axis, angle)
 
+def distance(a,b):
+    return sqrt((a[0]-b[0])*(a[0]-b[0]) + (a[1]-b[1])*(a[1]-b[1]) + (a[2]-b[2])*(a[2]-b[2]))
+
+def exportCSV(data, data2, distances):
+    for d in range(0,len(data)):
+        print data[d][0],data[d][1],data[d][2],data2[d][0],data2[d][1],data2[d][2], distances[d]
+
 ### Known values
 # Mesure
 M = 200
@@ -178,10 +185,44 @@ print axis, angle, rad2degf(angle), Laser
 k = rotationAxisAngle(Laser, axis, -angle)
 print k, length(k), length(Laser)
 
+print "--- Quaternion rotation ---"
+q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), deg2radf(yaw), axes="sxyz")
+print rad2deg(list(euler_from_quaternion(q, axes="sxyz")))
+q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), 0, axes="sxyz")
+
+result = list()
+result2 = list()
+distances = list()
+p = (1,1,1)
+v = (1,0,0)
+M = 100
+p2 = (-1,1,1)
+v2 = (1,0,0)
+M2 = 110
+for x in range(-180,181):
+    ro = deg2radf(10)
+    pi = deg2radf(20)
+    qua = quaternion_from_euler(ro, pi, deg2radf(x), axes="sxyz")
+    point = quaternionRotation(p, qua)
+    orientation = quaternionRotation(v, qua)
+    point2 = quaternionRotation(p2, qua)
+    orientation2 = quaternionRotation(v2, qua)
+    pointOnWall = extrapolate(point, orientation, M)
+    pointOnWall2 = extrapolate(point2, orientation2, M2)
+    result.append(pointOnWall)
+    result2.append(pointOnWall2)
+    print distance(pointOnWall, pointOnWall2)
+    #distances.append(distance(pointOnWall, pointOnWall2))
+
+#print result
+#exportCSV(result, result2, distances)
+
+
 
 if(SPEED_TEST_ENABLE):
     print "--- SPEED TESTS ---"
     print "--- Quaternion To Axis Angle Without complete normalization ---"
+    q = quaternion_from_euler(roll, pitch, yaw, axes="sxyz")
     startTimeSlow = time()
     for x in xrange(10000):
         Quaternion2AxisAngle(q)
