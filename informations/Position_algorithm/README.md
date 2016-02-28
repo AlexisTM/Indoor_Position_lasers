@@ -179,7 +179,7 @@ Le vecteur V résultant est :
 
         [ -sin(yaw)*point.y + cos(yaw)*point.x  ]
     V = [  cos(yaw)*point.y + sin(yaw)*point.x  ]
-        [  point.z                          ]
+        [  point.z                              ]
 
 #### Extrapolation selon la mesure, en fonction de yaw
 
@@ -197,7 +197,7 @@ Nous savons que le mur est perpendiculaire au plan XY. Sa normale est donc (-1,0
 
 #### Détermination de yaw
 
-Sachant que l'on a deux lasers, nous avons deux mesures, soit deux plans. Il suffit de les égaler et d'en extraire yaw.
+Sachant que l'on a deux lasers, nous avons deux mesures, soit deux points d'un même plan. Il suffit donc de mettre les équations ensemble pour en extraire le yaw.
 
     (1)  x=k*sin(yaw)*vecY+k*cos(yaw)*vecX-sin(yaw)*pointY+cos(yaw)*pointX
     (2)  x=k2*sin(yaw)*vecY2+k2*cos(yaw)*vecX2-sin(yaw)*pointY2+cos(yaw)*pointX2
@@ -256,6 +256,8 @@ Il est possible ensuite de réaliser la transformation via : https://en.wikipedi
 
 Algorithme à six lasers
 --------------------------
+
+De la même façon que l'on a récupéré le yaw, il est possible d'obtenir le pitch et le roll en ayant 6 lasers et des équations beaucoup plus longues. Cela dit, ce n'est pas nécessaire.
 
 TODO
 
