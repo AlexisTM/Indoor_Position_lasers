@@ -203,9 +203,9 @@ print k, length(k), length(Laser)
 print "--- Quaternion rotation ---"
 
 roll, pitch, yaw = (10,20,17)
-p = (2,5,2)
-v = (3,0,0)
-M = 14.59
+p1 = (2,5,2)
+v1 = (3,0,0)
+M1 = 14.59
 p2 = (2,-5,2)
 v2 = (3,0,0)
 M2 = 11.41
@@ -214,14 +214,14 @@ qua = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), deg2radf(yaw), axes
 print rad2deg(list(euler_from_quaternion(qua, axes="sxyz")))
 qua = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), 0, axes="sxyz")
 
-laser1 = quaternionRotation(p, qua)
-orientation1 = quaternionRotation(v, qua)
+laser1 = quaternionRotation(p1, qua)
+orientation1 = quaternionRotation(v1, qua)
 laser2 = quaternionRotation(p2, qua)
 orientation2 = quaternionRotation(v2, qua)
 
 print "2 Lasers, 2 orientations : ", laser1, laser2, orientation1, orientation2
 
-yawMeasure =  getYaw(laser1, orientation1, M, laser2, orientation2, M2)
+yawMeasure =  getYaw(laser1, orientation1, M1, laser2, orientation2, M2)
 print yawMeasure, rad2degf(yawMeasure)
 # result = list()
 # result2 = list()

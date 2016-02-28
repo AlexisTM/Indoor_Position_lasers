@@ -142,26 +142,77 @@ Il suffit désormais de déterminer la distance au plan du point (0,0,0) afin de
 
     # Cette étape est donc inutile, de par la convention des axes. Cela dit, il est intéressant de la réaliser afin que cet algorithme puisse être utilisé et modifié par d'autres, avec éventuellement un autre système d'axe.
 
-### Améliorations possibles
+### Angle Yaw 
 
-Le problème est qu'on ne récupère pas encore le yaw.
+L'angle Yaw n'est pas fiable, ceci est du à l'application en intérieur, à la haute puissance des moteurs ainsi qu'aux perturbations dues aux masses métalliques. De plus, le yaw est primordial afin de déterminer notre position. C'est pourquoi nous devons le calculer selon les mesures réalisées.
 
-#### Solution 2 : Trouver Yaw
+Afin de le déterminer, nous avons paramétrisé une rotation autour de l'axe Z, et via deux mesures, il est possible de retrouver l'angle yaw. 
 
-Nous trouvons non le point du mur, mais AUSSI le point qui touche le mur sachant qu'il est encore touché par le yaw. (implication de pitch et roll nulle), via deux rotations.
+Mais attention à l'**absence** de convention pour les rotation angulaires en 3D. Ainsi, il y a 24 conventions possibles. Axes statiques, dynamiques, puis l'ordre dans lequel les angles est appliqué. Dans la suite, nous utiliserons principalement la convention "sxyz", axes statiques, appliquer la rotation selon l'axe X, Y puis Z.
 
-L'une par le quaternion inverse => Retour à la position initiale, l'autre par le yaw que l'on trouve dans le quaternion (original), soit le yaw du drone. 
+#### Prérotation des vecteurs
 
--- Là, Nous devrions trouver l'intersection entre le point et la droite qui est la droite passant par le laser avec l'orientation du laser quand il est touché seulement par yaw, afin d'avoir la distance et commencer le calcul du yaw --
+La première chose à faire, afin d'être quitte du pitch et du roll, c'est de réaliser une prérotation de tous les vecteurs et points. Pour ce faire, il faut extraire les angles roll et pitch du quaternion, puis appliquer la rotation autour de X et Y
 
-#### Solution 3 : Axe-Rotation
+    # rotation
+    roll, pitch, yaw = (10,20,17)
+    # données d'origine
+    p1 = (2,5,2)
+    v1 = (3,0,0)
+    M1 = 14.59
+    p2 = (2,-5,2)
+    v2 = (3,0,0)
+    M2 = 11.41
+
+    q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), deg2radf(yaw), axes="sxyz") # simulation d'un quaternion entrant
+    roll, pitch, _ = euler_from_quaternion(q, axes="sxyz") # Récupération du roll & du pitch
+    q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), 0, axes="sxyz") # Regénération du quaternion
+
+    laser1 = rotate(p1, q)
+    laser2 = rotate(p2, q)
+    orientation1 = rotate(v1, q)
+    orientation2 = rotate(v2, q)
+
+#### Application d'une rotation autour de z en fonction de yaw
+
+Le vecteur V résultant est : 
+
+        [ -sin(yaw)*point.y + cos(yaw)*point.x  ]
+    V = [  cos(yaw)*point.y + sin(yaw)*point.x  ]
+        [  point.z                          ]
+
+#### Extrapolation selon la mesure, en fonction de yaw
+
+Dans ce cas-ci, la longueur du vecteur est toujours la même, il n'est pas nécessaire d'y incorporer l'angle Yaw. En effet, la rotation conserve la taille du vecteur.
+
+    k = M / vector.length 
+    C = (k*(X_v) + X_p, k*(Y_v) + Y_p, k*(Z_v) + Z_p)
+
+#### Plans représentant le mur en fonction de yaw
+Nous savons que le mur est perpendiculaire au plan XY. Sa normale est donc (-1,0,0)
+
+    a === ax + by + cz + d = 0 => d === ax + d = 0
+
+    a === -x + M/vector.length*(-sin(yaw)*vector.y + cos(yaw)*vector.x) + -sin(yaw)*point.y + cos(yaw)*point.x) = 0
+
+#### Détermination de yaw
+
+Sachant que l'on a deux lasers, nous avons deux mesures, soit deux plans. Il suffit de les égaler et d'en extraire yaw.
+
+    (1)  x=k*sin(yaw)*vecY+k*cos(yaw)*vecX-sin(yaw)*pointY+cos(yaw)*pointX
+    (2)  x=k2*sin(yaw)*vecY2+k2*cos(yaw)*vecX2-sin(yaw)*pointY2+cos(yaw)*pointX2
+    (1) - (2)  sin(yaw)=-(k*cos(yaw)*vecX+cos(yaw)*pointX-x)/(k*vecY-pointY)
+    => tan(yaw) = (-k2*vecX2+k*vecX+pointX2-pointX)/(-k2*vecY2+k*vecY+pointY2-pointY)
+
+-------
+#### Meilleure visualisation d'une rotation avec Quaternion : Rotation Axe-Rotation
 
 [Source](
 http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm)
 
 Nous représentons les 3 (ou deux) rotations qu'a fait le laser via UNE rotation autour d'un axe. Ainsi, les angles sont facile à corriger (UN SEUL COS) et pouf, on a la réponse.
 
-#### Réalisation
+### Réalisation
 
 Afin de réaliser cette transformation, il faut normaliser le quaternion. Tout comme la normalisation d'un vecteur, il suffit de diviser chaque facteur du quaternion par sa longueur. Ainsi, la racine carrée de la somme des carrés des coéfficients du quaternions vaudra 1. Cela évitera par la suite d'avoir des problèmes pour le calcul de l'angle ou de l'axe.
 
