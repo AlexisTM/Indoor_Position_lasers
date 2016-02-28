@@ -11,7 +11,7 @@ from __future__ import division
 from numpy import dot, pad
 from transformations import *
 from dumb_functions import *
-from math import sqrt, asin, acos, sin, cos
+from math import sqrt, asin, acos, sin, cos, tan, atan, atan2
 from time import time
 
 SPEED_TEST_ENABLE = False
@@ -111,6 +111,21 @@ def exportCSV(data, data2, distances):
     for d in range(0,len(data)):
         print data[d][0],data[d][1],data[d][2],data2[d][0],data2[d][1],data2[d][2], distances[d]
 
+def rotateAboutZ(vector, angle):
+    cost = cos(angle)
+    sint = sin(angle)
+    return (-sint*vector[1] + cost*vector[0], cost*vector[1]+sint*vector[0], vector[2])
+
+
+def getYaw(position1, orientation1, measure1, position2, orientation2, measure2):
+    length1 = length(orientation1)
+    length2 = length(orientation2)
+    k1 = measure1/length1
+    k2 = measure2/length2
+    numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
+    denominator = -k2*orientation2[1] + k1*orientation1[1] + position1[1] - position2[1]
+    return atan(numerator/denominator)
+
 ### Known values
 # Mesure
 M = 200
@@ -186,37 +201,49 @@ k = rotationAxisAngle(Laser, axis, -angle)
 print k, length(k), length(Laser)
 
 print "--- Quaternion rotation ---"
-q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), deg2radf(yaw), axes="sxyz")
-print rad2deg(list(euler_from_quaternion(q, axes="sxyz")))
-q = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), 0, axes="sxyz")
 
-result = list()
-result2 = list()
-distances = list()
-p = (1,1,1)
-v = (1,0,0)
-M = 50
-p2 = (10,10,10)
-v2 = (1,0,0)
-M2 = 55
-for x in range(-180,181):
-    ro = deg2radf(10)
-    pi = deg2radf(20)
-    qua = quaternion_from_euler(ro, pi, deg2radf(x), axes="sxyz")
-    point = quaternionRotation(p, qua)
-    orientation = quaternionRotation(v, qua)
-    point2 = quaternionRotation(p2, qua)
-    orientation2 = quaternionRotation(v2, qua)
-    print point, orientation, M
-    print point2, orientation2, M2
+roll, pitch, yaw = (10,20,17)
+p = (2,5,2)
+v = (3,0,0)
+M = 14.59
+p2 = (2,-5,2)
+v2 = (3,0,0)
+M2 = 11.41
+# Original quaternion
+qua = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), deg2radf(yaw), axes="sxyz")
+print rad2deg(list(euler_from_quaternion(qua, axes="sxyz")))
+qua = quaternion_from_euler(deg2radf(roll), deg2radf(pitch), 0, axes="sxyz")
+
+laser1 = quaternionRotation(p, qua)
+orientation1 = quaternionRotation(v, qua)
+laser2 = quaternionRotation(p2, qua)
+orientation2 = quaternionRotation(v2, qua)
+
+print "2 Lasers, 2 orientations : ", laser1, laser2, orientation1, orientation2
+
+yawMeasure =  getYaw(laser1, orientation1, M, laser2, orientation2, M2)
+print yawMeasure, rad2degf(yawMeasure)
+# result = list()
+# result2 = list()
+# distances = list()
+# for x in range(-180,181):
+#     ro = deg2radf(10)
+#     pi = deg2radf(20)
+#     qua = quaternion_from_euler(ro, pi, deg2radf(x), axes="sxyz")
+#     point = quaternionRotation(p, qua)
+#     orientation = quaternionRotation(v, qua)
+#     point2 = quaternionRotation(p2, qua)
+#     orientation2 = quaternionRotation(v2, qua)
+#     print point, orientation, M
+#     print point2, orientation2, M2
 
 
-    pointOnWall = extrapolate(point, orientation, M)
-    pointOnWall2 = extrapolate(point2, orientation2, M2)
-    result.append(pointOnWall)
-    result2.append(pointOnWall2)
-    print distance(pointOnWall, pointOnWall2), distance(point, point2)
-    #distances.append(distance(pointOnWall, pointOnWall2))
+#     pointOnWall = extrapolate(point, orientation, M)
+#     pointOnWall2 = extrapolate(point2, orientation2, M2)
+#     result.append(pointOnWall)
+#     result2.append(pointOnWall2)
+#     print distance(pointOnWall, pointOnWall2), distance(point, point2)
+#     #distances.append(distance(pointOnWall, pointOnWall2))
 
 #print result
 #exportCSV(result, result2, distances)

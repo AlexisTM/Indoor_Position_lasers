@@ -80,7 +80,7 @@ La fonction rotate(p, q) s'en charge et est capable de réaliser une rotation au
     Lrx1 = rotate(Lx1, q)
     Vrx1 = rotate(Vx1, q)
 
-Une rotation selon un quaternion est lourde en calculs. Cette partie peut donc être optimisée en ne réalisant la rotation que d'un laser et en bougeant les autres points en conséquence.
+Une rotation selon un quaternion est lourde en calculs. Cette partie peut donc être optimisée en ne réalisant la rotation que d'un laser et en bougeant les autres points en conséquence. **NOT IMPLEMENTED AND NOT PLANNED**
 
 NOTE : Nous devons utiliser un tuple pour réaliser la concaténation p = p + (0,). 
 
