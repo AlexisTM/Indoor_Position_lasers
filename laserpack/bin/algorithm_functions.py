@@ -117,11 +117,20 @@ def rotateAboutZ(vector, angle):
     sint = sin(angle)
     return (-sint*vector[1] + cost*vector[0], cost*vector[1]+sint*vector[0], vector[2])
 
-# getYaw 
+# getYawInX 
 # gives the yaw (rotation about Z) from the position and orientation and measure of the lasers IN X
 def getYawInX(position1, orientation1, measure1, position2, orientation2, measure2):
     length1 = length(orientation1)
     length2 = length(orientation2)
+    k1 = measure1/length1
+    k2 = measure2/length2
+    numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
+    denominator = -k2*orientation2[1] + k1*orientation1[1] + position1[1] - position2[1]
+    return atan(numerator/denominator)
+
+# getYawInXL
+# gives the yaw (rotation about Z) from the position and orientation and measure of the lasers IN X
+def getYawInXL(position1, orientation1, measure1, length1, position2, orientation2, measure2, length2):
     k1 = measure1/length1
     k2 = measure2/length2
     numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
