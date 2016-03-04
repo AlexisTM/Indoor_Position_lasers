@@ -7,14 +7,12 @@
 #define LIDAR_OBJECT_H
 
 enum LIDAR_STATE {
-  UNKNOWN,            // Need to be resetted
-  NEED_CONFIGURE,     // 15ms passed, we now configure the Lidar
-  CONFIGURED,          // We configured the laser
-  ACQUISITION_READY, // I started an acquisition, need someone to read it
-  ACQUISITION_DONE,  // I read the data, need to start an acq again
-  NEED_RESET,        // Too much outliers, need to reset
-  WAIT_AFTER_RESET,  // Wait 15ms after you reset the Lidar, we are waiting in this state
-  WAIT_AFTER_RESET_DONE
+  NEED_RESET = 48,        // Too much outliers, need to reset
+  RESET_PENDING = 80,  // Wait 15ms after you reset the Lidar, we are waiting in this state
+  NEED_CONFIGURE = 144,     // 15ms passed, we now configure the Lidar
+  ACQUISITION_READY = 32, // I started an acquisition, need someone to read it
+  ACQUISITION_PENDING = 64,
+  ACQUISITION_DONE = 128  // I read the data, need to start an acq again
 };
 
 class LidarObject {
@@ -31,7 +29,7 @@ class LidarObject {
     void begin(byte _EnablePin = 2, byte _ModePin = 1, byte _Lidar = 0x62, byte _configuration = 2,char _name = 'A'){
       configuration = _configuration;
       address = _Lidar;
-      lidar_state = UNKNOWN;
+      lidar_state = NEED_RESET;
       EnablePin = _EnablePin;
       ModePin = _ModePin;
       name = _name;
@@ -83,27 +81,46 @@ class LidarObject {
     void disable(){
       digitalWrite(ModePin, LOW);
     };
-    
+
+/*******************************************************************************
+  timer_update : Update the timer to the current time to start the timer.
+*******************************************************************************/
     void timer_update(){
       timeReset = micros();
     }
 
+
+/*******************************************************************************
+  check_timer : Check the reset timer to see if the laser is correctly resetted
+
+  The laser takes 20ms to reset
+*******************************************************************************/
     bool check_timer(){
-      if(lidar_state == WAIT_AFTER_RESET_DONE)
+      if(lidar_state != RESET_PENDING)
         return true;
-      if(lidar_state == WAIT_AFTER_RESET){
-        if(micros() - timeReset > 16000) {
-          lidar_state = WAIT_AFTER_RESET_DONE;
-          return true;
+
+      if(micros() - timeReset > 20000) {
+          // 16µS later
+           return true;
+        } else {
+          return false;
         }
-      }
-      return false;
     }
 
-    long timeReset = 0;
+/*******************************************************************************
+  resetNacksCount : The nack counter makes the Arduino able to know if a laser 
+  needs to be resetted
+*******************************************************************************/
+    bool resetNacksCount(){
+      nacksCount = 0;
+    }
+
+    
+    byte nacksCount = 0;
+    unsigned long timeReset = 0;
     byte configuration = 2;
     byte address = 0x62;
-    LIDAR_STATE lidar_state = UNKNOWN;
+    LIDAR_STATE lidar_state = NEED_RESET;
     byte EnablePin = 2;
     byte ModePin = 1;
     char name;
