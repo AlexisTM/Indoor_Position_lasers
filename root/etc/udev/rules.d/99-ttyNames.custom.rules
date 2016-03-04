@@ -1,0 +1,2 @@
+SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="2341", ATTR{idProduct}=="0042", SYMLINK+="ttyLasers"
+SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="1a86", ATTR{idProduct}=="7523", SYMLINK+="ttyLasers340"

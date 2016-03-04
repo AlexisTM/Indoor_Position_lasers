@@ -60,7 +60,7 @@ def raw_lasers_callback(data):
         local_targets = extrapolate(positions[i], orientations[i], raw)
 
 
-
+    # TODO Add an output filter (Kalman filter on positions and yaw)
     msg = PoseStamped()
     msg.pose.position.x = (local_targets[0][0] + local_targets[1][0])/2
     if(laserNumber == 4) :
