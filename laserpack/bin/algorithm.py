@@ -96,6 +96,7 @@ def init():
     global laserNumber
     global orientation_lengths
     global lasers_offsets
+    rospy.init_node('position_algorithm')
     laserNumber = 4
     positions = ((-50,10,20), (50,10,20), (50,-10,20), (-50,-10,20))
     orientations = ((1,0,0), (1,0,0), (0,1,0), (0,0,1))
@@ -115,8 +116,10 @@ def subscribers():
 	
 
 def main():
-
-	pass
+    while not rospy.is_shutdown(): 
+        raw_input("Press anything to quit")
+        # rospy.spin()
+        break
 
 if __name__ == '__main__':
     rospy.loginfo("Position algorithm started")

@@ -7,7 +7,6 @@ This script have every background work functions for the position algorithm
 from __future__ import division
 from numpy import dot, pad, pi
 from transformations import *
-from dumb_functions import *
 from math import sqrt, asin, acos, sin, cos, tan, atan, atan2
 from time import time
 
