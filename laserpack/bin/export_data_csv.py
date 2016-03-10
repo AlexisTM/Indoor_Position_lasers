@@ -7,10 +7,11 @@ This script writes a csv @frequency of laser positions @~100Hz
 import rospy
 import csv
 from time import time
-from std_msgs import Bool
 from laserpack.msg import distance
+from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped
 from transformations import *
+from threading import Thread
 
 def writingCB(data):
     global writing
@@ -49,16 +50,21 @@ def writer():
     global lasers_pose
     global writing
 
-
+    rate = rospy.Rate(10)
+    
     with open('result.csv', 'w') as csvfile:
         data_writer = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         fieldnames = ['time', 'setpoint_x', 'setpoint_y', 'setpoint_z', 'setpoint_yaw', 'local_x', 'local_y', 'local_z', 'local_roll', 'local_pitch', 'local_yaw', 'lasers_x', 'lasers_y', 'lasers_z', 'lasers_yaw', 'raw_x_1', 'raw_x_2', 'raw_y_1', 'raw_y_2','raw_z_1', 'raw_z_2']
         data_writer.writerow(fieldnames)
         initial_time = time()
 
-        while writing:
-            diff_time = time()-initial_time()
-            data_writer.writerow(time(), setpoint, position, lasers_pose, lasers_raw)
+       #while writing:
+        while True:
+	    print 'writing'
+            diff_time = time()-initial_time
+            data_writer.writerow([time()] + setpoint + position + lasers_pose + lasers_raw)
+            rate.sleep()
+	    
 
 
 def subscribers():
@@ -66,7 +72,8 @@ def subscribers():
     local_position      = rospy.Subscriber('mavros/local_position/pose', PoseStamped, positionCB)
     pose_lasers         = rospy.Subscriber('lasers/pose', PoseStamped, lasersposeCB)
     raw_lasers          = rospy.Subscriber('lasers/raw', distance, lasersrawCB)
-    raw_lasers          = rospy.Subscriber('export/csv/writing', Bool, lasersrawCB)
+    writingCB_sub       = rospy.Subscriber('export/csv/writing', Bool, writingCB)
+
 
 def main():
     global setpoint
@@ -74,7 +81,6 @@ def main():
     global lasers_raw
     global lasers_pose
     global writing
-    rospy.init_node('csv_export')
 
     # init global objects
     writing = False
@@ -82,12 +88,16 @@ def main():
     lasers_pose = ['', '', '', '']
     position = ['', '', '', '', '', '',]
     lasers_raw = ['', '', '', '', '', '',]
-
+    
+    listener = Thread(target=writer).start()
+    
+    while not rospy.is_shutdown(): 
+        rospy.spin()
 
 if __name__ == '__main__':
     rospy.loginfo("Data export started")
     try:
-        init()
+	rospy.init_node('csv_export')
         subscribers()
         main()
     except rospy.ROSInterruptException:

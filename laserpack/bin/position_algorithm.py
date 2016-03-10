@@ -11,6 +11,7 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Imu
 from laserpack.msg import distance
 from mavros.utils import *
+from threading import Thread
 
 # Linearity, offset
 # The \ permit the line continuation
