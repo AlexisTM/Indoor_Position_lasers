@@ -33,5 +33,5 @@
 data.txt
 *.html
 *.csv
-
+*.pyc
 data/

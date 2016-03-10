@@ -4,7 +4,7 @@ Kalman.py
 Kalman.py is an implementation of the Kalman filter by Alexis Paques (c) 2016
 """
 
-from __future__ import Division
+from __future__ import division
 
 class Kalman : 
   def __init__(self, _ErrorMeasurement, _ErrorEstimate, _InitialMeasurement, _InitialEstimate = None):
@@ -13,9 +13,11 @@ class Kalman :
     self.InitialMeasurement = _InitialMeasurement
     if(_InitialEstimate == None):
       self.PreviousEstimate = _InitialMeasurement
+    else :
+      self.PreviousEstimate = _InitialEstimate
     
   def next(self, Measurement):
-    KalmanGain = self.ErrorEstimate / (self.ErrorEstimate + self._ErrorMeasurement)
+    KalmanGain = self.ErrorEstimate / (self.ErrorEstimate + self.ErrorMeasurement)
     #This is the new estimation, which will go to the previous estimation
     self.PreviousEstimate = self.PreviousEstimate + KalmanGain * (Measurement - self.PreviousEstimate)
     self.ErrorEstimate = (1-KalmanGain)*(self.ErrorEstimate)
