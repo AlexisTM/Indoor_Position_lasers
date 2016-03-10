@@ -64,13 +64,12 @@ def writer():
         initial_time = time()
 
        #while writing:
-        i = 0
-        while i < 100:
-	    print 'writing'
+	diff_time = 0
+        while diff_time < 600:
             diff_time = time()-initial_time
             data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw)
             rate.sleep()
-            i = i + 1
+	    print diff_time
 	    
 
 

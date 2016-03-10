@@ -25,7 +25,7 @@ import mavros
 import time
 import tf
 import numpy as np
-from laserpack.getch import *
+from getch import *
 from threading import Thread
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Imu
@@ -33,7 +33,6 @@ from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool
 from mavros.utils import *
- 
 from math import *
 
  
@@ -46,22 +45,17 @@ class SetpointPosition:
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
- 
+	self.rate = rospy.Rate(20.0)
         # publisher for mavros/setpoint_position/local
-    local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
-        # subscriber for mavros/local_position/local
-    self.sub = rospy.Subscriber(mavros.get_topic('local_position', 'pose'),
-                                    PoseStamped, self.reached)
- 
-    tnavigate = Thread(target=navigate).start()
+	self.local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
+	    # subscriber for mavros/local_position/local
+	self.sub = rospy.Subscriber('mavros/local_position/pose', PoseStamped, self.reached)
+    
+	tnavigate = Thread(target=self.navigate).start()
 
  
     def navigate(self):
-        
-        global setPointsCount
-        setPointsCount = 0
         #local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
-        rate = rospy.Rate(20.0)
         while not rospy.is_shutdown():
             msg = PoseStamped()
             msg.pose.position.x = self.x
@@ -71,9 +65,8 @@ class SetpointPosition:
             msg.pose.orientation.y = 0.0
             msg.pose.orientation.z = 0.0
             msg.pose.orientation.w = 1.0
-            local_setpoint_pub.publish(msg)
-            rate.sleep()
-            setPointsCount = setPointsCount + 1
+            self.local_setpoint_pub.publish(msg)
+            self.rate.sleep()
  
     def set(self, x, y, z, delay=0, wait=True):
         self.done = False

@@ -7,7 +7,7 @@ import mavros
 import time
 import tf
 import numpy as np
-from laserpack.getch import *
+from getch import *
 from threading import Thread
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Imu
@@ -54,6 +54,8 @@ def IMU_Callback(data):
     imu = data
 
 def InterfaceKeyboard():
+    global xSetPoint
+    global ySetPoint
     global zSetPoint
     global pose
     global imu
@@ -90,10 +92,9 @@ def InterfaceKeyboard():
         imu.orientation.w)
     euler = tf.transformations.euler_from_quaternion(Q)
     
-    rospy.loginfo("Positions sent : %i, Setpoints sent : %i",PositionsCount, setPointsCount )
-    rospy.loginfo("Manual position %s", zPosition)
+    rospy.loginfo("Setpoints sent : %i", setPointsCount )
     rospy.loginfo("Position     is %s", pose.pose.position.z)
-    rospy.loginfo("Setpoint is now %s", zSetPoint)
+    rospy.loginfo("Setpoint is now x:%s, y:%s, z:%s", xSetPoint, ySetPoint, zSetPoint)
     rospy.loginfo("IMU :")
     rospy.loginfo("roll : %s", euler[0])
     rospy.loginfo("pitch : %s", euler[1])
@@ -103,6 +104,8 @@ def InterfaceKeyboard():
 def init(): 
     global state
     global disarm
+    global xSetPoint
+    global ySetPoint
     global zSetPoint
     global setPointsCount
     global PositionsCount
@@ -110,18 +113,13 @@ def init():
     global set_mode_client
     setPointsCount = 0
     PositionsCount = 0
+    xSetPoint = 0
+    ySetPoint = 0
     zSetPoint = 0
     state = State()
     disarm = False
 
     rospy.init_node('laserpack_main')
-
-    rate = rospy.Rate(20.0)
-
-    # On récupère des informations 
-    #   - Pose 
-    #   - Imu 
-    #   - Etat
     
     pose_sub  = rospy.Subscriber('mavros/local_position/pose', PoseStamped, Pose_Callback)
     imu_sub   = rospy.Subscriber('mavros/imu/data', Imu, IMU_Callback)
