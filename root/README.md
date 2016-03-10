@@ -23,7 +23,7 @@ Mettez la liste des fichiers à jour
 
 Installez ROS 
 	
-	sudo apt-get install ros-indigo-desktop-full ros-indigo-mavros ros-indigo-mavros-extras python-rosinstall ros-indigo-rosserial ros-indigo-rosserial-arduino
+	sudo apt-get install ros-indigo-desktop-full ros-indigo-mavros ros-indigo-mavros-extras python-rosinstall ros-indigo-rosserial ros-indigo-rosserial-arduino python-catkin-tools
 
 Cherchez éventuellement des packages additionnels
 
