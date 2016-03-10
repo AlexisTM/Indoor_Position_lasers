@@ -6,6 +6,8 @@ This script writes a csv @frequency of laser positions @~100Hz
 
 import rospy
 import csv
+import tf
+from algorithm_functions import rad2degf
 from time import time
 from laserpack.msg import distance
 from std_msgs.msg import Bool
@@ -35,10 +37,13 @@ def lasersrawCB(data):
 
 def poseStamped2Array(data, RollPitch=False):
     quaternion = (data.pose.orientation.x, data.pose.orientation.y, data.pose.orientation.z, data.pose.orientation.w)
+    
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    
+    
     if RollPitch:
-        return [ str(data.pose.position.x), str(data.pose.position.x), str(data.pose.position.x), str(roll), str(pitch), str(yaw)]
-    return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(yaw)]
+        return [ str(data.pose.position.x), str(data.pose.position.x), str(data.pose.position.x), str(rad2degf(roll)), str(rad2degf(pitch)), str(rad2degf(yaw))]
+    return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(yaw))]
 
 def distance2Array(data):
     return [ str(data[0]), str(data[1]), str(data[2]), str(data[3]), str(data[4]), str(data[5])]
@@ -59,11 +64,13 @@ def writer():
         initial_time = time()
 
        #while writing:
-        while True:
+        i = 0
+        while i < 100:
 	    print 'writing'
             diff_time = time()-initial_time
-            data_writer.writerow([time()] + setpoint + position + lasers_pose + lasers_raw)
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw)
             rate.sleep()
+            i = i + 1
 	    
 
 

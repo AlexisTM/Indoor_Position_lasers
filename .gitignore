@@ -31,6 +31,7 @@
 
 # Custom files
 data.txt
-.html
+*.html
+*.csv
 
 data/
