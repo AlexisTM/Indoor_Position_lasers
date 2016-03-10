@@ -38,7 +38,9 @@ def raw_lasers_callback(data):
     # preCorrectionLasers is TODO
     raw = preCorrectionLasers(data)
 
-    roll, pitch, yaw = euler_from_quaternion(imu.orientation, axes="sxyz")
+    # convert imu to a quaternion tuple
+    quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     q = quaternion_from_euler(roll, pitch, 0, axes="sxyz")
 
     laser1x = quaternionRotation(positions[0], q)
