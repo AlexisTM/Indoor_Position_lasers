@@ -46,7 +46,6 @@ def imu_callback(data):
     global imu
     imu = data
 
-# update lasers
 # Handle lasers
 def raw_lasers_callback(data):
     global raw
@@ -108,7 +107,8 @@ def preCorrectionLasers():
     # TODO Eventual resize data (/100)
     deoffset = list()
     for i in range(laserNumber):
-        deoffset.append(raw.lasers[i]*offset[i][0] + offset[i][1])
+        # Divide by 100 => centimeters to meters
+        deoffset.append((raw.lasers[i]*offset[i][0] + offset[i][1])/100)
     return deoffset
 
 # init should get values of posiion of the lasers
