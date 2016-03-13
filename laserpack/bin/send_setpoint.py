@@ -42,30 +42,7 @@ from mavros_msgs.srv import CommandBool
 from mavros.utils import *
 
 
-def sendSetpoint():
-    global xSetPoint
-    global ySetPoint
-    global zSetPoint
-
-    global setPointsCount
-    setPointsCount = 0
-    local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
-    rate = rospy.Rate(20.0)
-    while not rospy.is_shutdown():
-        msg = PoseStamped()
-        msg.pose.position.x = xSetPoint
-        msg.pose.position.y = ySetPoint
-        msg.pose.position.z = zSetPoint
-        msg.pose.orientation.x = 0.0
-        msg.pose.orientation.y = 0.0
-        msg.pose.orientation.z = 0.0
-        msg.pose.orientation.w = 1.0
-        local_setpoint_pub.publish(msg)
-        setPointsCount = setPointsCount + 1
-        rate.sleep()
-
-
-
+# Callbacks
 def State_Callback(data):
     global state
     state = data
@@ -74,16 +51,54 @@ def Pose_Callback(data):
     global pose
     pose = data
 
-def IMU_Callback(data):
-    global imu
-    imu = data
+def sendSetpoint():
+    global xSetPoint
+    global ySetPoint
+    global zSetPoint
+    global setPointsCount
+    setPointsCount = 0
+    local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
+    rate = rospy.Rate(20.0)
+    while not rospy.is_shutdown():
+        msg = PoseStamped()
+        msg.pose.position.x = float(xSetPoint)
+        msg.pose.position.y = float(ySetPoint)
+        msg.pose.position.z = float(zSetPoint)
+        msg.pose.orientation.x = 0.0
+        msg.pose.orientation.y = 0.0
+        msg.pose.orientation.z = 0.0
+        msg.pose.orientation.w = 1.0
+        local_setpoint_pub.publish(msg)
+        setPointsCount = setPointsCount + 1
+        rate.sleep()
+
+# In case of use
+def sendPosition():
+    global xPosition
+    global yPosition
+    global zPosition
+    global PositionsCount
+    #local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=10)
+    local_pos_pub   = rospy.Publisher('mavros/vision_pose/pose', PoseStamped, queue_size=10)
+    rate = rospy.Rate(20.0)
+    while not rospy.is_shutdown():
+        msg = PoseStamped()
+        msg.pose.position.x = float(xPosition)
+        msg.pose.position.y = float(yPosition)
+        msg.pose.position.z = float(zPosition)
+        msg.pose.orientation.x = 0.0
+        msg.pose.orientation.y = 0.0
+        msg.pose.orientation.z = 0.0
+        msg.pose.orientation.w = 1.0
+        local_pos_pub.publish(msg)
+        rate.sleep()
+        PositionsCount = PositionsCount+ 1
 
 def InterfaceKeyboard():
     global xSetPoint
     global ySetPoint
     global zSetPoint
     global pose
-    global imu
     global disarm
     global arming_client
     global set_mode_client
@@ -111,10 +126,10 @@ def InterfaceKeyboard():
         exit()
 
     Q = (
-        imu.orientation.x,
-        imu.orientation.y,
-        imu.orientation.z,
-        imu.orientation.w)
+        pose.pose.orientation.x,
+        pose.pose.orientation.y,
+        pose.pose.orientation.z,
+        pose.pose.orientation.w)
     euler = tf.transformations.euler_from_quaternion(Q)
     
     rospy.loginfo("Setpoints sent : %i", setPointsCount )
@@ -147,7 +162,6 @@ def init():
     rospy.init_node('laserpack_main')
     
     pose_sub  = rospy.Subscriber('mavros/local_position/pose', PoseStamped, Pose_Callback)
-    imu_sub   = rospy.Subscriber('mavros/imu/data', Imu, IMU_Callback)
     state_sub = rospy.Subscriber('mavros/state', State, State_Callback)
     rospy.wait_for_service('mavros/cmd/arming')
     arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
