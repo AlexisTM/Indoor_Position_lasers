@@ -61,8 +61,8 @@ def sendSetpoint():
         msg.pose.orientation.z = 0.0
         msg.pose.orientation.w = 1.0
         local_setpoint_pub.publish(msg)
-        rate.sleep()
         setPointsCount = setPointsCount + 1
+        rate.sleep()
 
 
 

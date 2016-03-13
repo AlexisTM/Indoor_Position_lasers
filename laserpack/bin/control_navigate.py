@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-file.py
+control_navigate.py
 
-description
-
-This file is part of ILPS (Indoor Laser Positioning System).
-
+This script sends positions to control the UAV in X, Y, Z, using 
+the setpoint class with navigate function
+ 
 ILPS is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -24,19 +23,26 @@ Software created by Alexis Paques and Nabil Nehri for the UCL
 in a Drone-Based Additive Manufacturing of Architectural Structures 
 project financed by the MIT Seed Fund
 
-Originaly created by Vladimir Ermakov (c) 2015
+Originaly published by Vladimir Ermakov (c) 2015 under GNU GPLv3
 Copyright (c) Alexis Paques 2016
+Copyright (c) Nabil Nehri 2016
 """
-import rospy
-import thread
-import threading
-import time
-import mavros
  
-from math import *
+import rospy
+import mavros
+import time
+import tf
+import numpy as np
+from getch import *
+from threading import Thread
+from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import Imu
+from mavros_msgs.srv import SetMode
+from mavros_msgs.msg import State
+from mavros_msgs.srv import CommandBool
 from mavros.utils import *
-from mavros import setpoint as SP
-from tf.transformations import quaternion_from_euler
+from math import *
+
  
  
 class SetpointPosition:
@@ -47,44 +53,28 @@ class SetpointPosition:
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
- 
+	self.rate = rospy.Rate(20.0)
         # publisher for mavros/setpoint_position/local
-        self.pub = SP.get_pub_position_local(queue_size=10)
-        # subscriber for mavros/local_position/local
-        self.sub = rospy.Subscriber(mavros.get_topic('local_position', 'pose'),
-                                    SP.PoseStamped, self.reached)
- 
-        try:
-            thread.start_new_thread(self.navigate, ())
-        except:
-            fault("Error: Unable to start thread")
- 
-        # TODO(simon): Clean this up.
-        self.done = False
-        self.done_evt = threading.Event()
+	self.local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
+	    # subscriber for mavros/local_position/local
+	self.sub = rospy.Subscriber('mavros/local_position/pose', PoseStamped, self.reached)
+    
+	tnavigate = Thread(target=self.navigate).start()
+
  
     def navigate(self):
-        rate = rospy.Rate(10)   # 10hz
- 
-        msg = SP.PoseStamped(
-            header=SP.Header(
-                frame_id="base_footprint",  # no matter, plugin don't use TF
-                stamp=rospy.Time.now()),    # stamp should update
-        )
- 
+        #local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
         while not rospy.is_shutdown():
+            msg = PoseStamped()
             msg.pose.position.x = self.x
             msg.pose.position.y = self.y
             msg.pose.position.z = self.z
- 
-            # For demo purposes we will lock yaw/heading to north.
-            yaw_degrees = 0  # North
-            yaw = radians(yaw_degrees)
-            quaternion = quaternion_from_euler(0, 0, yaw)
-            msg.pose.orientation = SP.Quaternion(*quaternion)
- 
-            self.pub.publish(msg)
-            rate.sleep()
+            msg.pose.orientation.x = 0.0
+            msg.pose.orientation.y = 0.0
+            msg.pose.orientation.z = 0.0
+            msg.pose.orientation.w = 1.0
+            self.local_setpoint_pub.publish(msg)
+            self.rate.sleep()
  
     def set(self, x, y, z, delay=0, wait=True):
         self.done = False
@@ -109,28 +99,39 @@ class SetpointPosition:
            is_near('Y', topic.pose.position.y, self.y) and \
            is_near('Z', topic.pose.position.z, self.z):
             self.done = True
-            self.done_evt.set()
  
  
 def setpoint_demo():
+    global state
+    global disarm
+    global arming_client
+    global set_mode_client
+    state = State()
+    disarm = False
+
     rospy.init_node('setpoint_position_demo')
     mavros.set_namespace()  # initialize mavros module with default namespace
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(10.0)
+
+    rospy.wait_for_service('mavros/cmd/arming')
+    arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
+    #rospy.wait_for_service('mavros/set_mode')
+    #set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
  
     setpoint = SetpointPosition()
  
     rospy.loginfo("Climb")
-    setpoint.set(0.0, 0.0, 1.0, 0)
-    #setpoint.set(0.0, 0.0, 10.0, 0)
+    setpoint.set(0.0, 0.0, 3.0, 0)
+    setpoint.set(0.0, 0.0, 10.0, 5)
  
-    #rospy.loginfo("Sink")
-    #setpoint.set(0.0, 0.0, 8.0, 0)
+    rospy.loginfo("Sink")
+    setpoint.set(0.0, 0.0, 8.0, 5)
  
-    #rospy.loginfo("Fly to the right")
-    #setpoint.set(10.0, 4.0, 8.0, 5)
+    rospy.loginfo("Fly to the right")
+    setpoint.set(10.0, 4.0, 8.0, 5)
  
-    #rospy.loginfo("Fly to the left")
-    #setpoint.set(0.0, 0.0, 8.0, 5)
+    rospy.loginfo("Fly to the left")
+    setpoint.set(0.0, 0.0, 8.0, 5)
  
     offset_x = 0.0
     offset_y = 0.0
@@ -139,7 +140,7 @@ def setpoint_demo():
     radius = 20
  
     rospy.loginfo("Fly in a circle")
-    #setpoint.set(0.0, 0.0, 10.0, 3)   # Climb to the starting height first
+    setpoint.set(0.0, 0.0, 10.0, 3)   # Climb to the starting height first
     i = 0
     while not rospy.is_shutdown():
         x = radius * cos(i * 2 * pi / sides) + offset_x
@@ -153,23 +154,23 @@ def setpoint_demo():
             wait = True
             delay = 5
  
-        #setpoint.set(x, y, z, delay, wait)
+        setpoint.set(x, y, z, delay, wait)
  
         i = i + 1
         rate.sleep()
  
         if (i > sides):
             rospy.loginfo("Fly home")
-            #setpoint.set(0.0, 0.0, 10.0, 5)
+            setpoint.set(0.0, 0.0, 10.0, 5)
             break
  
     # Simulate a slow landing.
-    #setpoint.set(0.0, 0.0,  8.0, 5)
-    #setpoint.set(0.0, 0.0,  3.0, 5)
-   # setpoint.set(0.0, 0.0,  2.0, 2)
-    #setpoint.set(0.0, 0.0,  1.0, 2)
-    #setpoint.set(0.0, 0.0,  0.0, 2)
-    #setpoint.set(0.0, 0.0, -0.2, 2)
+    setpoint.set(0.0, 0.0,  8.0, 5)
+    setpoint.set(0.0, 0.0,  3.0, 5)
+    setpoint.set(0.0, 0.0,  2.0, 2)
+    setpoint.set(0.0, 0.0,  1.0, 2)
+    setpoint.set(0.0, 0.0,  0.0, 2)
+    setpoint.set(0.0, 0.0, -0.2, 2)
  
     rospy.loginfo("Bye!")
  

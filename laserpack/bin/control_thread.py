@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-pixhawk_control.py
+control_thread.py
 
-PixHawk_control is a way to send the position and setpoints to the 
-PixHawk to test in Gazebo or in real life
+This script sends positions to control the UAV in X, Y, Z using a 
+simple thread
 
 This file is part of ILPS (Indoor Laser Positioning System).
 
