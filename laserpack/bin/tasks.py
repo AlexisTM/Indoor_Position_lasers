@@ -30,6 +30,7 @@ Copyright (c) Alexis Paques 2016
 import rospy
 import time
 from math import fabs
+from threading import Thread
 from geometry_msgs.msg import PoseStamped, Quaternion
 from transformations import *
 from sensor_msgs.msg import Imu
@@ -38,25 +39,47 @@ from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool
 
 class UAV:
-    def __init__(self):
+    def __init__(self, setpoint_rate=10):
         self.state = State()
         self.position = (0,0,0)
         self.yaw = 0
-        self.poseSub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.positionCB)
-        self.stateSub = rospy.Subscriber('mavros/state', State, self.stateCB)
+        self.position_subscriber = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.position_callback)
+        self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
         rospy.wait_for_service('mavros/cmd/arming')
         self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
         rospy.wait_for_service('mavros/set_mode')
         self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
+        self.setpoint_init()
+        self.setpoint_rate = rospy.Rate(setpoint_rate)
+        self.setpoint_publisher = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=2)
+        self.setpoint_subscriber = rospy.Subscriber('/UAV/Setpoint', PoseStamped, self.setpoint_callback)
+        self.setpoint_thread = Thread(target=self.setpoint_sender).start()
 
-    def positionCB(self, topic):
+    def setpoint_init(self):
+        self.setpoint = PoseStamped()
+        self.setpoint.pose.position.x = 0
+        self.setpoint.pose.position.y = 0
+        self.setpoint.pose.position.z = 0
+        self.setpoint.pose.orientation.x = 0
+        self.setpoint.pose.orientation.y = 0
+        self.setpoint.pose.orientation.z = 0
+        self.setpoint.pose.orientation.w = 0
+
+    def position_callback(self, topic):
         self.position = (topic.pose.position.x, topic.pose.position.y, topic.pose.position.z)
         q = (topic.pose.orientation.x, topic.pose.orientation.y, topic.pose.orientation.z, topic.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
         self.yaw = yaw
 
-    def stateCB(self, state):
+    def state_callback(self, state):
         self.state = state
+
+    def setpoint_callback(self, setpoint):
+        self.setpoint = setpoint
+
+    def setpoint_sender(self):
+        self.setpoint_publisher.publish(self.setpoint)
+        self.setpoint_rate.sleep()
 
     def arm(self, arming_state):
         self.arming_client(arming_state)
@@ -65,14 +88,16 @@ class UAV:
         self.set_mode_client(custom_mode = "OFFBOARD")
 
 
+
+
 class taskController:
     """ The task controller handle a list with every tasks """
-    def __init__(self, rate = 10):
+    def __init__(self, rate=10, setpoint_rate=10):
         self.tasks = list()
         self.count = 0
         self.current = 0
         self.setRate(rate)
-        self.UAV = UAV()
+        self.UAV = UAV(setpoint_rate=setpoint_rate)
 	    
 
     def __str__(self):
@@ -119,7 +144,6 @@ class taskController:
 
         print self.current, self.count
         return 
-
 
 class task:
     """The Task class defines a class & the needed methods to 

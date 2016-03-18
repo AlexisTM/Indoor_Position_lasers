@@ -31,23 +31,77 @@ Copyright (c) Nabil Nehri 2016
 import rospy
 import mavros
 import time
-import tf
-import numpy as np
 from getch import *
 from threading import Thread
 from geometry_msgs.msg import PoseStamped
-from sensor_msgs.msg import Imu
-from mavros_msgs.srv import SetMode
-from mavros_msgs.msg import State
-from mavros_msgs.srv import CommandBool
 from mavros.utils import *
+from tasks import *
+import sys
 
 
-# Callbacks
-def State_Callback(data):
-    global state
-    state = data
+def interface_getch():
+    global xPosition
+    global yPosition
+    global zPosition
+    global Controller
+    global stop
 
-def Pose_Callback(data):
-    global pose
-    pose = data
+    what = getch()
+
+    if what == "z":
+        xPosition = xPosition + 0.1
+    if what == "s":
+        xPosition = xPosition - 0.1
+    if what == "q":
+        yPosition = yPosition + 0.1
+    if what == "d":
+        yPosition = yPosition - 0.1
+    if what == "u":
+        zPosition = zPosition + 0.1
+    if what == "j":
+        zPosition = zPosition - 0.1
+    if what == "m":
+        stop = True
+        sys.exit("SHUTDOWN")
+
+def main():
+    do_job_thread = Thread(target=do_job).start()
+    while not rospy.is_shutdown(): 
+        interface_getch()
+
+
+def do_job():
+    global Controller
+    global stop
+    while not stop :
+        Controller.rate.sleep()
+        Controller.spinOnce()
+
+def task_feeder():
+    global Controller
+
+    Controller.addTask(init_UAV("Init", timeout=1))
+    Controller.addTask(target("Position1", 1,1,1,0))
+    Controller.addTask(loiter("WaitABit", 10))
+    Controller.addTask(target("ComeBack", 0.5, 0.5, 0.5, 0))
+
+def init(): 
+    global xPosition
+    global yPosition
+    global zPosition
+    global Controller
+    global stop=False
+
+    xPosition, yPosition, zPosition = (0,0,0)
+    rospy.init_node('laserpack_control')
+    Controller = taskController(rate=3, setpoint_rate=10)
+
+if __name__ == '__main__':
+    rospy.loginfo("We are ready")
+    try:
+        init()
+        task_feeder()
+        main()
+    except rospy.ROSInterruptException:
+        rospy.loginfo("init failed")
+        pass
