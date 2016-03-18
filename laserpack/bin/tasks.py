@@ -88,8 +88,7 @@ class taskController:
     def addTasks(self, tasks):
         for task in tasks:
             self.tasks.append(task)
-
-        self.count += len()
+        self.count += len(tasks)
 
     def getTasks(self):
         return self.tasks
@@ -151,7 +150,7 @@ class task:
 class target(task, object):
     """The target class is a task. It says to the UAV to go to 
     the target""" 
-    def __init__(self, name, x, y, z, yaw, precisionXY = 5, precisionZ = 5, precisionYAW = 1):
+    def __init__(self, name, x, y, z, yaw, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
         super(target, self).__init__("target", name)
         self.target       = (x,y,z)
         self.orientation  = yaw
@@ -168,12 +167,15 @@ class target(task, object):
     def run(self, UAV):
         # Send the position once to the SENDER thread then only check if arrived 
         if not(self.sent) :
-            self.sender = rospy.Publisher('/UAV/Setpoint', PoseStamped, queue_size=1)
-            msg = SP.PoseStamped()
+            sender = rospy.Publisher('/UAV/Setpoint', PoseStamped, queue_size=1)
+            msg = PoseStamped()
             msg.pose.position.x = self.target[0]
             msg.pose.position.y = self.target[1]
             msg.pose.position.z = self.target[2]
-            msg.pose.orientation = Quaternion(quaternion_from_euler(0, 0, yaw, axes="sxyz"))
+            msg.pose.orientation.x = self.quaternion[0]
+            msg.pose.orientation.y = self.quaternion[1]
+            msg.pose.orientation.z = self.quaternion[2]
+            msg.pose.orientation.w = self.quaternion[3]
             sender.publish(msg)
             self.sent = True
         
@@ -273,17 +275,19 @@ class init_UAV(task, object):
     def __init__(self, name, timeout = 1):
         self.timeout = rospy.Rate(1.0/timeout)
         self.last = None
-        super(test, self).__init__("test", name)
+        super(init_UAV, self).__init__("INIT_UAV", name)
 
     def __str__(self):
         return super(test, self).__str__()
 
     def run(self, UAV):
-        UAV.arm()
-        timeout.sleep()
-        UAV.set_offboard()
-        timeout.sleep()
-        self.isDone(UAV)
+        if not UAV.state.armed :
+            UAV.arm(True)
+        self.timeout.sleep()
+        if not (UAV.state.mode == "OFFBOARD" or UAV.state.mode == "AUTO.LAND"):
+            UAV.set_offboard()
+        self.timeout.sleep()
+        return self.isDone(UAV)
 
     def isDone(self, UAV):
-        return UAV.state.armed && UAV.state.mode == "OFFBOARD"
+        return UAV.state.armed and ( UAV.state.mode == "OFFBOARD" or UAV.state.mode == "AUTO.LAND")
