@@ -31,6 +31,10 @@ import time
 from math import fabs
 from geometry_msgs.msg import PoseStamped, Quaternion
 from transformations import *
+from sensor_msgs.msg import Imu
+from mavros_msgs.srv import SetMode
+from mavros_msgs.msg import State
+from mavros_msgs.srv import CommandBool
 
 
 class taskController:
@@ -42,8 +46,22 @@ class taskController:
         self.setRate(rate)
         self.UAV = (0,0,0)
         self.yaw = 0
-        self.sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.updatePosition)
+        self.state = State()
+	    
+        rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.updatePosition)
+	# self.pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=2)
+        rospy.Subscriber('mavros/state', State, self.stateCB)
+        rospy.wait_for_service('mavros/cmd/arming')
+        self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
+        rospy.wait_for_service('mavros/set_mode')
+        self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
+      
 
+    def stateCB(self, data):
+        self.state = data
+
+    def getState(self):
+        return self.state
 
     def updatePosition(self, topic):
         self.UAV = (topic.pose.position.x, topic.pose.position.y, topic.pose.position.z)
@@ -95,7 +113,7 @@ class taskController:
         return 
 
 
-cl ass task:
+class task:
     """The Task class defines a class & the needed methods to 
     be compatible with the taskController"""
     def __init__(self, Type, name):
@@ -212,6 +230,32 @@ class loiter(task, object):
 
 
 class test(task, object):
+    """The test class is a task. It is just a testing task"""
+    def __init__(self, name, waitTime):
+        super(test, self).__init__("test", name)
+        self.waitTime = waitTime
+        self.last = None
+
+    def __str__(self):
+        return super(test, self).__str__()
+
+    def run(self, UAV, yaw):
+        if(self.last == None):
+            self.last = time.time()
+            print("first time")
+        return self.isDone()
+
+    def isDone(self):
+        now = time.time()
+        print(now - self.last)
+        if(now - self.last > self.waitTime):
+            print("done")
+            return True
+        else :
+            print("waiting")
+            return False
+        
+class arming_client(task, object):
     """The test class is a task. It is just a testing task"""
     def __init__(self, name, waitTime):
         super(test, self).__init__("test", name)
