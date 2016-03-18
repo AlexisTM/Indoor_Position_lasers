@@ -120,13 +120,20 @@ def init():
     global lasers_offsets
     rospy.init_node('position_algorithm')
     laserNumber = 4
-    positions = ((-50,10,20), (50,10,20), (50,-10,20), (-50,-10,20))
-    orientations = ((1,0,0), (1,0,0), (0,1,0), (0,0,1))
-    orientation_lengths = (length(orientations[0]), length(orientations[1]), length(orientations[2]), length(orientations[3]))
-    lasers_offsets =   [[1,-4.45], \
-                        [1,-1.489], \
-                        [1,0], \
-                        [1,0]]
+    positions = ((-15,-21,-4),       \
+                 (7,20,-4),          \
+                 (-31,-2,-4),        \
+                 (32,-2,-4),         \
+                 (-13,-21,-7.5),     \
+                 (10,20,-7.5))
+    orientations = ((1,0,0), (1,0,0), (0,1,0), (0,1,0), (0,0,1), (0,0,1))
+    orientation_lengths = (length(orientations[0]), length(orientations[1]), length(orientations[2]), length(orientations[3]), length(orientations[4]), length(orientations[5]))
+    lasers_offsets =   ((1,-4.45), \
+                        (1,-1.489), \
+                        (1,0), \
+                        (1,0), \
+                        (1,0), \
+                        (1,0))
 	
 
 # listerners listen to ROS
@@ -152,3 +159,4 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException:
         rospy.loginfo("init failed")
         pass
+
