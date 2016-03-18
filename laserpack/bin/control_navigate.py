@@ -53,13 +53,12 @@ class SetpointPosition:
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
-	self.rate = rospy.Rate(20.0)
-        # publisher for mavros/setpoint_position/local
-	self.local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
-	    # subscriber for mavros/local_position/local
-	self.sub = rospy.Subscriber('mavros/local_position/pose', PoseStamped, self.reached)
-    
-	tnavigate = Thread(target=self.navigate).start()
+        self.rate = rospy.Rate(20.0)
+            # publisher for mavros/setpoint_position/local
+        self.local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
+            # subscriber for mavros/local_position/local
+        self.sub = rospy.Subscriber('mavros/local_position/pose', PoseStamped, self.reached)
+        tnavigate = Thread(target=self.navigate).start()
 
  
     def navigate(self):
