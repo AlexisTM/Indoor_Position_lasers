@@ -299,7 +299,10 @@ class LidarController {
     *******************************************************************************/
     void spinOnce() {
       // Handling routine
-      for (int8_t i = count - 1; i >= 0; i--) {
+      
+      
+      //for (int8_t i = count - 1; i >= 0; i--) {
+      for(uint8_t i = 0; i<count; i++){
 #if PRINT_DEBUG_INFO
         Serial.print("Laser ");
         Serial.print(i);  

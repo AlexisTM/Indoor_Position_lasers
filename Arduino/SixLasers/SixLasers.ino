@@ -2,38 +2,32 @@
 #include "LidarController.h"
 #include "I2CFunctions.h"
 
-// Only if multiple UART port board
-//#define USE_USBCON
-#include <ros.h>
-#include <laserpack/distance.h>
-//#include <laserpack/init.h>
-
 #include <Wire.h>
 #define WIRE400K true
 /*** Defines : CONFIGURATION ***/
 // Defines laser ready data
-#define Z1_LASER_PIN 10
+#define Z1_LASER_PIN 11
 #define Z2_LASER_PIN 8
-#define Z3_LASER_PIN 6
-#define Z4_LASER_PIN 4
-#define Z5_LASER_PIN 2
-#define Z6_LASER_PIN 12
+#define Z3_LASER_PIN 5
+#define Z4_LASER_PIN 2
+#define Z5_LASER_PIN 16
+#define Z6_LASER_PIN 19
 // Defines power enable lines of laser
-#define Z1_LASER_EN 11
+#define Z1_LASER_EN 12
 #define Z2_LASER_EN 9
-#define Z3_LASER_EN 7
-#define Z4_LASER_EN 5
-#define Z5_LASER_EN 3
-#define Z6_LASER_EN 1
+#define Z3_LASER_EN 6
+#define Z4_LASER_EN 3
+#define Z5_LASER_EN 15
+#define Z6_LASER_EN 18
 //Define address of lasers
 //Thoses are written during initialisation
 // default address : 0x62
-#define Z1_LASER_AD 0x64
+#define Z1_LASER_AD 0x6E
 #define Z2_LASER_AD 0x66
 #define Z3_LASER_AD 0x68
 #define Z4_LASER_AD 0x6A
 #define Z5_LASER_AD 0x6C
-#define Z6_LASER_AD 0x6E
+#define Z6_LASER_AD 0x64
 
 #define NUMBER_OF_LASERS 6
 
@@ -53,14 +47,8 @@ static LidarObject LZ4;
 static LidarObject LZ5;
 static LidarObject LZ6;
 
-// rate controller
+// Delays
 long now, last;
-
-
-// ROS communication
-ros::NodeHandle nh;
-laserpack::distance   distance_msg;
-ros::Publisher distpub("/lasers/raw", &distance_msg);
 
 void beginLidars() {
   // Initialisation of the lidars objects
@@ -82,35 +70,29 @@ void beginLidars() {
   Controller.add(&LZ6, 5);
 }
 
-void beginROSComm(){
-  nh.initNode();
-  nh.advertise(distpub);
-  pinMode(13, OUTPUT);
-}
-
 void setup() {
   Serial.begin(57600);
   while (!Serial);
   beginLidars();
-  beginROSComm();
   last = micros();
 }
 
-void laserPublish(){
-  distance_msg.lasers_length = 6;
-  distance_msg.status_length = 6;
-  distance_msg.lasers = Controller.distances;
-  distance_msg.status = Controller.statuses;
- 
-  distpub.publish( &distance_msg );
-}
-
 void loop() {
-  nh.spinOnce();
   Controller.spinOnce();
   now = micros();
   if(now - last > DELAY_SEND_MICROS){
     last = micros();
-    laserPublish();
+    
+    laserprint();
   } 
+}
+
+void laserprint(){
+  for(byte i = 0; i < 6; i++){
+    Serial.print(i);
+    Serial.print(" - ");
+    Serial.print(Controller.distances[i]);
+    Serial.print(" - ");
+    Serial.println(Controller.statuses[i]);
+  }
 }
