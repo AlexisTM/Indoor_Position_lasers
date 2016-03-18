@@ -26,6 +26,7 @@ project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
 """
+
 import rospy
 import time
 from math import fabs
@@ -36,6 +37,33 @@ from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool
 
+class UAV:
+    def __init__(self):
+        self.state = State()
+        self.position = (0,0,0)
+        self.yaw = 0
+        self.poseSub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.positionCB)
+        self.stateSub = rospy.Subscriber('mavros/state', State, self.stateCB)
+        rospy.wait_for_service('mavros/cmd/arming')
+        self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
+        rospy.wait_for_service('mavros/set_mode')
+        self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
+
+    def positionCB(self, topic):
+        self.position = (topic.pose.position.x, topic.pose.position.y, topic.pose.position.z)
+        q = (topic.pose.orientation.x, topic.pose.orientation.y, topic.pose.orientation.z, topic.pose.orientation.w)
+        _, _, yaw = euler_from_quaternion(q, axes="sxyz")
+        self.yaw = yaw
+
+    def stateCB(self, state):
+        self.state = state
+
+    def arm(self, arming_state):
+        self.arming_client(arming_state)
+
+    def set_offboard(self):
+        self.set_mode_client(custom_mode = "OFFBOARD")
+
 
 class taskController:
     """ The task controller handle a list with every tasks """
@@ -44,29 +72,8 @@ class taskController:
         self.count = 0
         self.current = 0
         self.setRate(rate)
-        self.UAV = (0,0,0)
-        self.yaw = 0
-        self.state = State()
+        self.UAV = UAV()
 	    
-        rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.updatePosition)
-	# self.pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=2)
-        rospy.Subscriber('mavros/state', State, self.stateCB)
-        rospy.wait_for_service('mavros/cmd/arming')
-        self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
-        rospy.wait_for_service('mavros/set_mode')
-        self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
-      
-
-    def stateCB(self, data):
-        self.state = data
-
-    def getState(self):
-        return self.state
-
-    def updatePosition(self, topic):
-        self.UAV = (topic.pose.position.x, topic.pose.position.y, topic.pose.position.z)
-        _, _, yaw = euler_from_quaternion(topic.pose.orientation, axes="sxyz")
-        self.yaw = yaw
 
     def __str__(self):
         controller_string = "Task Controller :\n"
@@ -81,6 +88,8 @@ class taskController:
     def addTasks(self, tasks):
         for task in tasks:
             self.tasks.append(task)
+
+        self.count += len()
 
     def getTasks(self):
         return self.tasks
@@ -104,7 +113,7 @@ class taskController:
     def spinOnce(self):
         if self.current < self.count :
             task = self.tasks[self.current]
-            result = task.run(self.UAV, self.yaw)
+            result = task.run(self.UAV)
             print result
             if result: # returns True if done
                 self.current = self.current + 1
@@ -126,7 +135,7 @@ class task:
         # return True if done, False if not done
         return True
        
-    def run(self, UAV, yaw):
+    def run(self, UAV):
        
         # do something then return isDone
         return self.isDone()
@@ -156,7 +165,7 @@ class target(task, object):
         return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
 
 
-    def run(self, UAV, yaw):
+    def run(self, UAV):
         # Send the position once to the SENDER thread then only check if arrived 
         if not(self.sent) :
             self.sender = rospy.Publisher('/UAV/Setpoint', PoseStamped, queue_size=1)
@@ -168,20 +177,20 @@ class target(task, object):
             sender.publish(msg)
             self.sent = True
         
-        return self.isDone(UAV, yaw)
+        return self.isDone(UAV)
 
-    def isDone(self, UAV, yaw):
+    def isDone(self, UAV):
         """ Method to know if the UAV arrived at his position or not
 
         Better solution for more complex surfaces : 
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
-        if(fabs(UAV[0] - self.target[0]) > self.precisionXY):
+        if(fabs(UAV.position[0] - self.target[0]) > self.precisionXY):
             return False
-        if(fabs(UAV[1] - self.target[1]) > self.precisionXY):
+        if(fabs(UAV.position[1] - self.target[1]) > self.precisionXY):
             return False
-        if(fabs(UAV[2] - self.target[2]) > self.precisionZ):
+        if(fabs(UAV.position[2] - self.target[2]) > self.precisionZ):
             return False
-        if(fabs(yaw - self.yaw) > self.precisionYAW):
+        if(fabs(UAV.yaw - self.yaw) > self.precisionYAW):
             return False
         # it is done
         return True
@@ -198,7 +207,7 @@ class grab(task, object):
     def __str__(self):
         return super(grab, self).__str__()
 
-    def run(self, UAV, yaw):
+    def run(self, UAV):
         return self.isDone()
 
     def isDone(self):
@@ -206,29 +215,28 @@ class grab(task, object):
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
         return True
 
+# Sleeping the right time
 class loiter(task, object):
     """The loiter class is a task. It is just a waiting task"""
     def __init__(self, name, waitTime):
-        super(loiter, self).__init__("loiter", name)
-        self.waitTime = waitTime
+        self.waitTime = rospy.Rate(1.0/waitTime)
         self.last = None
+        super(loiter, self).__init__("loiter", name)
 
     def __str__(self):
         return super(loiter, self).__str__()
 
-    def run(self, UAV, yaw):
+    def run(self, UAV):
         if(self.last == None):
             self.last = time.time()
         return self.isDone()
 
     def isDone(self):
-        now = time.time()
-        if(now - self.last > self.waitTime):
-            return True
-        else :
-            return False
+        waitTime.sleep()
+        return True
 
 
+# Waiting testing time 
 class test(task, object):
     """The test class is a task. It is just a testing task"""
     def __init__(self, name, waitTime):
@@ -239,7 +247,7 @@ class test(task, object):
     def __str__(self):
         return super(test, self).__str__()
 
-    def run(self, UAV, yaw):
+    def run(self, UAV):
         if(self.last == None):
             self.last = time.time()
             print("first time")
@@ -248,6 +256,10 @@ class test(task, object):
     def isDone(self):
         now = time.time()
         print(now - self.last)
+
+        #Simplify by using : 
+        # return (now - self.last) > self.waitTime
+
         if(now - self.last > self.waitTime):
             print("done")
             return True
@@ -255,28 +267,23 @@ class test(task, object):
             print("waiting")
             return False
         
-class arming_client(task, object):
+# Arm the pixHawk
+class init_UAV(task, object):
     """The test class is a task. It is just a testing task"""
-    def __init__(self, name, waitTime):
-        super(test, self).__init__("test", name)
-        self.waitTime = waitTime
+    def __init__(self, name, timeout = 1):
+        self.timeout = rospy.Rate(1.0/timeout)
         self.last = None
+        super(test, self).__init__("test", name)
 
     def __str__(self):
         return super(test, self).__str__()
 
-    def run(self, UAV, yaw):
-        if(self.last == None):
-            self.last = time.time()
-            print("first time")
-        return self.isDone()
+    def run(self, UAV):
+        UAV.arm()
+        timeout.sleep()
+        UAV.set_offboard()
+        timeout.sleep()
+        self.isDone(UAV)
 
-    def isDone(self):
-        now = time.time()
-        print(now - self.last)
-        if(now - self.last > self.waitTime):
-            print("done")
-            return True
-        else :
-            print("waiting")
-            return False
+    def isDone(self, UAV):
+        return UAV.state.armed && UAV.state.mode == "OFFBOARD"
