@@ -67,7 +67,7 @@ def raw_lasers_callback(data):
     laser2x = quaternionRotation(positions[1], q)
     orientation2x = quaternionRotation(orientations[1], q)
 
-    yawMeasured =  getYawInXL(laser1, orientation1, raw.lasers[0], orientation_lengths[0], laser2, orientation2, raw.lasers[1], orientation_lengths[1])
+    yawMeasured =  getYawInXL(laser1x, orientation1x, raw.lasers[0], orientation_lengths[0], laser2x, orientation2x, raw.lasers[1], orientation_lengths[1])
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
