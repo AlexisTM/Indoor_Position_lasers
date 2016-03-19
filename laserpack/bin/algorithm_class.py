@@ -71,7 +71,7 @@ def raw_lasers_callback(data):
 
 
     # target[i][j]
-    # i = index of the laser extrapolated (1 => 6)
+    # i = index of the laser extrapolated (0 => 5)
     # j = direction X, Y or Z
     # TODO Add an output filter (Kalman filter on positions and yaw)
     msg = PoseStamped()
