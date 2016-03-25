@@ -1,7 +1,7 @@
 <launch>
 
 	<!-- PX4 launch -->
-	<arg name="fcu_url" default="/dev/ttyACM0:57600" />
+	<arg name="fcu_url" default="/dev/ttyPixHawk:57600" />
 	<arg name="gcs_url" default="" />
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
@@ -19,7 +19,7 @@
 
 
 	<!-- Laser launch -->
-	<arg name="port" default="/dev/ttyACM1" />
+	<arg name="port" default="/dev/ttyLasers" />
 	<node pkg="rosserial_server" type="serial_node" name="rosserial_server">
 		<param name="port" value="$(arg port)" />
 	</node>
