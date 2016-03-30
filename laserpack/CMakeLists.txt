@@ -126,9 +126,7 @@ include_directories(
 #)
 
 catkin_install_python(PROGRAMS 
-  bin/pixhawk_control.py
   bin/INAV_OPTIONS.py
-  bin/position_algorithm.py 
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
