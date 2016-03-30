@@ -57,23 +57,28 @@ def raw_lasers_callback(data):
     # preCorrectionLasers is TODO
     raw = preCorrectionLasers(data)
     
-    print "raw : ", raw
     # convert imu to a quaternion tuple
     quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     q = quaternion_from_euler(roll, pitch, 0, axes="sxyz")
     #print rad2degf(roll), rad2degf(pitch), rad2degf(yaw)
     laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
-    print laser1x, orientation1x, laser2x, orientation2x
     
     yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
+    print "yaw :", rad2degf(yawMeasured)
     
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
     target = lasers.target(q, raw)
+    
+    print "raw : x", raw[0], raw[1]
+    print "raw : y", raw[2], raw[3]
+    print "raw : z", raw[4], raw[5]
 
-    print target
+    print "X1:", target[0][0], "X2 :", target[1][0]
+    print "Y1:", target[2][1], "Y2 :", target[3][1]
+    print "Z1:", target[4][2], "Z2 :", target[5][2]
 
     # target[i][j]
     # i = index of the laser extrapolated (0 => 5)
