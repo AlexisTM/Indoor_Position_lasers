@@ -40,6 +40,7 @@ from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool
 from mavros.utils import *
+from algorithm_functions import rad2degf
 
 
 # Callbacks
@@ -51,15 +52,20 @@ def Pose_Callback(data):
     global pose
     pose = data
 
+def laser_callback(data):
+    global laserposition
+    laserposition = data
+
 def sendSetpoint():
     global xSetPoint
     global ySetPoint
     global zSetPoint
     global setPointsCount
+    global run
     setPointsCount = 0
     local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=10)
     rate = rospy.Rate(20.0)
-    while not rospy.is_shutdown():
+    while run:
         msg = PoseStamped()
         msg.pose.position.x = float(xSetPoint)
         msg.pose.position.y = float(ySetPoint)
@@ -74,25 +80,18 @@ def sendSetpoint():
 
 # In case of use
 def sendPosition():
-    global xPosition
-    global yPosition
-    global zPosition
-    global PositionsCount
-    #local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=10)
-    local_pos_pub   = rospy.Publisher('mavros/vision_pose/pose', PoseStamped, queue_size=10)
-    rate = rospy.Rate(20.0)
-    while not rospy.is_shutdown():
-        msg = PoseStamped()
-        msg.pose.position.x = float(xPosition)
-        msg.pose.position.y = float(yPosition)
-        msg.pose.position.z = float(zPosition)
-        msg.pose.orientation.x = 0.0
-        msg.pose.orientation.y = 0.0
-        msg.pose.orientation.z = 0.0
-        msg.pose.orientation.w = 1.0
-        local_pos_pub.publish(msg)
+    global laserposition
+    global run
+    global laser_position_count
+    global local_pos_pub
+    rate = rospy.Rate(3)
+    while run:
+        laserposition.header.stamp = rospy.Time.now()
+	laserposition.header.seq=laser_position_count
+	laserposition.header.frame_id = "1"
+        local_pos_pub.publish(laserposition)
+        laser_position_count = laser_position_count + 1
         rate.sleep()
-        PositionsCount = PositionsCount+ 1
 
 def InterfaceKeyboard():
     global xSetPoint
@@ -102,6 +101,8 @@ def InterfaceKeyboard():
     global disarm
     global arming_client
     global set_mode_client
+    global run
+    global laser_position_count
 
     what = getch()
     if what == "z":
@@ -123,6 +124,8 @@ def InterfaceKeyboard():
     if what == "e":
         set_mode_client(custom_mode = "OFFBOARD")
     if what == "m":
+        run = False
+        time.sleep(1)
         exit()
 
     Q = (
@@ -132,13 +135,13 @@ def InterfaceKeyboard():
         pose.pose.orientation.w)
     euler = tf.transformations.euler_from_quaternion(Q)
     
-    rospy.loginfo("Setpoints sent : %i", setPointsCount )
-    rospy.loginfo("Position     is %s", pose.pose.position.z)
+    rospy.loginfo("Positions sent : %i", laser_position_count )
+    rospy.loginfo("Position x: %s y: %s z: %s", pose.pose.position.x, pose.pose.position.y, pose.pose.position.z)
     rospy.loginfo("Setpoint is now x:%s, y:%s, z:%s", xSetPoint, ySetPoint, zSetPoint)
     rospy.loginfo("IMU :")
-    rospy.loginfo("roll : %s", euler[0])
-    rospy.loginfo("pitch : %s", euler[1])
-    rospy.loginfo("yaw : %s", euler[2])
+    rospy.loginfo("roll : %s", rad2degf(euler[0]))
+    rospy.loginfo("pitch : %s", rad2degf(euler[1]))
+    rospy.loginfo("yaw : %s", rad2degf(euler[2]))
 
 
 def init(): 
@@ -151,6 +154,14 @@ def init():
     global PositionsCount
     global arming_client
     global set_mode_client
+    global run 
+    global local_pos_pub
+    global laser_position_count
+    global laserposition
+    laserposition = PoseStamped()
+    
+    laser_position_count = 0
+    run = True
     setPointsCount = 0
     PositionsCount = 0
     xSetPoint = 0
@@ -162,16 +173,19 @@ def init():
     rospy.init_node('laserpack_control')
     
     pose_sub  = rospy.Subscriber('mavros/local_position/pose', PoseStamped, Pose_Callback)
+    pose_sub  = rospy.Subscriber('lasers/pose', PoseStamped, laser_callback)
     state_sub = rospy.Subscriber('mavros/state', State, State_Callback)
     rospy.wait_for_service('mavros/cmd/arming')
     arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
     rospy.wait_for_service('mavros/set_mode')
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
-    
+    local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
+    # mavros/setpoint_position/local
+    # mavros/mocap/pose
 
-    tSetPoints = Thread(target=sendSetpoint).start()
+    #tSetPoints = Thread(target=sendSetpoint).start()
     # In case we want to send positions
-    #tPositions = Thread(target=sendPosition).start()
+    tPositions = Thread(target=sendPosition).start()
     
     while not rospy.is_shutdown(): 
         InterfaceKeyboard()

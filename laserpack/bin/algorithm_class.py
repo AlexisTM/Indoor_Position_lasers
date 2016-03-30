@@ -79,6 +79,8 @@ def raw_lasers_callback(data):
     print "X1:", target[0][0], "X2 :", target[1][0]
     print "Y1:", target[2][1], "Y2 :", target[3][1]
     print "Z1:", target[4][2], "Z2 :", target[5][2]
+    
+    print "roll:",rad2degf(roll), "pitch:",rad2degf(pitch), "yaw:",rad2degf(yaw)
 
     # target[i][j]
     # i = index of the laser extrapolated (0 => 5)
