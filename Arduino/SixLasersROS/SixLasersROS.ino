@@ -7,13 +7,13 @@
 #include <Wire.h>
 #define WIRE400K true
 /*** Defines : CONFIGURATION ***/
-// Defines laser ready data
-#define Z1_LASER_PIN 11
-#define Z2_LASER_PIN 8
-#define Z3_LASER_PIN 5
-#define Z4_LASER_PIN 2
-#define Z5_LASER_PIN 16
-#define Z6_LASER_PIN 19
+// Defines Trigger
+#define Z1_LASER_TRIG 11
+#define Z2_LASER_TRIG 8
+#define Z3_LASER_TRIG 5
+#define Z4_LASER_TRIG 2
+#define Z5_LASER_TRIG 16
+#define Z6_LASER_TRIG 19
 // Defines power enable lines of laser
 #define Z1_LASER_EN 12
 #define Z2_LASER_EN 9
@@ -21,6 +21,13 @@
 #define Z4_LASER_EN 3
 #define Z5_LASER_EN 15
 #define Z6_LASER_EN 18
+// Defines laser mode 
+#define Z1_LASER_PIN 13
+#define Z2_LASER_PIN 10
+#define Z3_LASER_PIN 7
+#define Z4_LASER_PIN 4
+#define Z5_LASER_PIN 14
+#define Z6_LASER_PIN 17
 //Define address of lasers
 //Thoses are written during initialisation
 // default address : 0x62
@@ -78,6 +85,7 @@ void beginLidars() {
 }
 
 void beginROSComm(){
+  Serial.begin(57600);
   nh.initNode();
   nh.advertise(distpub);
   pinMode(13, OUTPUT);

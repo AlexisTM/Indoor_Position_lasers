@@ -27,6 +27,7 @@ class LidarObject {
   If fasti2c is true, use 400kHz I2C
 *******************************************************************************/
     void begin(byte _EnablePin = 2, byte _ModePin = 1, byte _Lidar = 0x62, byte _configuration = 2,char _name = 'A'){
+      pinMode(_EnablePin, OUTPUT);
       configuration = _configuration;
       address = _Lidar;
       lidar_state = NEED_RESET;
@@ -100,7 +101,7 @@ class LidarObject {
         return true;
 
       if(micros() - timeReset > 20000) {
-          // 16µS later
+          // 16mS or more later 
            return true;
         } else {
           return false;

@@ -252,7 +252,9 @@ class LidarController {
         * stop the reset ongoing 
     *******************************************************************************/
     void postReset(byte Lidar = 0) {
-      changeAddress(Lidar);
+      Serial.print(Lidar);
+      Serial.print(" - "); 
+      Serial.println(changeAddress(Lidar));
       resetOngoing = false;
     };
 
@@ -382,7 +384,7 @@ class LidarController {
 
     int distances[MAX_LIDARS];
     int nacks[MAX_LIDARS];
-    int statuses[MAX_LIDARS];
+    uint8_t statuses[MAX_LIDARS];
   private:
     bool resetOngoing = false;
     LidarObject* lidars[MAX_LIDARS];
