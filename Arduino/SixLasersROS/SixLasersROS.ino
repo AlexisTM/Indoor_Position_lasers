@@ -5,7 +5,7 @@
 #include <laserpack/distance.h>
 
 #include <Wire.h>
-#define WIRE400K true
+#define WIRE400K false
 /*** Defines : CONFIGURATION ***/
 // Defines Trigger
 #define Z1_LASER_TRIG 11
@@ -40,12 +40,15 @@
 
 #define NUMBER_OF_LASERS 6
 
-#define READINESS true
-
 // Maximum datarate
 #define DATARATE 100
 // Actual wait between communications 100Hz = 10ms
 #define DELAY_SEND_MICROS 1000000/DATARATE
+
+// ROS Communication
+ros::NodeHandle nh;
+laserpack::distance distance_msg;
+ros::Publisher distance_publisher("lasers/raw", &distance_msg);
 
 // Lidars
 static LidarController Controller;
@@ -55,11 +58,6 @@ static LidarObject LZ3;
 static LidarObject LZ4;
 static LidarObject LZ5;
 static LidarObject LZ6;
-
-// ROS communication
-ros::NodeHandle nh;
-laserpack::distance   distance_msg;
-ros::Publisher distpub("/lasers/raw", &distance_msg);
 
 // Delays
 long now, last;
@@ -75,7 +73,7 @@ void beginLidars() {
   
   // Initialisation of the controller
   Controller.begin(WIRE400K);
-  delay(10);
+  delay(100);
   Controller.add(&LZ1, 0);
   Controller.add(&LZ2, 1);
   Controller.add(&LZ3, 2);
@@ -84,34 +82,23 @@ void beginLidars() {
   Controller.add(&LZ6, 5);
 }
 
-void beginROSComm(){
-  Serial.begin(57600);
-  nh.initNode();
-  nh.advertise(distpub);
-  pinMode(13, OUTPUT);
-}
-
 void setup() {
+  Serial.begin(57600);
+  while (!Serial);
   beginLidars();
-  beginROSComm();
   last = micros();
-  
-  distance_msg.lasers_length = 6;
-  distance_msg.status_length = 6;
-  distance_msg.lasers = Controller.distances;
-  distance_msg.status = Controller.statuses;
+  nh.initNode();
+  nh.advertise(distance_publisher);
 }
 
 void loop() {
-  
   nh.spinOnce();
   Controller.spinOnce();
-  nh.spinOnce();
   now = micros();
   if(now - last > DELAY_SEND_MICROS){
     last = micros();
-    
-    laserPublish();
+    //laserprint();
+    laserpublish();
   } 
 }
 
@@ -125,6 +112,11 @@ void laserprint(){
   }
 }
 
-void laserPublish(){
-  distpub.publish( &distance_msg );
+void laserpublish(){
+  distance_msg.lasers_length = 6;
+  distance_msg.status_length = 6;
+  distance_msg.lasers = Controller.distances;
+  distance_msg.status = Controller.statuses;
+  
+  distance_publisher.publish(&distance_msg);
 }

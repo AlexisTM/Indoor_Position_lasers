@@ -252,9 +252,7 @@ class LidarController {
         * stop the reset ongoing 
     *******************************************************************************/
     void postReset(byte Lidar = 0) {
-      Serial.print(Lidar);
-      Serial.print(" - "); 
-      Serial.println(changeAddress(Lidar));
+      changeAddress(Lidar);
       resetOngoing = false;
     };
 
