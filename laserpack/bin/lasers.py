@@ -43,21 +43,21 @@ class laser:
 
 class lasersController: 
     def __init__(self):
-        self.X1 = laser((-15,-21,-4), (1,0,0), (1,-4.45))
-        self.X2 = laser((7,20,-4), (1,0,0), (1,-1.489))
-        self.Y1 = laser((-31,-2,-4), (0,1,0), (1,0))
-        self.Y2 = laser((32,-2,-4), (0,1,0), (1,0))
-        self.Z1 = laser((-13,-21,-7.5), (0,0,1), (1,0))
-        self.Z2 = laser((10,20,-7.5), (0,0,1), (1,0))
-        self.list = (X1, X2, Y1, Y2, Z1, Z2)
+        self.X1 = laser((-0.15,-0.21,-0.04), (1,0,0), (1,-4.45))
+        self.X2 = laser((0.07,0.20,-0.04), (1,0,0), (1,-1.489))
+        self.Y1 = laser((-0.31,-0.02,-0.04), (0,1,0), (1,0))
+        self.Y2 = laser((0.32,-0.02,-0.04), (0,1,0), (1,0))
+        self.Z1 = laser((-0.13,-0.21,-0.075), (0,0,1), (1,10))
+        self.Z2 = laser((0.10,0.20,-0.075), (0,0,1), (1,10))
+        self.list = (self.X1, self.X2, self.Y1, self.Y2, self.Z1, self.Z2)
         self.count = 6
 
     def target(self, q, raw):
         target = list()
-        for laser in self.list:
-            position = quaternionRotation(laser.position, q)
-            orientation = quaternionRotation(laser.orientation, q)
-            target.append(extrapolate(position[i], orientation[i], raw.lasers[i]))
+        for i in range(6):
+            position = quaternionRotation(self.list[i].position, q)
+            orientation = quaternionRotation(self.list[i].orientation, q)
+            target.append(extrapolate(self.list[i].position, self.list[i].orientation, raw[i]))
         return target
 
     def preRotateX(self, q):

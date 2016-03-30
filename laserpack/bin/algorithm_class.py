@@ -56,19 +56,24 @@ def raw_lasers_callback(data):
     global pub_position
     # preCorrectionLasers is TODO
     raw = preCorrectionLasers(data)
-
+    
+    print "raw : ", raw
     # convert imu to a quaternion tuple
     quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     q = quaternion_from_euler(roll, pitch, 0, axes="sxyz")
-
-    laser1x, orientation1x, laser2x, orientation1x = lasers.preRotateX(self, q)
-    yawMeasured =  getYawInXL(laser1x, orientation1x, raw.lasers[0], lasers.X1.length, laser2x, orientation2x, raw.lasers[1], lasers.X2.length)
+    #print rad2degf(roll), rad2degf(pitch), rad2degf(yaw)
+    laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
+    print laser1x, orientation1x, laser2x, orientation2x
+    
+    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
+    
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
-    lasers.target(q, raw)
+    target = lasers.target(q, raw)
 
+    print target
 
     # target[i][j]
     # i = index of the laser extrapolated (0 => 5)
@@ -76,7 +81,7 @@ def raw_lasers_callback(data):
     # TODO Add an output filter (Kalman filter on positions and yaw)
     msg = PoseStamped()
     msg.pose.position.x = (target[0][0] + target[1][0])/2
-    if(laserNumber == 4) :
+    if(lasers.count == 4) :
         msg.pose.position.y = target[2][1]
         msg.pose.position.z = target[3][2]
     else : 
@@ -86,18 +91,18 @@ def raw_lasers_callback(data):
     msg.pose.orientation.y = q[1]
     msg.pose.orientation.z = q[2]
     msg.pose.orientation.w = q[3]
-    pub_position(msg)
+    
+    pub_position.publish(msg)
 
 
-def preCorrectionLasers():
+def preCorrectionLasers(data):
     global lasers
-    global raw
     # TODO Handle data, keep old data if outlier/readerror detected
     # TODO Then, edit raw with correct values
     deoffset = list()
     for i in range(lasers.count):
         # Divide by 100 => centimeters to meters
-        deoffset.append((raw.lasers[i]*lasers.list[i].offset[0] + lasers.list[i].offset[1])/100)
+        deoffset.append((data.lasers[i]*lasers.list[i].offset[0] + lasers.list[i].offset[1])/100)
     return deoffset
 
 # init should get values of posiion of the lasers
@@ -111,6 +116,10 @@ def init():
 # listerners listen to ROS
 def subscribers():
     global pub_position
+    global imu
+    imu = Imu()
+    imu.orientation.w = 1
+
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', distance, raw_lasers_callback)
     pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=3)

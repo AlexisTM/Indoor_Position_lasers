@@ -56,6 +56,8 @@ def raw_lasers_callback(data):
     global pub_position
     # preCorrectionLasers is TODO
     raw = preCorrectionLasers(data)
+    
+    print "raw : ", raw
 
     # convert imu to a quaternion tuple
     quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
@@ -98,7 +100,7 @@ def raw_lasers_callback(data):
     pub_position(msg)
 
 
-def preCorrectionLasers():
+def preCorrectionLasers(data):
     global raw
     global lasers_offsets
     global laserNumber
@@ -108,7 +110,7 @@ def preCorrectionLasers():
     deoffset = list()
     for i in range(laserNumber):
         # Divide by 100 => centimeters to meters
-        deoffset.append((raw.lasers[i]*offset[i][0] + offset[i][1])/100)
+        deoffset.append((data.lasers[i]*offset[i][0] + offset[i][1])/100)
     return deoffset
 
 # init should get values of posiion of the lasers
