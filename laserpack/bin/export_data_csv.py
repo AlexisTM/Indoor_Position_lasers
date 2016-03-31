@@ -88,7 +88,7 @@ def writer():
 
        #while writing:
 	diff_time = 0
-        while diff_time < 600:
+        while diff_time < 60:
             diff_time = time()-initial_time
             data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw)
             rate.sleep()
