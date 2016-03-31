@@ -48,8 +48,8 @@ Nous utilisons plusieurs devices USB. Ceci pose problème pour savoir quel port 
 
 Ceci est réalisé dans le fichier `/etc/udev/rules.d/99-ttyNames.custom.rules`
 
-    SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="2341", ATTR{idProduct}=="0042", SYMLINK+="ttyLasers"
-    SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="26ac", ATTR{idProduct}=="0011", SYMLINK+="ttyPixHawk"
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0042", SYMLINK+="ttyLasers"
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="26ac", ATTRS{idProduct}=="0011", SYMLINK+="ttyPixHawk"
 
 Si l'on change d'Arduino, il faut donc changler le vendeur et le produit. Pour ce faire, branchez l'Arduno, et utilisez la commande `lsusb` afin d'obtenir les ID. 
 
