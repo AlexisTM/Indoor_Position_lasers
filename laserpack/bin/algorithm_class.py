@@ -87,17 +87,17 @@ def raw_lasers_callback(data):
     # j = direction X, Y or Z
     # TODO Add an output filter (Kalman filter on positions and yaw)
     msg = PoseStamped()
-    msg.pose.position.x = (target[0][0] + target[1][0])/2
+    msg.pose.position.x = float(target[0][0] + target[1][0])/2
     if(lasers.count == 4) :
-        msg.pose.position.y = target[2][1]
-        msg.pose.position.z = target[3][2]
+        msg.pose.position.y = float(target[2][1])
+        msg.pose.position.z = float(target[3][2])
     else : 
-        msg.pose.position.y = (target[2][1] + target[3][1])/2
-        msg.pose.position.z = (target[4][2] + target[5][2])/2
-    msg.pose.orientation.x = q[0]
-    msg.pose.orientation.y = q[1]
-    msg.pose.orientation.z = q[2]
-    msg.pose.orientation.w = q[3]
+        msg.pose.position.y = float(target[2][1] + target[3][1])/2
+        msg.pose.position.z = float(target[4][2] + target[5][2])/2
+    msg.pose.orientation.x = float(q[0])
+    msg.pose.orientation.y = float(q[1])
+    msg.pose.orientation.z = float(q[2])
+    msg.pose.orientation.w = float(q[3])
     
     pub_position.publish(msg)
 

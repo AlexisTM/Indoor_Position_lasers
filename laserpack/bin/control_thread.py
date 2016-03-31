@@ -84,11 +84,39 @@ def sendPosition():
     global run
     global laser_position_count
     global local_pos_pub
-    rate = rospy.Rate(3)
+    rate = rospy.Rate(10)
     while run:
-        laserposition.header.stamp = rospy.Time.now()
+	#msg = PoseStamped()
+	#msg.header.stamp = rospy.Time.now()
+	#msg.header.seq=laser_position_count
+        #msg.pose.position.x = 1
+        #msg.pose.position.y = float(2.0)
+        #msg.pose.position.z = 3.0
+        #msg.pose.orientation.x = 0.0
+        #msg.pose.orientation.y = 0.0
+        #msg.pose.orientation.z = 0.0
+        #msg.pose.orientation.w = 1.0
+        ##laserposition.header.stamp = rospy.Time.now()
+	##laserposition.header.seq=laser_position_count
+	##laserposition.header.frame_id = "1"
+        ##local_pos_pub.publish(laserposition)
+        #local_pos_pub.publish(msg)
+        #laser_position_count = laser_position_count + 1
+        #rate.sleep()
+        
+        msg = PoseStamped()
+	msg.header.stamp = rospy.Time.now()
+	msg.header.seq=laser_position_count
+        msg.pose.position.x = float(laserposition.pose.position.x)
+        msg.pose.position.y = float(laserposition.pose.position.y)
+        msg.pose.position.z = float(laserposition.pose.position.z)
+        msg.pose.orientation.x = float(laserposition.pose.orientation.x)
+        msg.pose.orientation.y = float(laserposition.pose.orientation.y)
+        msg.pose.orientation.z = float(laserposition.pose.orientation.z)
+        msg.pose.orientation.w = float(laserposition.pose.orientation.w)
+        
+	laserposition.header.stamp = rospy.Time.now()
 	laserposition.header.seq=laser_position_count
-	laserposition.header.frame_id = "1"
         local_pos_pub.publish(laserposition)
         laser_position_count = laser_position_count + 1
         rate.sleep()
