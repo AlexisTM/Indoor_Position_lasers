@@ -65,22 +65,22 @@ def raw_lasers_callback(data):
     laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
     
     yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
-    print "yaw :", rad2degf(yawMeasured)
+    #print "yaw :", rad2degf(yawMeasured)
     
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
     target = lasers.target(q, raw)
     
-    print "raw : x", raw[0], raw[1]
-    print "raw : y", raw[2], raw[3]
-    print "raw : z", raw[4], raw[5]
+    #print "raw : x", raw[0], raw[1]
+    #print "raw : y", raw[2], raw[3]
+    #print "raw : z", raw[4], raw[5]
 
-    print "X1:", target[0][0], "X2 :", target[1][0]
-    print "Y1:", target[2][1], "Y2 :", target[3][1]
-    print "Z1:", target[4][2], "Z2 :", target[5][2]
+    #print "X1:", target[0][0], "X2 :", target[1][0]
+    #print "Y1:", target[2][1], "Y2 :", target[3][1]
+    #print "Z1:", target[4][2], "Z2 :", target[5][2]
     
-    print "roll:",rad2degf(roll), "pitch:",rad2degf(pitch), "yaw:",rad2degf(yaw)
+    #print "roll:",rad2degf(roll), "pitch:",rad2degf(pitch), "yaw:",rad2degf(yaw)
 
     # target[i][j]
     # i = index of the laser extrapolated (0 => 5)
