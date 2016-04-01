@@ -65,7 +65,7 @@ def poseStamped2Array(data, RollPitch=False):
     
     
     if RollPitch:
-        return [ str(data.pose.position.x), str(data.pose.position.x), str(data.pose.position.x), str(rad2degf(roll)), str(rad2degf(pitch)), str(rad2degf(yaw))]
+        return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(roll)), str(rad2degf(pitch)), str(rad2degf(yaw))]
     return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(yaw))]
 
 def distance2Array(data):

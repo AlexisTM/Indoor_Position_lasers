@@ -147,9 +147,10 @@ def getYawInX(position1, orientation1, measure1, position2, orientation2, measur
     length2 = length(orientation2)
     k1 = measure1/length1
     k2 = measure2/length2
+    # Shouldn't it be ...[1]/...[0] (Y/X) instead of ...[0]/...[1] Sign ?
     numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
     denominator = -k2*orientation2[1] + k1*orientation1[1] + position1[1] - position2[1]
-    return atan(numerator/denominator)
+    return atan2(numerator,denominator)
 
 # getYawInXL
 # gives the yaw (rotation about Z) from the position and orientation and measure of the lasers IN X, knowing 
@@ -159,4 +160,4 @@ def getYawInXL(position1, orientation1, measure1, length1, position2, orientatio
     k2 = measure2/length2
     numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
     denominator = -k2*orientation2[1] + k1*orientation1[1] + position1[1] - position2[1]
-    return atan(numerator/denominator)
+    return atan2(numerator,denominator)
