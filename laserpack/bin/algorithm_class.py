@@ -66,7 +66,8 @@ def raw_lasers_callback(data):
     #print rad2degf(roll), rad2degf(pitch), rad2degf(yaw)
     laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
     
-    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
+    # Yaw of the PixHawk is the OPPOSITE of this
+    yawMeasured =  -getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
     #print "yaw :", rad2degf(yawMeasured)
     
 
