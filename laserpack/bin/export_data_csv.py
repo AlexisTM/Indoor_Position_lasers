@@ -41,9 +41,9 @@ from threading import Thread
 
 def imuCB(data):
     global imu_orientation
-    imu_orientation = (data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w)
+    imu_orientation = (str(data.orientation.x), str(data.orientation.y), str(data.orientation.z), str(data.orientation.w))
     global imu_linear_accel
-    imu_linear_accel = (data.linear_acceleration.x, data.linear_acceleration.y, data.linear_acceleration.z)
+    imu_linear_accel = (str(data.linear_acceleration.x), str(data.linear_acceleration.y), str(data.linear_acceleration.z))
 
 def velocityCB(data):
     global velocity
