@@ -40,8 +40,9 @@ from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import CommandBool
 from mavros.utils import *
-from algorithm_functions import rad2degf, deg2radf
 from transformations import *
+from algorithm_functions import rad2degf, deg2radf
+
 
 
 # Callbacks
@@ -49,13 +50,7 @@ def State_Callback(data):
     global state
     state = data
 
-def Pose_Callback(data):
-    global pose
-    pose = data
 
-def laser_callback(data):
-    global laserposition
-    laserposition = data
 
 def sendSetpoint():
     global xSetPoint
@@ -65,40 +60,27 @@ def sendSetpoint():
     global setPointsCount
     global run
     global pose
-    global activeX
+    global activeIgnore
+
 
     setPointsCount = 0
     local_setpoint_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=10)
-    rate = rospy.Rate(3.0)
+    rate = rospy.Rate(5.0)
     while run:
         # Generate setpoint yaw
-        # q = quaternion_from_euler(0, 0, deg2radf(yawSetPoint), axes="sxyz")
 
-        # msg = PoseStamped()
-        # if(activeX):
-        #     msg.pose.position.x = float(xSetPoint)
-        #     msg.pose.position.y = 0.0
-        # else : 
-        #     msg.pose.position.x = 0.0 #pose.pose.position.x
-        #     msg.pose.position.y = 2.0 #pose.pose.position.y
-        # msg.pose.position.z = float(zSetPoint)
-        # msg.pose.orientation.x = 0.0
-        # msg.pose.orientation.y = 0.0
-        # msg.pose.orientation.z = q[2]
-        # msg.pose.orientation.w = q[3]
-        # local_setpoint_pub.publish(msg)
-        # setPointsCount = setPointsCount + 1
-        # rate.sleep()
+        q = quaternion_from_euler(0, 0, deg2radf(yawSetPoint), axes="sxyz")
 
         msg = PositionTarget()
-        if(activeX):
+        if(activeIgnore):
             #msg.type_mask = msg.IGNORE_PX or msg.IGNORE_PY or msg.IGNORE_VX or msg.IGNORE_VY or msg.IGNORE_VZ or msg.IGNORE.AFX or msg.IGNORE.AFY or msg.IGNORE.AFZ
-            msg.type_mask = 2552 #0b1001 1111 1000
+            msg.type_mask = 2558 # 0b1001 1111 1110
+            msg.coordinate_frame = msg.FRAME_LOCAL_NED 
         else : 
            #  msg.type_mask = msg.IGNORE_VX or msg.IGNORE_VY or msg.IGNORE_VZ or msg.IGNORE.AFX or msg.IGNORE.AFY or msg.IGNORE.AFZ
-            msg.type_mask = 2558 # 0b1001 1111 1110
-
-        msg.coordinate_frame = msg.FRAME_LOCAL_NED
+            msg.type_mask = 2552 #0b1001 1111 1000
+            msg.coordinate_frame = msg.FRAME_LOCAL_NED
+        
         msg.header.stamp = rospy.Time.now()
         msg.header.seq=setPointsCount
         msg.position.x = float(xSetPoint)
@@ -109,52 +91,6 @@ def sendSetpoint():
         setPointsCount = setPointsCount + 1
         rate.sleep()
 
-# In case of use
-def sendPosition():
-    global laserposition
-    global run
-    global laser_position_count
-    global local_pos_pub
-    global activeX
-    rate = rospy.Rate(3)
-    while run:
-	#msg = PoseStamped()
-	#msg.header.stamp = rospy.Time.now()
-	#msg.header.seq=laser_position_count
-        #msg.pose.position.x = 1
-        #msg.pose.position.y = float(2.0)
-        #msg.pose.position.z = 3.0
-        #msg.pose.orientation.x = 0.0
-        #msg.pose.orientation.y = 0.0
-        #msg.pose.orientation.z = 0.0
-        #msg.pose.orientation.w = 1.0
-        #local_pos_pub.publish(msg)
-        #laser_position_count = laser_position_count + 1
-        #rate.sleep()
-        
-        #msg = PoseStamped()
-	#msg.header.stamp = rospy.Time.now()
-	#msg.header.seq=laser_position_count
-        #msg.pose.position.x = float(laserposition.pose.position.x)
-        #msg.pose.position.y = float(laserposition.pose.position.y)
-        #msg.pose.position.z = float(laserposition.pose.position.z)
-        #msg.pose.orientation.x = float(laserposition.pose.orientation.x)
-        #msg.pose.orientation.y = float(laserposition.pose.orientation.y)
-        #msg.pose.orientation.z = float(laserposition.pose.orientation.z)
-        #msg.pose.orientation.w = float(laserposition.pose.orientation.w)
-        
-        laserposition.header.stamp = rospy.Time.now()
-        laserposition.header.seq=laser_position_count
-        # if not activeX : 
-        #     laserposition.pose.position.x = 0.0
-        #     laserposition.pose.position.y = 2.0
-
-        laserposition.pose.position.x = 0.0
-        laserposition.pose.position.y = 2.0
-        laserposition.pose.position.z = 0.0
-        local_pos_pub.publish(laserposition)
-        laser_position_count = laser_position_count + 1
-        rate.sleep()
 
 def InterfaceKeyboard():
     global xSetPoint
@@ -167,7 +103,7 @@ def InterfaceKeyboard():
     global set_mode_client
     global run
     global laser_position_count
-    global activeX
+    global activeIgnore
 
     what = getch()
     if what == "t":
@@ -194,11 +130,11 @@ def InterfaceKeyboard():
         zSetPoint = pose.pose.position.z
 
     if what == "p":
-        xSetPoint = pose.pose.position.x
-        ySetPoint = pose.pose.position.y
-        activeX = True
+        #xSetPoint = pose.pose.position.x
+        #ySetPoint = pose.pose.position.y
+        activeIgnore = True
     if what == "l":
-        activeX = False
+        activeIgnore = False
     if what == "q":
         arming_client(False)
     if what == "a":
@@ -210,22 +146,11 @@ def InterfaceKeyboard():
         time.sleep(1)
         exit()
 
-    Q = (
-        pose.pose.orientation.x,
-        pose.pose.orientation.y,
-        pose.pose.orientation.z,
-        pose.pose.orientation.w)
-    euler = tf.transformations.euler_from_quaternion(Q)
+ 
     
     rospy.loginfo("MODE X: ")
-    rospy.loginfo("true" if activeX else "false")
-    rospy.loginfo("Positions sent : %i", laser_position_count )
-    rospy.loginfo("Position x: %s y: %s z: %s", pose.pose.position.x, pose.pose.position.y, pose.pose.position.z)
+    rospy.loginfo("true" if activeIgnore else "false")
     rospy.loginfo("Setpoint is now x:%s, y:%s, z:%s", xSetPoint, ySetPoint, zSetPoint)
-    rospy.loginfo("IMU :")
-    rospy.loginfo("roll : %s", rad2degf(euler[0]))
-    rospy.loginfo("pitch : %s", rad2degf(euler[1]))
-    rospy.loginfo("yaw : %s", rad2degf(euler[2]))
     rospy.loginfo("wanted yaw : %s", yawSetPoint)
 
 def init(): 
@@ -243,10 +168,10 @@ def init():
     global local_pos_pub
     global laser_position_count
     global laserposition
-    global activeX
+    global activeIgnore
 
     # When false, setpoint in XY = position in XY
-    activeX = False
+    activeIgnore = False
     yawSetPoint = 0
 
     laserposition = PoseStamped()
@@ -261,10 +186,9 @@ def init():
     state = State()
     disarm = False
 
-    rospy.init_node('laserpack_control')
+
+    rospy.init_node('Ignore_param_test')
     
-    pose_sub  = rospy.Subscriber('mavros/local_position/pose', PoseStamped, Pose_Callback)
-    pose_sub  = rospy.Subscriber('lasers/filtered', PoseStamped, laser_callback)
     state_sub = rospy.Subscriber('mavros/state', State, State_Callback)
     rospy.wait_for_service('mavros/cmd/arming')
     arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
@@ -276,7 +200,6 @@ def init():
 
     tSetPoints = Thread(target=sendSetpoint).start()
     # In case we want to send positions
-    tPositions = Thread(target=sendPosition).start()
     
     while not rospy.is_shutdown(): 
         InterfaceKeyboard()

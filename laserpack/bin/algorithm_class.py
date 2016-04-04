@@ -152,7 +152,9 @@ def raw_lasers_callback(data):
                    target[4][2], target[5][2], \
                    yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
 
-    dt = time() - last_time_kalman
+    now = time()
+    dt = now - last_time_kalman
+    last_time_kalman = now
 
     Xk, K = kalmanFilter.next(Measurements, linear_velocity,linearAcceleration, angular_velocity, dt)
     q = quaternion_from_euler(roll, pitch, Xk[3], axes="sxyz")
