@@ -127,7 +127,7 @@ def raw_lasers_callback(data):
                    yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
 
     # Will come after high pass filter
-    Linear_accelerations = (0,0,0)
+    Linear_accelerations = (0.0,0.0,0.0)
 
     dt = time.time() - last_time
 
