@@ -60,6 +60,14 @@ class lasersController:
             target.append(extrapolate(self.list[i].position, self.list[i].orientation, raw[i]))
         return target
 
+    def targetX(self, q, raw):
+        target = list()
+        for i in range(2):
+            position = quaternionRotation(self.list[i].position, q)
+            orientation = quaternionRotation(self.list[i].orientation, q)
+            target.append(extrapolate(self.list[i].position, self.list[i].orientation, raw[i]))
+        return target
+
     def preRotateX(self, q):
         # convert imu to a quaternion tuple
         laser1 = quaternionRotation(self.X1.position, q)
