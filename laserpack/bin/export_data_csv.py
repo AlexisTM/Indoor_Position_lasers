@@ -39,6 +39,10 @@ from sensor_msgs.msg import Imu
 from transformations import *
 from threading import Thread
 
+def filteredCB(data):
+    global filtered 
+    filtered = poseStamped2Array(data)
+
 def imuCB(data):
     global imu_orientation
     imu_orientation = (str(data.orientation.x), str(data.orientation.y), str(data.orientation.z), str(data.orientation.w))
@@ -73,8 +77,6 @@ def poseStamped2Array(data, RollPitch=False):
     quaternion = (data.pose.orientation.x, data.pose.orientation.y, data.pose.orientation.z, data.pose.orientation.w)
     
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
-    
-    
     if RollPitch:
         return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(roll)), str(rad2degf(pitch)), str(rad2degf(yaw))]
     return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(yaw))]
@@ -102,7 +104,8 @@ def writer():
                       'raw_x_1', 'raw_x_2', 'raw_y_1', 'raw_y_2','raw_z_1', 'raw_z_2', \
                       'local_vel_x', 'local_vel_y', 'local_vel_z', 'local_vel_yaw', \
                       'accel_lin_x', 'accel_lin_y', 'accel_lin_z' \
-                      'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w']
+                      'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w', \
+                      'filtered_x', 'filtered_y', 'filtered_z', 'filtered_yaw']
 
 
         data_writer.writerow(fieldnames)
@@ -126,6 +129,7 @@ def subscribers():
     writing_sub         = rospy.Subscriber('export/csv/writing', Bool, writingCB)
     velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
+    filtered_sub        = rospy.Subscriber('lasers/filtered', PoseStamped, filteredCB)
 
 
 def main():
