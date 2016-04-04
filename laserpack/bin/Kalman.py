@@ -98,25 +98,29 @@ class Custom3DKalman:
         # Predicted value
         dt2 = dt*dt
         # Position
+        Xkp = [0.0, 0.0, 0.0, 0.0]
         Xkp[0] = self.Xk[0] + Linear_speeds[0]*dt + Linear_accelerations[0]*dt2
         Xkp[1] = self.Xk[1] + Linear_speeds[1]*dt + Linear_accelerations[1]*dt2
         Xkp[2] = self.Xk[2] + Linear_speeds[2]*dt + Linear_accelerations[2]*dt2
         Xkp[3] = self.Xk[3] + angular_speed*dt
 
         # Process Covariance Matrix is the precedent Process Covariance + noise
+        Pkp = [0.0, 0.0, 0.0, 0.0]
         Pkp[0] = self.Pk[0] + self.Q[0]
         Pkp[1] = self.Pk[1] + self.Q[1]
         Pkp[2] = self.Pk[2] + self.Q[2]
         Pkp[3] = self.Pk[3] + self.Q[3]
 
         # Kalman Filter
-        K[0] = Pkp[0] / (Pkp[0] + R[0])
-        K[1] = Pkp[1] / (Pkp[1] + R[1])
-        K[2] = Pkp[2] / (Pkp[2] + R[2])
-        K[3] = Pkp[3] / (Pkp[3] + R[3])
+        K = [0.0, 0.0, 0.0, 0.0]
+        K[0] = Pkp[0] / (Pkp[0] + self.R[0])
+        K[1] = Pkp[1] / (Pkp[1] + self.R[1])
+        K[2] = Pkp[2] / (Pkp[2] + self.R[2])
+        K[3] = Pkp[3] / (Pkp[3] + self.R[3])
 
         # Input of measures, improving values cause we got 2 lasers for each directions
         # 6 equations with 4 unknonw
+        Yk = [0.0, 0.0, 0.0, 0.0]
         Yk[0] = (Measurements[0] + Measurements[1])/2 # X
         Yk[1] = (Measurements[2] + Measurements[3])/2 # Y
         Yk[2] = (Measurements[4] + Measurements[5])/2 # Z
@@ -133,7 +137,7 @@ class Custom3DKalman:
         self.Pk[1] = (1-K[1])*Pkp[1]
         self.Pk[2] = (1-K[2])*Pkp[2]
         self.Pk[3] = (1-K[3])*Pkp[3]
-        return Xk, K
+        return self.Xk, K
 
 def square(array):
   for a in range(len(array)):

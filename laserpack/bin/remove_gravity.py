@@ -32,6 +32,7 @@ from __future__ import division
 import rospy
 import mavros
 import tf
+from algorithm_functions import length
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Imu
 from getch import getch
@@ -60,11 +61,7 @@ def imu_callback(data):
     linearAcceleration[0] = ax - gravity[0]
     linearAcceleration[1] = ay - gravity[1]
     linearAcceleration[2] = az - gravity[2]
-    TimestampOld = Timestamp
-
-
-
-
+    timestampOld = timestamp
 
 # init should get values of posiion of the lasers
 def init():
@@ -100,6 +97,7 @@ def main():
         print "gravity_0:", gravity[0]
         print "gravity_1:", gravity[1]
         print "gravity_2",  gravity[2]
+        print "length_gravity", length(gravity)
         # rospy.spin()
 
 if __name__ == '__main__':

@@ -35,12 +35,12 @@ from __future__ import division
 import rospy
 import mavros
 import tf
-import time
+from time import time
 from lasers import lasersController
 from transformations import *
 from algorithm_functions import *
 from laserpack.msg import distance
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Accel, TwistStamped
 from sensor_msgs.msg import Imu
 from threading import Thread
 from getch import getch
@@ -57,6 +57,31 @@ def velocity_callback(data):
 def imu_callback(data):
     global imu
     imu = data
+    global last_time_acceleration
+    global linearAcceleration
+    global gravity
+    global accel_pub
+    timeConstant = 0.18
+    alpha = 0.9
+    timestamp = data.header.stamp.nsecs
+
+    dt = (timestamp - last_time_acceleration)/1000000000.0
+    alpha = timeConstant / (timeConstant + dt)
+    gravity[0] = alpha * gravity[0] + (1 - alpha) * data.linear_acceleration.x
+    gravity[1] = alpha * gravity[1] + (1 - alpha) * data.linear_acceleration.y
+    gravity[2] = alpha * gravity[2] + (1 - alpha) * data.linear_acceleration.z
+ 
+    linearAcceleration[0] = data.linear_acceleration.x - gravity[0]
+    linearAcceleration[1] = data.linear_acceleration.y - gravity[1]
+    linearAcceleration[2] = data.linear_acceleration.z - gravity[2]
+    last_time_acceleration = timestamp
+
+    msg = Accel()
+    msg.linear.x = linearAcceleration[0]
+    msg.linear.y = linearAcceleration[1]
+    msg.linear.z = linearAcceleration[2]
+    accel_pub.publish(msg)
+
 
 # Handle lasers
 def raw_lasers_callback(data):
@@ -69,7 +94,8 @@ def raw_lasers_callback(data):
     global kalmanFilter
     global linear_velocity
     global angular_velocity
-    global last_time
+    global last_time_kalman
+    global linearAcceleration
 
     raw = preCorrectionLasers(data)
     
@@ -126,12 +152,9 @@ def raw_lasers_callback(data):
                    target[4][2], target[5][2], \
                    yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
 
-    # Will come after high pass filter
-    Linear_accelerations = (0.0,0.0,0.0)
+    dt = time() - last_time_kalman
 
-    dt = time.time() - last_time
-
-    Xk, K = kalmanFilter.next(Measurements, linear_velocity,Linear_accelerations, angular_velocity, dt)
+    Xk, K = kalmanFilter.next(Measurements, linear_velocity,linearAcceleration, angular_velocity, dt)
     q = quaternion_from_euler(roll, pitch, Xk[3], axes="sxyz")
 
     msg = PoseStamped()
@@ -164,11 +187,18 @@ def init():
     global kalmanFilter
     global linear_velocity
     global angular_velocity
-    global last_time
-    last_time = time.time()
+    global last_time_kalman
+    global last_time_acceleration
+    global linearAcceleration
+    global gravity
+    global linearAcceleration_imu
+    last_time_acceleration = 0.0
+    linearAcceleration =[0,0,0]
+    gravity = [0,0,9.81]
+    last_time_kalman = time()
     linear_velocity = (0,0,0)
     angular_velocity = 0.0
-    kalmanFilter = Custom3DKalman(0.03, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, de2radf(1))
+    kalmanFilter = Custom3DKalman(0.03, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, deg2radf(1))
     yawprint = (0,0)
     rospy.init_node('position_algorithm')
     lasers = lasersController()
@@ -178,16 +208,18 @@ def init():
 def subscribers():
     global pub_position
     global pub_filtered
+    global accel_pub
     global imu
     imu = Imu()
-    imu.orientation.w = 1
+    imu.orientation.w = 1 
+    accel_pub       = rospy.Publisher('lasers/accel_without_gravity', Accel, queue_size=1)
+    pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=1)
+    pub_filtered    = rospy.Publisher('lasers/filtered', PoseStamped, queue_size=1)
+    
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', distance, raw_lasers_callback)
-    pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=3)
-    pub_filtered    = rospy.Publisher('lasers/filtered', PoseStamped, queue_size=3)
     velocity_sub    = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
-    
-
+   
 def main():
     global yawprint
     while not rospy.is_shutdown(): 

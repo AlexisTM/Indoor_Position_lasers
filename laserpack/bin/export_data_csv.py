@@ -34,10 +34,14 @@ from algorithm_functions import rad2degf
 from time import time
 from laserpack.msg import distance
 from std_msgs.msg import Bool
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped, Accel
 from sensor_msgs.msg import Imu
 from transformations import *
 from threading import Thread
+
+def accel_no_gravity(data):
+    global accel_no_gravity
+    accel_no_gravity = [str(data.linear.x), str(data.linear.y), str(data.linear.z)]
 
 def filteredCB(data):
     global filtered 
@@ -45,13 +49,13 @@ def filteredCB(data):
 
 def imuCB(data):
     global imu_orientation
-    imu_orientation = (str(data.orientation.x), str(data.orientation.y), str(data.orientation.z), str(data.orientation.w))
+    imu_orientation = [str(data.orientation.x), str(data.orientation.y), str(data.orientation.z), str(data.orientation.w)]
     global imu_linear_accel
-    imu_linear_accel = (str(data.linear_acceleration.x), str(data.linear_acceleration.y), str(data.linear_acceleration.z))
+    imu_linear_accel = [str(data.linear_acceleration.x), str(data.linear_acceleration.y), str(data.linear_acceleration.z)]
 
 def velocityCB(data):
     global velocity
-    velocity = (str(data.twist.linear.x),str(data.twist.linear.y),str(data.twist.linear.z),str(data.twist.angular.z))
+    velocity = [str(data.twist.linear.x),str(data.twist.linear.y),str(data.twist.linear.z),str(data.twist.angular.z)]
 
 def writingCB(data):
     global writing
@@ -93,6 +97,8 @@ def writer():
     global imu_orientation
     global imu_linear_accel
     global velocity
+    global filtered 
+    global accel_no_gravity
 
     rate = rospy.Rate(10)
     
@@ -105,7 +111,8 @@ def writer():
                       'local_vel_x', 'local_vel_y', 'local_vel_z', 'local_vel_yaw', \
                       'accel_lin_x', 'accel_lin_y', 'accel_lin_z' \
                       'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w', \
-                      'filtered_x', 'filtered_y', 'filtered_z', 'filtered_yaw']
+                      'filtered_x', 'filtered_y', 'filtered_z', 'filtered_yaw', \
+                      'accel_no_gravity_x', 'accel_no_gravity_y', 'accel_no_gravity_z']
 
 
         data_writer.writerow(fieldnames)
@@ -115,7 +122,7 @@ def writer():
         diff_time = 0
         while diff_time < 120:
             diff_time = time()-initial_time
-            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation)
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity)
             rate.sleep()
             print diff_time
 	    
@@ -130,6 +137,7 @@ def subscribers():
     velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
     filtered_sub        = rospy.Subscriber('lasers/filtered', PoseStamped, filteredCB)
+    accel_sub           = rospy.Subscriber('lasers/accel_without_gravity', Accel, accel_no_gravity)
 
 
 def main():
@@ -141,6 +149,8 @@ def main():
     global imu_orientation
     global imu_linear_accel
     global velocity
+    global filtered 
+    global accel_no_gravity
 
     # init global objects
     writing = False
@@ -151,6 +161,8 @@ def main():
     imu_orientation = ['', '', '', '']
     imu_linear_accel = ['', '', '']
     velocity = ['', '', '', '']
+    filtered = ['', '', '', '']
+    accel_no_gravity = ['', '', '']
     
     listener = Thread(target=writer).start()
     
