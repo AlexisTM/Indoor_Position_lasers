@@ -109,7 +109,7 @@ def writer():
                       'lasers_x', 'lasers_y', 'lasers_z', 'lasers_yaw', \
                       'raw_x_1', 'raw_x_2', 'raw_y_1', 'raw_y_2','raw_z_1', 'raw_z_2', \
                       'local_vel_x', 'local_vel_y', 'local_vel_z', 'local_vel_yaw', \
-                      'accel_lin_x', 'accel_lin_y', 'accel_lin_z' \
+                      'accel_lin_x', 'accel_lin_y', 'accel_lin_z', \
                       'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w', \
                       'filtered_x', 'filtered_y', 'filtered_z', 'filtered_yaw', \
                       'accel_no_gravity_x', 'accel_no_gravity_y', 'accel_no_gravity_z']
