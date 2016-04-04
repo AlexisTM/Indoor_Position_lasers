@@ -34,9 +34,20 @@ from algorithm_functions import rad2degf
 from time import time
 from laserpack.msg import distance
 from std_msgs.msg import Bool
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
+from sensor_msgs.msg import Imu
 from transformations import *
 from threading import Thread
+
+def imuCB(data):
+    global imu_orientation
+    imu_orientation = (data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w)
+    global imu_linear_accel
+    imu_linear_accel = (data.linear_acceleration.x, data.linear_acceleration.y, data.linear_acceleration.z)
+
+def velocityCB(data):
+    global velocity
+    velocity = (str(data.twist.linear.x),str(data.twist.linear.y),str(data.twist.linear.z),str(data.twist.angular.z))
 
 def writingCB(data):
     global writing
@@ -77,12 +88,23 @@ def writer():
     global lasers_raw
     global lasers_pose
     global writing
+    global imu_orientation
+    global imu_linear_accel
+    global velocity
 
     rate = rospy.Rate(10)
     
     with open('result.csv', 'w') as csvfile:
         data_writer = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        fieldnames = ['time', 'setpoint_x', 'setpoint_y', 'setpoint_z', 'setpoint_yaw', 'local_x', 'local_y', 'local_z', 'local_roll', 'local_pitch', 'local_yaw', 'lasers_x', 'lasers_y', 'lasers_z', 'lasers_yaw', 'raw_x_1', 'raw_x_2', 'raw_y_1', 'raw_y_2','raw_z_1', 'raw_z_2']
+        fieldnames = ['time', 'setpoint_x', 'setpoint_y', 'setpoint_z', 'setpoint_yaw', \
+                      'local_x', 'local_y', 'local_z', 'local_roll', 'local_pitch', 'local_yaw', \
+                      'lasers_x', 'lasers_y', 'lasers_z', 'lasers_yaw', \
+                      'raw_x_1', 'raw_x_2', 'raw_y_1', 'raw_y_2','raw_z_1', 'raw_z_2', \
+                      'local_vel_x', 'local_vel_y', 'local_vel_z', 'local_vel_yaw', \
+                      'accel_lin_x', 'accel_lin_y', 'accel_lin_z' \
+                      'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w']
+
+
         data_writer.writerow(fieldnames)
         initial_time = time()
 
@@ -90,7 +112,7 @@ def writer():
         diff_time = 0
         while diff_time < 120:
             diff_time = time()-initial_time
-            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw)
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation)
             rate.sleep()
             print diff_time
 	    
@@ -101,7 +123,9 @@ def subscribers():
     local_position      = rospy.Subscriber('mavros/local_position/pose', PoseStamped, positionCB)
     pose_lasers         = rospy.Subscriber('lasers/pose', PoseStamped, lasersposeCB)
     raw_lasers          = rospy.Subscriber('lasers/raw', distance, lasersrawCB)
-    writingCB_sub       = rospy.Subscriber('export/csv/writing', Bool, writingCB)
+    writing_sub         = rospy.Subscriber('export/csv/writing', Bool, writingCB)
+    velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
+    imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
 
 
 def main():
@@ -110,6 +134,9 @@ def main():
     global lasers_raw
     global lasers_pose
     global writing
+    global imu_orientation
+    global imu_linear_accel
+    global velocity
 
     # init global objects
     writing = False
@@ -117,6 +144,9 @@ def main():
     lasers_pose = ['', '', '', '']
     position = ['', '', '', '', '', '',]
     lasers_raw = ['', '', '', '', '', '',]
+    imu_orientation = ['', '', '', '']
+    imu_linear_accel = ['', '', '']
+    velocity = ['', '', '', '']
     
     listener = Thread(target=writer).start()
     
