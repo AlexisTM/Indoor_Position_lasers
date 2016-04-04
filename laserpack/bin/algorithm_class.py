@@ -170,6 +170,8 @@ def raw_lasers_callback(data):
 
     pub_filtered.publish(msg)
 
+    last_time_kalman = time()
+
 
 def preCorrectionLasers(data):
     global lasers
@@ -200,7 +202,7 @@ def init():
     last_time_kalman = time()
     linear_velocity = (0,0,0)
     angular_velocity = 0.0
-    kalmanFilter = Custom3DKalman(0.03, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, deg2radf(1))
+    kalmanFilter = Custom3DKalman(0.025, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, deg2radf(1))
     yawprint = (0,0)
     rospy.init_node('position_algorithm')
     lasers = lasersController()

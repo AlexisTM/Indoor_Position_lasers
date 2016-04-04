@@ -90,6 +90,13 @@ class Custom3DKalman:
                    process_covariance_noise_distance*process_covariance_noise_distance, \
                    process_covariance_noise_angle*process_covariance_noise_angle] 
 
+    def first(self, Measurements):
+        self.Xk = [0.0, 0.0, 0.0, 0.0]
+        self.Xk[0] = (Measurements[0] + Measurements[1])/2 # X
+        self.Xk[1] = (Measurements[2] + Measurements[3])/2 # Y
+        self.Xk[2] = (Measurements[4] + Measurements[5])/2 # Z
+        self.Xk[3] = (Measurements[6] + Measurements[7])/2 # yaw
+
     # Angular speed is in radians/s
     # Speed in m/s
     # Acceleration in m/(s*s)
