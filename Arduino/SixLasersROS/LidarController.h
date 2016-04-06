@@ -232,7 +232,7 @@ class LidarController {
     *******************************************************************************/
     void resetLidar(byte Lidar = 0) {
       lidars[Lidar]->off();
-      setState(Lidar, NEED_RESET);
+      setState(Lidar, SHUTING_DOWN);
     }
 
     /*******************************************************************************
@@ -299,8 +299,6 @@ class LidarController {
     *******************************************************************************/
     void spinOnce() {
       // Handling routine
-      
-      
       //for (int8_t i = count - 1; i >= 0; i--) {
       for(uint8_t i = 0; i<count; i++){
 #if PRINT_DEBUG_INFO
@@ -334,12 +332,13 @@ class LidarController {
               Serial.println(i);
               Serial.println(data);
 #endif
-              if(data < 10 or data > 1000){
+              if(abs(data-distance[i]) > )
+              if(data < 5 or data > 1000){
                 shouldIncrementNack(i, 1);
                 nacks[i] = 15; // 0b00001111
-              } else {
-                distances[i] = data;
-              }
+              } 
+              // Write data anyway but the information is send via nacks = 15 
+              distances[i] = data;
               setState(i, ACQUISITION_READY);
             }
             break;
@@ -369,12 +368,19 @@ class LidarController {
               setState(i, NEED_CONFIGURE);
             }
             break;
+
+          case SHUTING_DOWN : 
+            if (lidars[i]->check_timer()) {
+              postReset(i);
+              setState(i, NEED_RESET);
+            }
+            break;
           default:
             break;
         } // End switch case
 
         if(checkNacks(i)){
-           setState(i, NEED_RESET);
+           resetLidar(i);
         }
         statuses[i] = (getState(i) & 0xF0) | (nacks[i] & 0x0F);
       } // End for each laser

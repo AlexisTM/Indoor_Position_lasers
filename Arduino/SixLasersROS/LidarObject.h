@@ -7,6 +7,7 @@
 #define LIDAR_OBJECT_H
 
 enum LIDAR_STATE {
+  SHUTING_DOWN = 240,       // Shutdown the laser to reset it
   NEED_RESET = 48,          // Too much outliers, need to reset
   RESET_PENDING = 80,       // Wait 15ms after you reset the Lidar, we are waiting in this state
   NEED_CONFIGURE = 144,     // 15ms passed, we now configure the Lidar
@@ -92,6 +93,19 @@ class LidarObject {
 
 
 /*******************************************************************************
+  reset_chack : Check the reset timer to see if the laser is correctly resetted
+
+  The laser takes 20ms to reset
+*******************************************************************************/
+    bool check_reset(){
+      if(lidar_state != NEED_RESET)
+        return true;
+
+      (micros() - timeReset > 20000) ? return true: return false;
+    }
+
+
+/*******************************************************************************
   check_timer : Check the reset timer to see if the laser is correctly resetted
 
   The laser takes 20ms to reset
@@ -100,12 +114,7 @@ class LidarObject {
       if(lidar_state != RESET_PENDING)
         return true;
 
-      if(micros() - timeReset > 20000) {
-          // 16mS or more later 
-           return true;
-        } else {
-          return false;
-        }
+      (micros() - timeReset > 20000) ? return true: return false;
     }
 
 /*******************************************************************************
