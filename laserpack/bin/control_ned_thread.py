@@ -60,6 +60,13 @@ def laser_callback(data):
     global activeX
 
     laserposition = data
+    Q = (
+        laserposition.pose.orientation.x,
+        laserposition.pose.orientation.y,
+        laserposition.pose.orientation.z,
+        laserposition.pose.orientation.w)
+    euler = tf.transformations.euler_from_quaternion(Q)
+    q = quaternion_from_euler(0, 0, -euler[2], axes="sxyz")
 
     msg = PoseStamped()
     msg.header.stamp=rospy.Time.now()
@@ -67,13 +74,13 @@ def laser_callback(data):
     # msg.pose.position.x = msg.pose.position.x
     # msg.pose.position.y = msg.pose.position.y
     # msg.pose.position.z = msg.pose.position.z
-    msg.pose.position.x = laserposition.pose.position.x
+    msg.pose.position.x = -laserposition.pose.position.x
     msg.pose.position.y = laserposition.pose.position.y
-    msg.pose.position.z = laserposition.pose.position.z
-    msg.pose.orientation.x = laserposition.pose.orientation.x
-    msg.pose.orientation.y = laserposition.pose.orientation.y
-    msg.pose.orientation.z = laserposition.pose.orientation.z
-    msg.pose.orientation.w = laserposition.pose.orientation.w
+    msg.pose.position.z = -laserposition.pose.position.z
+    msg.pose.orientation.x = q[0]
+    msg.pose.orientation.y = q[1]
+    msg.pose.orientation.z = q[2]
+    msg.pose.orientation.w = q[3]
     local_pos_pub.publish(msg)
     laser_position_count = laser_position_count + 1
 
@@ -88,45 +95,37 @@ def sendSetpoint():
     global activeX
 
     setPointsCount = 0
-    #local_setpoint_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
-    local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=1)
+    local_setpoint_pub = rospy.Publisher('mavros/setpoint_raw/position_ned', PositionTarget, queue_size=1)
     
     rate = rospy.Rate(30)
     
     while run:
-        q = quaternion_from_euler(0, 0, deg2radf(yawSetPoint), axes="sxyz")
+        # q = quaternion_from_euler(0, 0, deg2radf(yawSetPoint), axes="sxyz")
 
-        msg = PoseStamped()
-        msg.header.stamp = rospy.Time.now()
-        msg.header.seq=setPointsCount
-        msg.pose.position.x = float(xSetPoint)
-        msg.pose.position.y = float(ySetPoint)
-        msg.pose.position.z = float(zSetPoint)
-        msg.pose.orientation.x = q[0]
-        msg.pose.orientation.y = q[1]
-        msg.pose.orientation.z = q[2]
-        msg.pose.orientation.w = q[3]
-        local_setpoint_pub.publish(msg)
-        setPointsCount = setPointsCount + 1
-        rate.sleep()
-
-        # msg = PositionTarget()
-        # if(activeX):
-        #     #msg.type_mask = msg.IGNORE_PX or msg.IGNORE_PY or msg.IGNORE_VX or msg.IGNORE_VY or msg.IGNORE_VZ or msg.IGNORE.AFX or msg.IGNORE.AFY or msg.IGNORE.AFZ
-        #     msg.type_mask = 2552 #0b1001 1111 1000
-        # else : 
-        #    #  msg.type_mask = msg.IGNORE_VX or msg.IGNORE_VY or msg.IGNORE_VZ or msg.IGNORE.AFX or msg.IGNORE.AFY or msg.IGNORE.AFZ
-        #     msg.type_mask = 2555 # 0b1001 1111 1011
-
-        # msg.coordinate_frame = msg.FRAME_LOCAL_NED
-        # msg.position.x = float(xSetPoint)
-        # msg.position.y = float(ySetPoint)
-        # msg.position.z = float(zSetPoint)
-        # msg.yaw = 0.0
-        # msg.yaw_rate = 1
+        # msg = PoseStamped()
+        # msg.header.stamp = rospy.Time.now()
+        # msg.header.seq=setPointsCount
+        # msg.pose.position.x = float(xSetPoint)
+        # msg.pose.position.y = float(ySetPoint)
+        # msg.pose.position.z = -float(zSetPoint)
+        # msg.pose.orientation.x = q[0]
+        # msg.pose.orientation.y = q[1]
+        # msg.pose.orientation.z = q[2]
+        # msg.pose.orientation.w = q[3]
         # local_setpoint_pub.publish(msg)
         # setPointsCount = setPointsCount + 1
         # rate.sleep()
+
+        msg = PositionTarget()
+        msg.coordinate_frame = msg.FRAME_LOCAL_NED
+        msg.position.x = float(xSetPoint)
+        msg.position.y = float(ySetPoint)
+        msg.position.z = -float(zSetPoint)
+        msg.yaw = 0.0
+        msg.yaw_rate = 1
+        local_setpoint_pub.publish(msg)
+        setPointsCount = setPointsCount + 1
+        rate.sleep()
 
 # # If we want to reduce rate
 # def sendPosition():
@@ -216,8 +215,8 @@ def InterfaceKeyboard():
     rospy.loginfo("MODE X: ")
     rospy.loginfo("true" if activeX else "false")
     rospy.loginfo("Positions sent : %i", laser_position_count )
-    rospy.loginfo("Position x: %s y: %s z: %s", pose.pose.position.x, pose.pose.position.y, pose.pose.position.z)
-    rospy.loginfo("Setpoint is now x:%s, y:%s, z:%s", xSetPoint, ySetPoint, zSetPoint)
+    rospy.loginfo("Position x: %s y: %s z: %s", pose.pose.position.x, pose.pose.position.y, -pose.pose.position.z)
+    rospy.loginfo("Setpoint is now x:%s, y:%s, z:%s", xSetPoint, ySetPoint, -zSetPoint)
     rospy.loginfo("IMU :")
     rospy.loginfo("roll : %s", rad2degf(euler[0]))
     rospy.loginfo("pitch : %s", rad2degf(euler[1]))
@@ -259,7 +258,7 @@ def init():
 
     rospy.init_node('laserpack_control')
     
-    local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
+    local_pos_pub   = rospy.Publisher('mavros/mocap/ned', PoseStamped, queue_size=1)
     pose_sub  = rospy.Subscriber('mavros/local_position/pose', PoseStamped, Pose_Callback)
     laser_pose_sub  = rospy.Subscriber('lasers/filtered', PoseStamped, laser_callback)
     state_sub = rospy.Subscriber('mavros/state', State, State_Callback)

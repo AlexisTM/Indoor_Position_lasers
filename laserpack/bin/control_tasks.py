@@ -90,8 +90,9 @@ def init():
     global yPosition
     global zPosition
     global Controller
-    global stop=False
+    global stop
 
+    stop = False
     xPosition, yPosition, zPosition = (0,0,0)
     rospy.init_node('laserpack_control')
     Controller = taskController(rate=3, setpoint_rate=10)
