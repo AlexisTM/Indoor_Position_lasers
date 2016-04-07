@@ -43,8 +43,13 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  distance.msg
-  req_reset.msg
+  Distance.msg
+  Req_reset.msg
+  Report.msg
+  Reports.msg
+  Req_reset.msg
+  RPY.msg
+  RPYPose.msg
 )
 
 ## Generate services in the 'srv' folder
