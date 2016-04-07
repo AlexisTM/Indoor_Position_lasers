@@ -1,3 +1,11 @@
+uint8 NEED_RESET = 48
+uint8 RESET_PENDING = 80
+uint8 NEED_CONFIGURE = 144
+uint8 ACQUISITION_READY = 32
+uint8 ACQUISITION_PENDING = 64
+uint8 ACQUISITION_DONE = 128
+uint8 SHUTING_DOWN = 240
+
 int16[] lasers # data dddd dddd
 uint8[] status # outlier ssss nnnn => s = status and n = nack status
 # ssss : 

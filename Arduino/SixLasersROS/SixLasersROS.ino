@@ -69,7 +69,9 @@ long now, last;
 
 void handleReset(const laserpack::req_reset& msg){
   for(int i = msg.rst_length-1; i >= 0 ; i--){
-    LidarController.resetLidar(rst[i]);
+    if(i < Controller.getCount()){
+      Controller.resetLidar(rst[i]);
+    }
   }
 }
 

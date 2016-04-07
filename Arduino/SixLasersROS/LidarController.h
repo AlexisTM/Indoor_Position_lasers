@@ -228,7 +228,7 @@ class LidarController {
     /*******************************************************************************
       resetLidar :
         * set the Power Enable pin to 0
-        * set the Need Reset state to be reinitialized at next spin 
+        * set the Need Reset state to be reinitialized 20ms later
     *******************************************************************************/
     void resetLidar(byte Lidar = 0) {
       lidars[Lidar]->off();
@@ -245,6 +245,15 @@ class LidarController {
       lidars[Lidar]->on();
       lidars[Lidar]->timer_update();
     };
+
+
+    /*******************************************************************************
+      getCount :
+        * returns the count of the lasers
+    *******************************************************************************/
+    byte getCount(){
+      return count;
+    }
 
     /*******************************************************************************
       postReset :
@@ -385,6 +394,8 @@ class LidarController {
         statuses[i] = (getState(i) & 0xF0) | (nacks[i] & 0x0F);
       } // End for each laser
     };
+
+
 
     int distances[MAX_LIDARS];
     int nacks[MAX_LIDARS];
