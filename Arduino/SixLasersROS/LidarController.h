@@ -228,11 +228,11 @@ class LidarController {
     /*******************************************************************************
       resetLidar :
         * set the Power Enable pin to 0
-        * set the Need Reset state to be reinitialized at next spin 
+        * set the Need Reset state to be reinitialized 20ms later
     *******************************************************************************/
     void resetLidar(byte Lidar = 0) {
       lidars[Lidar]->off();
-      setState(Lidar, NEED_RESET);
+      setState(Lidar, SHUTING_DOWN);
     }
 
     /*******************************************************************************
@@ -245,6 +245,15 @@ class LidarController {
       lidars[Lidar]->on();
       lidars[Lidar]->timer_update();
     };
+
+
+    /*******************************************************************************
+      getCount :
+        * returns the count of the lasers
+    *******************************************************************************/
+    byte getCount(){
+      return count;
+    }
 
     /*******************************************************************************
       postReset :
@@ -299,8 +308,6 @@ class LidarController {
     *******************************************************************************/
     void spinOnce() {
       // Handling routine
-      
-      
       //for (int8_t i = count - 1; i >= 0; i--) {
       for(uint8_t i = 0; i<count; i++){
 #if PRINT_DEBUG_INFO
@@ -334,12 +341,13 @@ class LidarController {
               Serial.println(i);
               Serial.println(data);
 #endif
-              if(data < 10 or data > 1000){
+              nacks[i] = nacks[i] & 0b00000111; // Remove the bit
+              if((abs(data - distances[i]) > 100) | (data < 5 or data > 1000)){
                 shouldIncrementNack(i, 1);
-                nacks[i] = 15; // 0b00001111
-              } else {
-                distances[i] = data;
-              }
+                nacks[i] = 8 | nacks[i]; // Set the suspicious data bit
+              } 
+              // Write data anyway but the information is send via nacks = 15 
+              distances[i] = data;
               setState(i, ACQUISITION_READY);
             }
             break;
@@ -369,16 +377,25 @@ class LidarController {
               setState(i, NEED_CONFIGURE);
             }
             break;
+
+          case SHUTING_DOWN : 
+            if (lidars[i]->check_timer()) {
+              postReset(i);
+              setState(i, NEED_RESET);
+            }
+            break;
           default:
             break;
         } // End switch case
 
         if(checkNacks(i)){
-           setState(i, NEED_RESET);
+           resetLidar(i);
         }
         statuses[i] = (getState(i) & 0xF0) | (nacks[i] & 0x0F);
       } // End for each laser
     };
+
+
 
     int distances[MAX_LIDARS];
     int nacks[MAX_LIDARS];

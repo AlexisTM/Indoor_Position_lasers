@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -43,8 +44,13 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  distance.msg
-  req_reset.msg
+  Distance.msg
+  Req_reset.msg
+  Report.msg
+  RPY.msg
+  RPYPose.msg
+  Battery.msg
+  Reports.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -65,6 +71,7 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  geometry_msgs
 )
 
 ###################################
@@ -79,7 +86,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES laserpack
-CATKIN_DEPENDS message_generation message_runtime roscpp rospy std_msgs
+CATKIN_DEPENDS message_generation message_runtime roscpp rospy std_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 

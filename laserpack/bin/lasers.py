@@ -43,8 +43,8 @@ class laser:
 
 class lasersController: 
     def __init__(self):
-        self.X1 = laser((0.07,0.20,-0.04), (1,0,0), (1,-18))        
-        self.X2 = laser((-0.15,-0.21,-0.04), (1,0,0), (1,0))
+        self.X1 = laser((-0.15,0.20,-0.04), (1,0,0), (1,-20))        
+        self.X2 = laser((0.07,-0.21,-0.04), (1,0,0), (1,0))
         self.Y1 = laser((0.32,-0.02,-0.04), (0,1,0), (1,-6))
         self.Y2 = laser((-0.31,-0.02,-0.04), (0,1,0), (1,-9))
         self.Z1 = laser((-0.13,0.21,-0.075), (0,0,1), (1,-5))
@@ -55,6 +55,14 @@ class lasersController:
     def target(self, q, raw):
         target = list()
         for i in range(6):
+            position = quaternionRotation(self.list[i].position, q)
+            orientation = quaternionRotation(self.list[i].orientation, q)
+            target.append(extrapolate(self.list[i].position, self.list[i].orientation, raw[i]))
+        return target
+
+    def targetX(self, q, raw):
+        target = list()
+        for i in range(2):
             position = quaternionRotation(self.list[i].position, q)
             orientation = quaternionRotation(self.list[i].orientation, q)
             target.append(extrapolate(self.list[i].position, self.list[i].orientation, raw[i]))
