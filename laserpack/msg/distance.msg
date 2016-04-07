@@ -1,13 +1,5 @@
-uint8 NEED_RESET = 48
-uint8 RESET_PENDING = 80
-uint8 NEED_CONFIGURE = 144
-uint8 ACQUISITION_READY = 32
-uint8 ACQUISITION_PENDING = 64
-uint8 ACQUISITION_DONE = 128
-uint8 SHUTING_DOWN = 240
-
 int16[] lasers # data dddd dddd
-uint8[] status # outlier ssss nnnn => s = status and n = nack status
+uint8[] status # outlier ssss Xnnn => s = state, X = Seems suspicious data, n = nack status (0 - 4)
 # ssss : 
 # =(4) under 4 bits
 # =(8) under 8 bits : ( nack OR status )
@@ -17,3 +9,13 @@ uint8[] status # outlier ssss nnnn => s = status and n = nack status
 # 0010 xxxx = ACQUISITION_READY =(4) 2 =(8) 32
 # 0100 xxxx = ACQUISITION_PENDING =(4) 4 =(8) 64
 # 1000 xxxx = ACQUISITION_DONE =(4) 8 =(8) 128
+# Laser State
+uint8 NEED_RESET = 48
+uint8 RESET_PENDING = 80
+uint8 NEED_CONFIGURE = 144
+uint8 ACQUISITION_READY = 32
+uint8 ACQUISITION_PENDING = 64
+uint8 ACQUISITION_DONE = 128
+uint8 SHUTING_DOWN = 240
+# Nack 
+uint8 SEEMS_SUSPICIOUS = 8

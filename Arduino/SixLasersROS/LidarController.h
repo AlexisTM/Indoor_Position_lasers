@@ -341,10 +341,10 @@ class LidarController {
               Serial.println(i);
               Serial.println(data);
 #endif
-              if(abs(data-distance[i]) > )
-              if(data < 5 or data > 1000){
+              nacks[i] = nacks[i] & 0b00000111; // Remove the bit
+              if((abs(data - distances[i]) > 100) | (data < 5 or data > 1000)){
                 shouldIncrementNack(i, 1);
-                nacks[i] = 15; // 0b00001111
+                nacks[i] = 8 | nacks[i]; // Set the suspicious data bit
               } 
               // Write data anyway but the information is send via nacks = 15 
               distances[i] = data;

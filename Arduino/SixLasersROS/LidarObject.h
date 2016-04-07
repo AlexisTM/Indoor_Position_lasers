@@ -101,7 +101,7 @@ class LidarObject {
       if(lidar_state != NEED_RESET)
         return true;
 
-      (micros() - timeReset > 20000) ? return true: return false;
+      return (micros() - timeReset > 20000);
     }
 
 
@@ -114,7 +114,7 @@ class LidarObject {
       if(lidar_state != RESET_PENDING)
         return true;
 
-      (micros() - timeReset > 20000) ? return true: return false;
+      return (micros() - timeReset > 20000);
     }
 
 /*******************************************************************************
