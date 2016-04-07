@@ -232,6 +232,7 @@ class LidarController {
     *******************************************************************************/
     void resetLidar(byte Lidar = 0) {
       lidars[Lidar]->off();
+      lidars[Lidar]->timer_update();
       setState(Lidar, SHUTING_DOWN);
     }
 
