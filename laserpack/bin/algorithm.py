@@ -122,7 +122,7 @@ def init():
     global orientation_lengths
     global lasers_offsets
     rospy.init_node('position_algorithm')
-    raw = distance()
+    raw = Distance()
     laserNumber = 4
     positions = ((-15,-21,-4),       \
                  (7,20,-4),          \
@@ -144,7 +144,7 @@ def init():
 def subscribers():
     global pub_position
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
-    state_sub       = rospy.Subscriber('lasers/raw', distance, raw_lasers_callback)
+    state_sub       = rospy.Subscriber('lasers/raw', Distance, raw_lasers_callback)
     pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=3)
 	
 

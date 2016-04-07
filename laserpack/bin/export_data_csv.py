@@ -153,7 +153,7 @@ def subscribers():
     setpoint_position   = rospy.Subscriber('mavros/setpoint_position/local', PoseStamped, setpointCB)
     local_position      = rospy.Subscriber('mavros/local_position/pose', PoseStamped, positionCB)
     pose_lasers         = rospy.Subscriber('lasers/pose', PoseStamped, lasersposeCB)
-    raw_lasers          = rospy.Subscriber('lasers/raw', distance, lasersrawCB)
+    raw_lasers          = rospy.Subscriber('lasers/raw', Distance, lasersrawCB)
     writing_sub         = rospy.Subscriber('export/csv/writing', Bool, writingCB)
     velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
