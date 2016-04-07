@@ -2,8 +2,8 @@
 #include "LidarController.h"
 #include "I2CFunctions.h"
 #include <ros.h>
-#include <laserpack/distance.h>
-#include <laserpack/req_reset.h>
+#include <laserpack/Distance.h>
+#include <laserpack/Req_reset.h>
 
 #include <Wire.h>
 #define WIRE400K false

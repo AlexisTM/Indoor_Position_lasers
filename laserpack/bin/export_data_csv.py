@@ -33,7 +33,7 @@ import tf
 from getch import getch
 from algorithm_functions import rad2degf
 from time import time
-from laserpack.msg import distance
+from laserpack.msg import Distance
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion
 from sensor_msgs.msg import Imu

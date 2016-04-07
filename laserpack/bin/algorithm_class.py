@@ -40,7 +40,7 @@ from time import time
 from lasers import lasersController
 from transformations import *
 from algorithm_functions import *
-from laserpack.msg import distance
+from laserpack.msg import Distance
 from geometry_msgs.msg import PoseStamped, Accel, TwistStamped, Quaternion
 from sensor_msgs.msg import Imu
 from threading import Thread
