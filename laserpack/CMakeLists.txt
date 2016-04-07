@@ -47,10 +47,10 @@ add_message_files(
   Distance.msg
   Req_reset.msg
   Report.msg
-  Reports.msg
-  Req_reset.msg
   RPY.msg
   RPYPose.msg
+  Battery.msg
+  Reports.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -86,7 +86,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES laserpack
-CATKIN_DEPENDS message_generation message_runtime roscpp rospy std_msgs
+CATKIN_DEPENDS message_generation message_runtime roscpp rospy std_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 
