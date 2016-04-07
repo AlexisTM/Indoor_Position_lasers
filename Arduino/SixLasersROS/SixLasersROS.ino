@@ -50,7 +50,7 @@
 
 // ROS Communication
 ros::NodeHandle nh;
-laserpack::distance distance_msg;
+laserpack::Distance distance_msg;
 
 ros::Publisher distance_publisher("lasers/raw", &distance_msg);
 ros::Subscriber<laserpack::req_reset> laser_reset_subscriber("/lasers/reset", &handleReset );
