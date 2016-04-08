@@ -41,7 +41,7 @@ from lasers import lasersController
 from transformations import *
 from algorithm_functions import *
 from laserpack.msg import Distance
-from geometry_msgs.msg import PoseStamped, Accel, TwistStamped, Quaternion
+from geometry_msgs.msg import PoseStamped, Accel, TwistStamped, Quaternion, Point
 from sensor_msgs.msg import Imu
 from threading import Thread
 from getch import getch
@@ -101,6 +101,9 @@ def raw_lasers_callback(data):
     global pub_Xkp
     global pub_K
     global pub_Xk
+    global pub_target1
+    global pub_target2
+    global roll, pitch, yaw
 
     raw = preCorrectionLasers(data)
     
@@ -112,7 +115,7 @@ def raw_lasers_callback(data):
     laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
     
     # Yaw of the PixHawk is the OPPOSITE of this
-    yawMeasured =  -getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
+    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
     #print "yaw :", rad2degf(yawMeasured)
     
 
@@ -191,6 +194,20 @@ def raw_lasers_callback(data):
     pub_K.publish(qua)
     qua = Quaternion(x=Xk[0], y=Xk[1], z=Xk[2], w=Xk[3])
     pub_Xk.publish(qua)
+    point_target1 = Point(target[0][0],target[2][1], target[4][2])
+    pub_target1.publish(point_target1)
+    point_target2 = Point(target[1][0],target[3][1], target[5][2])
+    pub_target2.publish(point_target2)
+
+    #print "m:", yawprint[0]
+    # print "diff :" 
+    # print point_target1.x - point_target2.x
+    # print point_target1.y - point_target2.y
+    # print point_target1.z - point_target2.z
+
+    # print "point : "
+    # print point_target1
+    # print point_target2
 
     last_time_kalman = time()
 
@@ -241,6 +258,8 @@ def subscribers():
     global pub_Xkp
     global pub_K
     global pub_Xk
+    global pub_target1
+    global pub_target2
 
     rospy.init_node('position_algorithm')
 
@@ -253,22 +272,25 @@ def subscribers():
     pub_Xkp         = rospy.Publisher('lasers/Xkp', Quaternion, queue_size=1)
     pub_K           = rospy.Publisher('lasers/K', Quaternion, queue_size=1)
     pub_Xk          = rospy.Publisher('lasers/Xk', Quaternion, queue_size=1)
+    pub_target1     = rospy.Publisher('lasers/target1', Point, queue_size=1)
+    pub_target2     = rospy.Publisher('lasers/target2', Point, queue_size=1)
     
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', Distance, raw_lasers_callback)
     velocity_sub    = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
 
 
-
 def main():
     global yawprint
+    global roll, pitch, yaw
     while not rospy.is_shutdown(): 
         #rospy.spin()
         what = getch()
         if what == "q":
             break
-        # print "m:", yawprint[0]
-        # print "y:", yawprint[1]
+        print "m:", yawprint[0]
+        print "y:", yawprint[1]
+        print "roll:", rad2degf(roll), "pitch:", rad2degf(pitch), "yaw:", rad2degf(yaw)
         # rospy.spin()
 
 if __name__ == '__main__':

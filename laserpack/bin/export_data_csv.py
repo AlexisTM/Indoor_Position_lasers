@@ -35,11 +35,18 @@ from algorithm_functions import rad2degf
 from time import time
 from laserpack.msg import Distance
 from std_msgs.msg import Bool
-from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion
+from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion, Point
 from mavros_msgs.msg import State
 from sensor_msgs.msg import Imu
 from transformations import *
 from threading import Thread
+
+def target1CB(data):
+    global target1
+    target1 = [str(data.x),str(data.y),str(data.z)]
+def target2CB(data):
+    global target2
+    target2 = [str(data.x),str(data.y),str(data.z)]
 
 def stateCB(data):
     global state 
@@ -123,6 +130,8 @@ def writer():
     global write
     global state
     global diff_time
+    global target1
+    global target2
 
     rate = rospy.Rate(100)
     
@@ -140,6 +149,8 @@ def writer():
                       'Xk_x', 'Xk_y', 'Xk_z', 'Xk_yaw',  \
                       'K_x', 'K_y', 'K_z', 'K_yaw',  \
                       'Xkp_x', 'Xkp_y', 'Xkp_z', 'Xkp_yaw', \
+                      'target1_x', 'target1_y', 'target1_z', \
+                      'target2_x', 'target2_y', 'target2_z', \
                       'isArmed?', 'information_utilisateur']
 
 
@@ -152,7 +163,7 @@ def writer():
         diff_time = 0
         while diff_time < 120 and write:
             diff_time = time()-initial_time
-            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity + Xk + K + Xkp + state + [info_utilisateur])
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity + Xk + K + Xkp + target1 + target2 +state + [info_utilisateur])
             rate.sleep()
 	    
 
@@ -172,6 +183,8 @@ def subscribers():
     pub_Xkp             = rospy.Subscriber('lasers/Xkp', Quaternion, XkpCB)
     pub_K               = rospy.Subscriber('lasers/K', Quaternion, KCB)
     pub_Xk              = rospy.Subscriber('lasers/Xk', Quaternion, XkCB)
+    pub_target1         = rospy.Subscriber('lasers/target1', Point, target1CB)
+    pub_target2         = rospy.Subscriber('lasers/target2', Point, target2CB)
 
 def main():
     global setpoint
@@ -189,6 +202,11 @@ def main():
     global state
     global info_utilisateur
     global diff_time
+    global target1
+    global target2
+
+    target1 = ['', '', '']
+    target2 = ['', '', '']
 
     diff_time = 0
     info_utilisateur = "0"

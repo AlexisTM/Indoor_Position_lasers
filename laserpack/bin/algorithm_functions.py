@@ -75,7 +75,7 @@ def extrapolate(p,v,M):
     # find k, the factor to multiply v to get length(v) = M (interpolation)
     # Then add p to v to get the result
     K = sqrt(M*M/(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
-    v = (K*v[0]+p[0], K*v[1]+p[1], K*v[2]+p[2])
+    v = (K*v[0]-p[0], K*v[1]-p[1], K*v[2]-p[2])
     return v
 
 # Get the length of the vector or the distance of the point to the origin
@@ -148,8 +148,8 @@ def getYawInX(position1, orientation1, measure1, position2, orientation2, measur
     k1 = measure1/length1
     k2 = measure2/length2
     # Shouldn't it be ...[1]/...[0] (Y/X) instead of ...[0]/...[1] Sign ?
-    numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
-    denominator = -k2*orientation2[1] + k1*orientation1[1] + position1[1] - position2[1]
+    numerator   = k2*orientation2[0] - k1*orientation1[0] + position1[0] - position2[0]
+    denominator = k2*orientation2[1] - k1*orientation1[1] + position1[1] - position2[1]
     return atan2(numerator,denominator)
 
 # getYawInXL
@@ -158,6 +158,8 @@ def getYawInX(position1, orientation1, measure1, position2, orientation2, measur
 def getYawInXL(position1, orientation1, measure1, length1, position2, orientation2, measure2, length2):
     k1 = measure1/length1
     k2 = measure2/length2
-    numerator   = -k2*orientation2[0] + k1*orientation1[0] + position1[0] - position2[0]
-    denominator = -k2*orientation2[1] + k1*orientation1[1] + position1[1] - position2[1]
+    numerator   = k2*orientation2[0] - k1*orientation1[0] + position1[0] - position2[0]
+    denominator = k2*orientation2[1] - k1*orientation1[1] + position1[1] - position2[1]
+    #print "data : ", k2*orientation2[0], k1*orientation1[0], position1[0], position2[0]
+    #print denominator
     return atan2(numerator,denominator)
