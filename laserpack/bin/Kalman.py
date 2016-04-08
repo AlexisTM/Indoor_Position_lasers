@@ -90,13 +90,6 @@ class Custom3DKalman:
                    process_covariance_noise_distance*process_covariance_noise_distance, \
                    process_covariance_noise_angle*process_covariance_noise_angle] 
 
-    def first(self, Measurements):
-        self.Xk = [0.0, 0.0, 0.0, 0.0]
-        self.Xk[0] = (Measurements[0] + Measurements[1])/2 # X
-        self.Xk[1] = (Measurements[2] + Measurements[3])/2 # Y
-        self.Xk[2] = (Measurements[4] + Measurements[5])/2 # Z
-        self.Xk[3] = (Measurements[6] + Measurements[7])/2 # yaw
-
     # Angular speed is in radians/s
     # Speed in m/s
     # Acceleration in m/(s*s)
@@ -144,9 +137,56 @@ class Custom3DKalman:
         self.Pk[1] = (1-K[1])*Pkp[1]
         self.Pk[2] = (1-K[2])*Pkp[2]
         self.Pk[3] = (1-K[3])*Pkp[3]
-        return self.Xk, K, Xkp
+        return self.Xk, K
 
 def square(array):
   for a in range(len(array)):
     array[a] = array[a]*array[a]
   return array
+
+class simple_filter:
+    def __init__(self, Prediction_gain = 0.4, Last_output_gain = 0.2, data_length = 10):
+        # data length is the number of sample to take, AT LEAST 3
+        self.max_length = data_length
+        # Lower the gain is, the more we take in account the prediction
+        # If no speed nor acceleration is given, use Kalman = 1
+        # If you perfectly trust your Speed/Acceleration and there is no unknonw in the process
+        # use 0.1
+        # If you don't trust that much your Speed/Acceleration 
+        # use 0.6
+        # If you do not know, just leave 0.4
+        self.Prediction_gain = Prediction_gain 
+        self.Last_output_gain = Last_output_gain
+        self.Mean_gain = 1 - Prediction_gain - Last_output_gain
+        self.data = []
+        self.last_output = 0
+        self.index = 0
+
+    def next(self, NewData, dt = 1, Speed = 0, Acceleration = 0):
+        if type(NewData) is list :
+            self.data += NewData
+        else : 
+            self.data.append(NewData)
+        prediction = self.last_output + Speed*dt + Acceleration*dt*dt
+        # Take the mean of the N last values
+        data_mean = self.mean_unoutlier()
+        # Remove the oldest data, multiple times if newData is a list
+        while len(self.data) >=  self.max_length :
+            self.data.pop(0)
+        # calculate the output
+        self.last_output = self.Prediction_gain*prediction + self.Last_output_gain*self.last_output + self.Mean_gain*data_mean
+        return self.last_output
+
+
+    # remove one outlier and take the mean
+    def mean_unoutlier(self):
+        sorted_data = deepcopy(self.data)
+        sorted_data.sort()
+        # sort to avoid to use outliers by popping extremes, if we got enough data
+        if len(self.data) >=  self.max_length :
+            sorted_data.pop()
+            sorted_data.pop(0)
+        result = 0
+        for d in sorted_data : 
+            result += d
+        return result/len(sorted_data)
