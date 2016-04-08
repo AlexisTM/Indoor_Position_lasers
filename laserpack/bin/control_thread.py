@@ -27,6 +27,7 @@ Copyright (c) Alexis Paques 2016
 Copyright (c) Nabil Nehri 2016
 """
  
+from __future__ import division
 import rospy
 import mavros
 import time
@@ -39,11 +40,11 @@ from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import CommandBool
-from sensor_msgs import Range
+from sensor_msgs.msg import Range
 from mavros.utils import *
 from algorithm_functions import rad2degf, deg2radf
 from transformations import *
-from laserpack import Distance
+from laserpack.msg import Distance
 
 
 # Callbacks
@@ -79,12 +80,13 @@ def laser_callback(data):
     local_pos_pub.publish(msg)
     laser_position_count = laser_position_count + 1
 
-def raw_lasers_callback(data):
-    global raw_lasers
-    raw_lasers = data
-
-def sendLidar(data):
+def lasers_raw_callback(data):
     global lasers_raw
+    lasers_raw = data
+
+def sendLidar():
+    global lasers_raw
+    lasers_raw = Distance(lasers=[0,0,0,0,0,0], status=[0,0,0,0,0,0])
     lidar_publisher = rospy.Publisher('mavros/distance_sensor/lidar', Range, queue_size=1)
     rate = rospy.Rate(30)
     msg = Range()
@@ -93,11 +95,10 @@ def sendLidar(data):
     msg.field_of_view = 0.0523599
     msg.min_range = 0.05
     msg.max_range = 20.0
-
     while run:
         msg.header.stamp = rospy.Time.now()
         msg.header.seq=sendLidar_count
-        msg.range_range = (lasers_raw.lasers[4] + lasers_raw.lasers[5])/200
+        msg.range = (lasers_raw.lasers[4] + lasers_raw.lasers[5])/200
         lidar_publisher.publish(msg)
         sendLidar_count = sendLidar_count + 1
         rate.sleep()
@@ -228,8 +229,6 @@ def InterfaceKeyboard():
         arming_client(True)
     if what == "e":
         set_mode_client(custom_mode = "OFFBOARD")
-    if what == "d":
-        set_mode_client(custom_mode = "AUTO.TAKEOFF")
     if what == "m":
         run = False
         time.sleep(1)
@@ -269,20 +268,14 @@ def init():
     global laser_position_count
     global laserposition
     global activeX
-<<<<<<< HEAD
     global pose
 
     pose = PoseStamped()
-=======
-    global lasers_raw
->>>>>>> 0343d8e620b387e3275be4f81f366c543dff1757
-
     # When false, setpoint in XY = position in XY
     activeX = False
     yawSetPoint = 0
 
     laserposition = PoseStamped()
-    lasers_raw = Distance()
     laser_position_count = 0
     run = True
     setPointsCount = 0
@@ -303,11 +296,13 @@ def init():
     arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
     rospy.wait_for_service('mavros/set_mode')
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
-    state_sub       = rospy.Subscriber('lasers/raw', Distance, raw_lasers_callback)
+    state_sub       = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
+
     # mavros/setpoint_position/local
     # mavros/mocap/pose
 
     tSetPoints = Thread(target=sendSetpoint).start()
+    tLidarZ = Thread(target=sendLidar).start()
     # In case we want to send positions
     # tPositions = Thread(target=sendPosition).start()
     

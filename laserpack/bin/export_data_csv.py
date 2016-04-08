@@ -122,6 +122,7 @@ def writer():
     global Xkp
     global write
     global state
+    global diff_time
 
     rate = rospy.Rate(100)
     
@@ -187,7 +188,9 @@ def main():
     global write
     global state
     global info_utilisateur
+    global diff_time
 
+    diff_time = 0
     info_utilisateur = "0"
     write = True
     # init global objects
@@ -221,6 +224,7 @@ def main():
         if what == "q":
             write = False
             break
+        print "elapsed time :", diff_time
 
 if __name__ == '__main__':
     rospy.loginfo("Data export started")
