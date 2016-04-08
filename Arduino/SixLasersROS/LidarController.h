@@ -30,6 +30,7 @@
 #define PARTY_LINE_REGISTER       0x1e
 #define COMMAND_REGISTER          0x40
 #define SCALE_VELOCITY_REGISTER   0x45
+#define OFFSET_REGISTER           0x13
 
 // Values
 #define INITIATE_VALUE            0x04
@@ -43,6 +44,7 @@
 // One bit every 10µs (2.5µs in 400kHz)
 // Wait at least 5 bits to wait for slave answer
 #define I2C_WAIT                  50
+#define FORCE_RESET_OFFSET        true
 
 #define PRINT_DEBUG_INFO          false
 #define LIDAR_TIMEOUT_MS          20
@@ -208,6 +210,13 @@ class LidarController {
     LIDAR_STATE getState(byte Lidar = 0) {
       return lidars[Lidar]->lidar_state;
     };
+    
+    /*******************************************************************************
+      setOffset : Set an offset to the Lidar
+    *******************************************************************************/
+    void setOffset(byte Lidar, byte data) {
+        I2C.write(lidars[Lidar]->address, OFFSET_REGISTER, data);
+    };
 
     /*******************************************************************************
       distanceAndAsync : Get the distance then start a new acquisition
@@ -234,7 +243,7 @@ class LidarController {
       lidars[Lidar]->off();
       lidars[Lidar]->timer_update();
       setState(Lidar, SHUTING_DOWN);
-    }
+    };
 
     /*******************************************************************************
       preReset :
@@ -254,7 +263,7 @@ class LidarController {
     *******************************************************************************/
     byte getCount(){
       return count;
-    }
+    };
 
     /*******************************************************************************
       postReset :
@@ -349,15 +358,18 @@ class LidarController {
               } 
               // Write data anyway but the information is send via nacks = 15 
               distances[i] = data;
-              setState(i, ACQUISITION_READY);
+              setState(i, ACQUISITION_DONE);
             }
             break;
           case ACQUISITION_DONE:
-
+            
 #if PRINT_DEBUG_INFO
             Serial.println(" ACQUISITION_DONE");
 #endif
-
+#if FORCE_RESET_OFFSET
+              setOffset(i, 0x00);
+              setState(i, ACQUISITION_READY);
+#endif
             break;
           case NEED_RESET:
 #if PRINT_DEBUG_INFO
