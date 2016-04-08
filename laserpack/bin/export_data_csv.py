@@ -33,7 +33,7 @@ import tf
 from getch import getch
 from algorithm_functions import rad2degf
 from time import time
-from laserpack.msg import distance
+from laserpack.msg import Distance
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion
 from mavros_msgs.msg import State
@@ -160,7 +160,7 @@ def subscribers():
     setpoint_position   = rospy.Subscriber('mavros/setpoint_position/local', PoseStamped, setpointCB)
     local_position      = rospy.Subscriber('mavros/local_position/pose', PoseStamped, positionCB)
     pose_lasers         = rospy.Subscriber('lasers/pose', PoseStamped, lasersposeCB)
-    raw_lasers          = rospy.Subscriber('lasers/raw', distance, lasersrawCB)
+    raw_lasers          = rospy.Subscriber('lasers/raw', Distance, lasersrawCB)
     writing_sub         = rospy.Subscriber('export/csv/writing', Bool, writingCB)
     velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)

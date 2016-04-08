@@ -2,7 +2,8 @@
 #include "LidarController.h"
 #include "I2CFunctions.h"
 #include <ros.h>
-#include <laserpack/distance.h>
+#include <laserpack/Distance.h>
+#include <laserpack/Req_reset.h>
 
 #include <Wire.h>
 #define WIRE400K false
@@ -45,10 +46,8 @@
 // Actual wait between communications 100Hz = 10ms
 #define DELAY_SEND_MICROS 1000000/DATARATE
 
-// ROS Communication
-ros::NodeHandle nh;
-laserpack::distance distance_msg;
-ros::Publisher distance_publisher("lasers/raw", &distance_msg);
+
+
 
 // Lidars
 static LidarController Controller;
@@ -61,6 +60,24 @@ static LidarObject LZ6;
 
 // Delays
 long now, last;
+
+void handleReset(const laserpack::Req_reset& msg){
+  for(int i = msg.rst_length-1; i >= 0 ; i--){
+    if(msg.rst[i] < Controller.getCount()){
+      Controller.resetLidar(msg.rst[i]);
+    }
+  }
+}
+
+
+
+// ROS Communication
+ros::NodeHandle nh;
+laserpack::Distance distance_msg;
+
+ros::Publisher distance_publisher("lasers/raw", &distance_msg);
+ros::Subscriber<laserpack::Req_reset> laser_reset_subscriber("/lasers/reset", &handleReset );
+
 
 void beginLidars() {
   // Initialisation of the lidars objects
@@ -89,6 +106,7 @@ void setup() {
   last = micros();
   nh.initNode();
   nh.advertise(distance_publisher);
+  nh.subscribe(laser_reset_subscriber);
 }
 
 void loop() {

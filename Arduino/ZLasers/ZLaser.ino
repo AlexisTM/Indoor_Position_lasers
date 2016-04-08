@@ -5,7 +5,7 @@
 // Only if multiple UART port board
 //#define USE_USBCON
 #include <ros.h>
-#include <laserpack/distance.h>
+#include <laserpack/Distance.h>
 //#include <laserpack/init.h>
 
 #include <Wire.h>
@@ -43,7 +43,7 @@ long now, last;
 
 // ROS communication
 ros::NodeHandle nh;
-laserpack::distance   distance_msg;
+laserpack::Distance   distance_msg;
 ros::Publisher distpub("/lasers/raw", &distance_msg);
 
 void beginLidars() {

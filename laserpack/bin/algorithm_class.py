@@ -40,7 +40,7 @@ from time import time
 from lasers import lasersController
 from transformations import *
 from algorithm_functions import *
-from laserpack.msg import distance
+from laserpack.msg import Distance
 from geometry_msgs.msg import PoseStamped, Accel, TwistStamped, Quaternion
 from sensor_msgs.msg import Imu
 from threading import Thread
@@ -227,7 +227,7 @@ def init():
     kalmanFilter = Custom3DKalman(0.025, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, deg2radf(1))
     yawprint = (0,0)
     lasers = lasersController()
-    raw = distance()
+    raw = Distance()
 
 
 
@@ -255,7 +255,7 @@ def subscribers():
     pub_Xk          = rospy.Publisher('lasers/Xk', Quaternion, queue_size=1)
     
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
-    state_sub       = rospy.Subscriber('lasers/raw', distance, raw_lasers_callback)
+    state_sub       = rospy.Subscriber('lasers/raw', Distance, raw_lasers_callback)
     velocity_sub    = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
 
 
