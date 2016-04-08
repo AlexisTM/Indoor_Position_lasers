@@ -151,17 +151,22 @@ def raw_lasers_callback(data):
     pub_position.publish(msg)
 
 
-    # Kalman filtering
+    # # Kalman filtering
     Measurements = (target[0][0], target[1][0], \
                    target[2][1], target[3][1], \
                    target[4][2], target[5][2], \
                    yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
+    # Remove y1
+    # Measurements = (target[0][0], target[1][0], \
+    #                target[3][1], target[3][1], \
+    #                target[4][2], target[5][2], \
+    #                yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
 
     now = time()
     dt = now - last_time_kalman
     last_time_kalman = now
 
-    Xk, K, Xkp = kalmanFilter.next(Measurements, linear_velocity,linearAcceleration, angular_velocity, dt)
+    Xk, K, Xkp = kalmanFilter.next(Measurements, linear_velocity,[0,0,0], angular_velocity, dt)
     
     # rospy.loginfo("Xk x: %s y: %s z: %s yaw: %s", Xk[0], Xk[1], Xk[2], Xk[3])
     # rospy.loginfo("K x: %s y: %s z: %s yaw: %s", K[0], K[1], K[2], K[3])

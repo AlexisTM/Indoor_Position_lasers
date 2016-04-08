@@ -167,13 +167,13 @@ def InterfaceKeyboard():
 
     what = getch()
     if what == "t":
-        xSetPoint = xSetPoint + 0.1
-    if what == "g":
         xSetPoint = xSetPoint - 0.1
+    if what == "g":
+        xSetPoint = xSetPoint + 0.1
     if what == "f":
-        ySetPoint = ySetPoint + 0.1
-    if what == "h":
         ySetPoint = ySetPoint - 0.1
+    if what == "h":
+        ySetPoint = ySetPoint + 0.1
     if what == "i":
         zSetPoint = zSetPoint + 0.1
     if what == "k":
@@ -201,6 +201,8 @@ def InterfaceKeyboard():
         arming_client(True)
     if what == "e":
         set_mode_client(custom_mode = "OFFBOARD")
+    if what == "d":
+        set_mode_client(custom_mode = "AUTO.TAKEOFF")
     if what == "m":
         run = False
         time.sleep(1)
@@ -240,6 +242,9 @@ def init():
     global laser_position_count
     global laserposition
     global activeX
+    global pose
+
+    pose = PoseStamped()
 
     # When false, setpoint in XY = position in XY
     activeX = False

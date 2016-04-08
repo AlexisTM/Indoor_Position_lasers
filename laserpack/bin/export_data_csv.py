@@ -36,11 +36,14 @@ from time import time
 from laserpack.msg import distance
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion
+from mavros_msgs.msg import State
 from sensor_msgs.msg import Imu
 from transformations import *
 from threading import Thread
 
-
+def stateCB(data):
+    global state 
+    state = [str(data.armed)]
 def XkpCB(data):
     global Xkp 
     Xkp = [str(data.x), str(data.y),str(data.z),str(rad2degf(data.w))]
@@ -70,7 +73,7 @@ def imuCB(data):
 
 def velocityCB(data):
     global velocity
-    velocity = [str(data.twist.linear.x),str(data.twist.linear.y),str(data.twist.linear.z),str(data.twist.angular.z)]
+    velocity = [str(data.twist.linear.x),str(data.twist.linear.y),str(data.twist.linear.z),str(rad2degf(data.twist.angular.z))]
 
 def writingCB(data):
     global writing
@@ -118,6 +121,7 @@ def writer():
     global Xk
     global Xkp
     global write
+    global state
 
     rate = rospy.Rate(100)
     
@@ -134,17 +138,20 @@ def writer():
                       'accel_no_gravity_x', 'accel_no_gravity_y', 'accel_no_gravity_z', \
                       'Xk_x', 'Xk_y', 'Xk_z', 'Xk_yaw',  \
                       'K_x', 'K_y', 'K_z', 'K_yaw',  \
-                      'Xkp_x', 'Xkp_y', 'Xkp_z', 'Xkp_yaw']
+                      'Xkp_x', 'Xkp_y', 'Xkp_z', 'Xkp_yaw', \
+                      'isArmed?', 'information_utilisateur']
 
 
         data_writer.writerow(fieldnames)
         initial_time = time()
 
+
+
        #while writing:
         diff_time = 0
         while diff_time < 120 and write:
             diff_time = time()-initial_time
-            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity + Xk + K + Xkp)
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity + Xk + K + Xkp + state + [info_utilisateur])
             rate.sleep()
 	    
 
@@ -159,6 +166,7 @@ def subscribers():
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
     filtered_sub        = rospy.Subscriber('lasers/filtered', PoseStamped, filteredCB)
     accel_sub           = rospy.Subscriber('lasers/accel_without_gravity', Accel, accel_no_gravityCB)
+    state_sub           = rospy.Subscriber('mavros/state', State, stateCB)
 
     pub_Xkp             = rospy.Subscriber('lasers/Xkp', Quaternion, XkpCB)
     pub_K               = rospy.Subscriber('lasers/K', Quaternion, KCB)
@@ -177,9 +185,13 @@ def main():
     global accel_no_gravity
     global K, Xk, Xkp
     global write
+    global state
+    global info_utilisateur
 
+    info_utilisateur = "0"
     write = True
     # init global objects
+    state = ["0"]
     setpoint = ['', '', '', '']
     lasers_pose = ['', '', '', '']
     position = ['', '', '', '', '', '',]
@@ -197,6 +209,15 @@ def main():
     
     while not rospy.is_shutdown(): 
         what = getch()
+        if what == "d":
+            # Décollage
+            info_utilisateur = "1"
+        if what == "o":
+            # Oscillation
+            info_utilisateur = "2"
+        if what == "a":
+            # Atterrissage
+            info_utilisateur = "3"
         if what == "q":
             write = False
             break
