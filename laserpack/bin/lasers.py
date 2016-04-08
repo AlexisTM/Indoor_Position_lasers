@@ -29,6 +29,7 @@ Copyright (c) Alexis Paques 2016
 """
 
 from math import sqrt
+import rospy
 from transformations import *
 from algorithm_functions import *
 

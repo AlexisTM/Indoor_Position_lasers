@@ -104,7 +104,7 @@ def raw_lasers_callback(data):
     global pub_target1
     global pub_target2
     global roll, pitch, yaw
-
+    global position_lasers_rotated
     raw = preCorrectionLasers(data)
     
     # convert imu to a quaternion tuple
@@ -121,6 +121,7 @@ def raw_lasers_callback(data):
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
+    #
     target = lasers.target(q, raw)
     
     #print "raw : x", raw[0], raw[1]
@@ -283,6 +284,7 @@ def subscribers():
 def main():
     global yawprint
     global roll, pitch, yaw
+    global position_lasers_rotated
     while not rospy.is_shutdown(): 
         #rospy.spin()
         what = getch()
