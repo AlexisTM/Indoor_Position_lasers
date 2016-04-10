@@ -160,7 +160,6 @@ class simple_filter:
         self.Mean_gain = 1 - Prediction_gain - Last_output_gain
         self.data = []
         self.last_output = 0
-        self.index = 0
 
     def next(self, NewData, dt = 1, Speed = 0, Acceleration = 0):
         if type(NewData) is list :
@@ -187,6 +186,40 @@ class simple_filter:
             sorted_data.pop()
             sorted_data.pop(0)
         result = 0
-        for d in sorted_data : 
-            result += d
-        return result/len(sorted_data)
+
+        total = sum(v for v in sorted_data)
+        return total/len(sorted_data)
+
+class simple_lowpass:
+    def __init__(self):
+        self.data = []
+        self.last_output = 0
+        self.h = h = [
+            -0.000000000000000003,
+            0.009489865835136195,
+            0.047599359273529158,
+            0.121261259186275366,
+            0.202402690898081855,
+            0.238493649613954889,
+            0.202402690898081855,
+            0.121261259186275394,
+            0.047599359273529186,
+            0.009489865835136214,
+            -0.000000000000000003,
+        ]
+        self.max_length = len(self.h)
+    def next(self, NewData):
+        self.data.append(NewData)
+        if len(self.data) >  self.max_length  :
+            self.data.pop(0)
+            return sum(self.data[v]*self.h[v] for v in range(self.max_length))
+        return NewData
+
+
+class simple_decay_filter : 
+        def __init__(self, decay = 0.93):
+            self.b = 1 - decay
+            self.y = 0
+        def next(self, x):
+            self.y += self.b * (x - self.y)
+            return self.y
