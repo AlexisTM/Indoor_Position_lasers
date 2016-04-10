@@ -57,7 +57,7 @@ class lasersController:
         for i in range(6):
             position = quaternionRotation(self.list[i].position, q)
             orientation = quaternionRotation(self.list[i].orientation, q)
-            target.append(extrapolate(self.list[i].position, self.list[i].orientation, raw[i]))
+            target.append(extrapolate(position, orientation, raw[i]))
         return target
 
     def targetX(self, q, raw):
