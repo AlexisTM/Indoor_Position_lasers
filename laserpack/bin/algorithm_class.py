@@ -98,12 +98,9 @@ def raw_lasers_callback(data):
     global angular_velocity
     global last_time_kalman
     global linearAcceleration
-    global pub_Xkp
-    global pub_K
-    global pub_Xk
-    global pub_target1
-    global pub_target2
+    global pub_Xkp, pub_K, pub_Xk, pub_target1, pub_target2
     global roll, pitch, yaw
+    global decayFilters
 
     raw = preCorrectionLasers(data)
     
@@ -153,6 +150,16 @@ def raw_lasers_callback(data):
     msg.pose.orientation.w = float(q[3])
     pub_position.publish(msg)
 
+
+
+
+    decayFilters[0].next(target[0][0])
+    decayFilters[1].next(target[1][0])
+    decayFilters[2].next(target[2][1])
+    decayFilters[3].next(target[3][1])
+    decayFilters[4].next(target[4][2])
+    decayFilters[5].next(target[5][2])
+    
 
     # # Kalman filtering
     Measurements = (target[0][0], target[1][0], \
@@ -235,6 +242,21 @@ def init():
     global linearAcceleration
     global gravity
     global linearAcceleration_imu
+    global decayFilters
+
+    decayFilters = []
+    decayFilters.append(simple_decay_filter(0.93)) # X
+    decayFilters.append(simple_decay_filter(0.93)) # X
+    decayFilters.append(simple_decay_filter(0.93)) # Y
+    decayFilters.append(simple_decay_filter(0.93)) # Y
+    decayFilters.append(simple_decay_filter(0.93)) # Z 
+    decayFilters.append(simple_decay_filter(0.93)) # Z
+    decayFilters.append(simple_decay_filter(0.93)) # Vx
+    decayFilters.append(simple_decay_filter(0.93)) # Vz
+    decayFilters.append(simple_decay_filter(0.93)) # Vy
+    decayFilters.append(simple_decay_filter(0.93)) # Yaw
+    decayFilters.append(simple_decay_filter(0.93)) # VYaw
+
     last_time_acceleration = 0.0
     linearAcceleration =[0,0,0]
     gravity = [0,0,9.81]
