@@ -217,9 +217,44 @@ class simple_lowpass:
 
 
 class simple_decay_filter : 
-        def __init__(self, decay = 0.93):
-            self.b = 1 - decay
-            self.y = 0
-        def next(self, x):
-            self.y += self.b * (x - self.y)
-            return self.y
+    def __init__(self, decay = 0.93):
+        self.b = 1 - decay
+        self.y = 0
+    def next(self, x):
+        self.y += self.b * (x - self.y)
+        return self.y
+
+class filter_container : 
+    def __init__(self):
+        self.X = simple_filter()
+        self.Y = simple_filter()
+        self.Z = simple_filter()
+        self.Yaw = simple_filter()
+        self.raw_x_1 = simple_decay_filter()
+        self.raw_x_2 = simple_decay_filter()
+        self.raw_y_1 = simple_decay_filter()
+        self.raw_y_2 = simple_decay_filter()
+        self.raw_z_1 = simple_decay_filter()
+        self.raw_z_2 = simple_decay_filter()
+        self.Vx = simple_decay_filter()
+        self.Vy = simple_decay_filter()
+        self.Vz = simple_decay_filter()
+        self.Vyaw = simple_decay_filter()
+
+    def filter_raw(self, raw):
+        result = list()
+        result.append(filters.raw_x_1.next(raw[0]))
+        result.append(filters.raw_x_2.next(raw[1]))
+        result.append(filters.raw_y_1.next(raw[2]))
+        result.append(filters.raw_y_2.next(raw[3]))
+        result.append(filters.raw_z_1.next(raw[4]))
+        result.append(filters.raw_z_2.next(raw[5]))
+        return result
+
+    def filter_position(self, positions, dt, speeds, accelerations):
+        result = list()
+        result.append(self.X.next(positions[0], dt, speeds[0], accelerations[0]))
+        result.append(self.Y.next(positions[1], dt, speeds[1], accelerations[1]))
+        result.append(self.Z.next(positions[2], dt, speeds[2], accelerations[2]))
+        result.append(self.Yaw.next(positions[3], dt, speeds[3], accelerations[3]))
+        return result
