@@ -63,18 +63,21 @@ def laser_callback(data):
     # Output data
     global laser_position_count
 
+    data = PoseStamped()
+    data.header.stamp=rospy.Time.now()
+    data.header.seq=laser_position_count
     laserposition = data
-    msg = PoseStamped()
-    msg.header.stamp=rospy.Time.now()
-    msg.header.seq=laser_position_count
-    msg.pose.position.x = laserposition.pose.position.x
-    msg.pose.position.y = laserposition.pose.position.y
-    msg.pose.position.z = laserposition.pose.position.z
-    msg.pose.orientation.x = laserposition.pose.orientation.x
-    msg.pose.orientation.y = laserposition.pose.orientation.y
-    msg.pose.orientation.z = laserposition.pose.orientation.z
-    msg.pose.orientation.w = laserposition.pose.orientation.w
-    local_pos_pub.publish(msg)
+    # msg = PoseStamped()
+    # msg.header.stamp=rospy.Time.now()
+    # msg.header.seq=laser_position_count
+    # msg.pose.position.x = laserposition.pose.position.x
+    # msg.pose.position.y = laserposition.pose.position.y
+    # msg.pose.position.z = laserposition.pose.position.z
+    # msg.pose.orientation.x = laserposition.pose.orientation.x
+    # msg.pose.orientation.y = laserposition.pose.orientation.y
+    # msg.pose.orientation.z = laserposition.pose.orientation.z
+    # msg.pose.orientation.w = laserposition.pose.orientation.w
+    local_pos_pub.publish(data)
     laser_position_count = laser_position_count + 1
 
 def lasers_raw_callback(data):
@@ -88,7 +91,7 @@ def sendLidar():
     msg = Range()
     sendLidar_count = 0
     msg.radiation_type = msg.INFRARED
-    msg.field_of_view = 0.0523599
+    msg.field_of_view = 0.0523599 # 3° in radians
     msg.min_range = 0.05
     msg.max_range = 20.0
     while run:
@@ -98,8 +101,6 @@ def sendLidar():
         lidar_publisher.publish(msg)
         sendLidar_count = sendLidar_count + 1
         rate.sleep()
-
-        # msg = PositionTarget()
 
 def sendSetpoint():
     # Input data
