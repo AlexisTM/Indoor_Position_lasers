@@ -45,15 +45,18 @@ from geometry_msgs.msg import PoseStamped, Accel, TwistStamped, Quaternion, Poin
 from sensor_msgs.msg import Imu
 from threading import Thread
 from getch import getch
-from Kalman import Custom3DKalman
+from Kalman import filter_container
 
 
 # update the velocity
 def velocity_callback(data):
     global linear_velocity
     global angular_velocity
-    linear_velocity = (data.twist.linear.x, data.twist.linear.y, data.twist.linear.z)
-    angular_velocity = data.twist.angular.z
+    global filters
+    linear_velocity = (filters.Vx.next(data.twist.linear.x), 
+                       filters.Vy.next(data.twist.linear.y), 
+                       filters.Vz.next(data.twist.linear.z))
+    angular_velocity = filters.Vyaw.next(data.twist.angular.z)
 
 # update IMU
 def imu_callback(data):
@@ -97,16 +100,13 @@ def raw_lasers_callback(data):
     global linear_velocity
     global angular_velocity
     global last_time_kalman
-    global linearAcceleration
-    global pub_Xkp
-    global pub_K
-    global pub_Xk
-    global pub_target1
-    global pub_target2
+    global linearAcceleration, pub_target1, pub_target2
     global roll, pitch, yaw
     global position_lasers_rotated
+    global filters
+
     raw = preCorrectionLasers(data)
-    
+
     # convert imu to a quaternion tuple
     quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
@@ -115,31 +115,18 @@ def raw_lasers_callback(data):
     laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
     
     # Yaw of the PixHawk is the OPPOSITE of this
-    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
-    #print "yaw :", rad2degf(yawMeasured)
-    
+    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)    
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
     #
     target = lasers.target(q, raw)
     
-    #print "raw : x", raw[0], raw[1]
-    #print "raw : y", raw[2], raw[3]
-    #print "raw : z", raw[4], raw[5]
-
-    #print "X1:", target[0][0], "X2 :", target[1][0]
-    #print "Y1:", target[2][1], "Y2 :", target[3][1]
-    #print "Z1:", target[4][2], "Z2 :", target[5][2]
-    
-    #print "roll:",rad2degf(roll), "pitch:",rad2degf(pitch), "yaw:",rad2degf(yaw)
-
     yawprint=(rad2degf(yawMeasured), rad2degf(yaw))
 
     # target[i][j]
     # i = index of the laser extrapolated (0 => 5)
     # j = direction X, Y or Z
-    # TODO Add an output filter (Kalman filter on positions and yaw)
     msg = PoseStamped()
     msg.pose.position.x = float(target[0][0] + target[1][0])/2
     if(lasers.count == 4) :
@@ -154,73 +141,42 @@ def raw_lasers_callback(data):
     msg.pose.orientation.w = float(q[3])
     pub_position.publish(msg)
 
-
     # # Kalman filtering
-    Measurements = (target[0][0], target[1][0], \
-                   target[2][1], target[3][1], \
-                   target[4][2], target[5][2], \
-                   yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
-    # Remove y1
-    # Measurements = (target[0][0], target[1][0], \
-    #                target[3][1], target[3][1], \
-    #                target[4][2], target[5][2], \
-    #                yawMeasured, yawMeasured) # I did not implemented the yaw measurment in Y yet
+    Measurements = ([target[0][0], target[1][0]], \
+                   [target[2][1], target[3][1]], \
+                   [target[4][2], target[5][2]], \
+                   yawMeasured) 
+
+    Velocity = linear_velocity + [angular_velocity]
 
     now = time()
     dt = now - last_time_kalman
     last_time_kalman = now
 
-    Xk, K, Xkp = kalmanFilter.next(Measurements, linear_velocity,[0,0,0], angular_velocity, dt)
-    
-    # rospy.loginfo("Xk x: %s y: %s z: %s yaw: %s", Xk[0], Xk[1], Xk[2], Xk[3])
-    # rospy.loginfo("K x: %s y: %s z: %s yaw: %s", K[0], K[1], K[2], K[3])
-    # rospy.loginfo("Xkp x: %s y: %s z: %s yaw: %s", Xkp[0], Xkp[1], Xkp[2], Xkp[3])
-    # rospy.loginfo("---")
-    q = quaternion_from_euler(roll, pitch, Xk[3], axes="sxyz")
+    filters.filter_position(Measurements, dt, Velocity, [1,1,1,1])
 
-    msg = PoseStamped()
-    msg.pose.position.x = float(Xk[0])
-    msg.pose.position.y = float(Xk[1])
-    msg.pose.position.z = float(Xk[2])
-    msg.pose.orientation.x = float(q[0])
-    msg.pose.orientation.y = float(q[1])
-    msg.pose.orientation.z = float(q[2])
-    msg.pose.orientation.w = float(q[3])
 
     pub_filtered.publish(msg)
 
-    qua = Quaternion(x=Xkp[0], y=Xkp[1], z=Xkp[2], w=Xkp[3])
-    pub_Xkp.publish(qua)
-    qua = Quaternion(x=K[0], y=K[1], z=K[2], w=K[3])
-    pub_K.publish(qua)
-    qua = Quaternion(x=Xk[0], y=Xk[1], z=Xk[2], w=Xk[3])
-    pub_Xk.publish(qua)
     point_target1 = Point(target[0][0],target[2][1], target[4][2])
     pub_target1.publish(point_target1)
     point_target2 = Point(target[1][0],target[3][1], target[5][2])
     pub_target2.publish(point_target2)
-
-    #print "m:", yawprint[0]
-    # print "diff :" 
-    # print point_target1.x - point_target2.x
-    # print point_target1.y - point_target2.y
-    # print point_target1.z - point_target2.z
-
-    # print "point : "
-    # print point_target1
-    # print point_target2
 
     last_time_kalman = time()
 
 
 def preCorrectionLasers(data):
     global lasers
+    global filters
     # TODO Handle data, keep old data if outlier/readerror detected
     # TODO Then, edit raw with correct values
     deoffset = list()
     for i in range(lasers.count):
         # Divide by 100 => centimeters to meters
         deoffset.append((data.lasers[i]*lasers.list[i].offset[0] + lasers.list[i].offset[1])/100)
+
+    deoffset = filters.filter_raw(deoffset)
     return deoffset
 
 # init should get values of posiion of the lasers
@@ -235,18 +191,20 @@ def init():
     global last_time_acceleration
     global linearAcceleration
     global gravity
-    global linearAcceleration_imu
+    global linearAcceleration_imu, filters
+
     last_time_acceleration = 0.0
     linearAcceleration =[0,0,0]
     gravity = [0,0,9.81]
     last_time_kalman = time()
     linear_velocity = (0,0,0)
     angular_velocity = 0.0
-    kalmanFilter = Custom3DKalman(0.025, deg2radf(5), [2.0, 1.0, 0.0, 0.0], 0.01, deg2radf(1))
+
     yawprint = (0,0)
     lasers = lasersController()
     raw = Distance()
 
+    filters = filter_container()
 
 
 # listerners listen to ROS
@@ -256,9 +214,6 @@ def subscribers():
     global accel_pub
     global imu
 
-    global pub_Xkp
-    global pub_K
-    global pub_Xk
     global pub_target1
     global pub_target2
 
@@ -270,9 +225,6 @@ def subscribers():
     accel_pub       = rospy.Publisher('lasers/accel_without_gravity', Accel, queue_size=1)
     pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=1)
     pub_filtered    = rospy.Publisher('lasers/filtered', PoseStamped, queue_size=1)
-    pub_Xkp         = rospy.Publisher('lasers/Xkp', Quaternion, queue_size=1)
-    pub_K           = rospy.Publisher('lasers/K', Quaternion, queue_size=1)
-    pub_Xk          = rospy.Publisher('lasers/Xk', Quaternion, queue_size=1)
     pub_target1     = rospy.Publisher('lasers/target1', Point, queue_size=1)
     pub_target2     = rospy.Publisher('lasers/target2', Point, queue_size=1)
     

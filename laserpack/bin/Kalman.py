@@ -90,13 +90,6 @@ class Custom3DKalman:
                    process_covariance_noise_distance*process_covariance_noise_distance, \
                    process_covariance_noise_angle*process_covariance_noise_angle] 
 
-    def first(self, Measurements):
-        self.Xk = [0.0, 0.0, 0.0, 0.0]
-        self.Xk[0] = (Measurements[0] + Measurements[1])/2 # X
-        self.Xk[1] = (Measurements[2] + Measurements[3])/2 # Y
-        self.Xk[2] = (Measurements[4] + Measurements[5])/2 # Z
-        self.Xk[3] = (Measurements[6] + Measurements[7])/2 # yaw
-
     # Angular speed is in radians/s
     # Speed in m/s
     # Acceleration in m/(s*s)
@@ -144,9 +137,124 @@ class Custom3DKalman:
         self.Pk[1] = (1-K[1])*Pkp[1]
         self.Pk[2] = (1-K[2])*Pkp[2]
         self.Pk[3] = (1-K[3])*Pkp[3]
-        return self.Xk, K, Xkp
+        return self.Xk, K
 
 def square(array):
   for a in range(len(array)):
     array[a] = array[a]*array[a]
   return array
+
+class simple_filter:
+    def __init__(self, Prediction_gain = 0.4, Last_output_gain = 0.2, data_length = 10):
+        # data length is the number of sample to take, AT LEAST 3
+        self.max_length = data_length
+        # Lower the gain is, the more we take in account the prediction
+        # If no speed nor acceleration is given, use Kalman = 1
+        # If you perfectly trust your Speed/Acceleration and there is no unknonw in the process
+        # use 0.1
+        # If you don't trust that much your Speed/Acceleration 
+        # use 0.6
+        # If you do not know, just leave 0.4
+        self.Prediction_gain = Prediction_gain 
+        self.Last_output_gain = Last_output_gain
+        self.Mean_gain = 1 - Prediction_gain - Last_output_gain
+        self.data = []
+        self.last_output = 0
+
+    def next(self, NewData, dt = 1, Speed = 0, Acceleration = 0):
+        if type(NewData) is list :
+            self.data += NewData
+        else : 
+            self.data.append(NewData)
+        prediction = self.last_output + Speed*dt + Acceleration*dt*dt
+        # Take the mean of the N last values
+        data_mean = self.mean_unoutlier()
+        # Remove the oldest data, multiple times if newData is a list
+        while len(self.data) >=  self.max_length :
+            self.data.pop(0)
+        # calculate the output
+        self.last_output = self.Prediction_gain*prediction + self.Last_output_gain*self.last_output + self.Mean_gain*data_mean
+        return self.last_output
+
+
+    # remove one outlier and take the mean
+    def mean_unoutlier(self):
+        sorted_data = deepcopy(self.data)
+        sorted_data.sort()
+        # sort to avoid to use outliers by popping extremes, if we got enough data
+        if len(self.data) >=  self.max_length :
+            sorted_data.pop()
+            sorted_data.pop(0)
+        result = 0
+
+        total = sum(v for v in sorted_data)
+        return total/len(sorted_data)
+
+class simple_lowpass:
+    def __init__(self):
+        self.data = []
+        self.last_output = 0
+        self.h = h = [
+            -0.000000000000000003,
+            0.009489865835136195,
+            0.047599359273529158,
+            0.121261259186275366,
+            0.202402690898081855,
+            0.238493649613954889,
+            0.202402690898081855,
+            0.121261259186275394,
+            0.047599359273529186,
+            0.009489865835136214,
+            -0.000000000000000003,
+        ]
+        self.max_length = len(self.h)
+    def next(self, NewData):
+        self.data.append(NewData)
+        if len(self.data) >  self.max_length  :
+            self.data.pop(0)
+            return sum(self.data[v]*self.h[v] for v in range(self.max_length))
+        return NewData
+
+
+class simple_decay_filter : 
+    def __init__(self, decay = 0.93):
+        self.b = 1 - decay
+        self.y = 0
+    def next(self, x):
+        self.y += self.b * (x - self.y)
+        return self.y
+
+class filter_container : 
+    def __init__(self):
+        self.X = simple_filter()
+        self.Y = simple_filter()
+        self.Z = simple_filter()
+        self.Yaw = simple_filter()
+        self.raw_x_1 = simple_decay_filter()
+        self.raw_x_2 = simple_decay_filter()
+        self.raw_y_1 = simple_decay_filter()
+        self.raw_y_2 = simple_decay_filter()
+        self.raw_z_1 = simple_decay_filter()
+        self.raw_z_2 = simple_decay_filter()
+        self.Vx = simple_decay_filter()
+        self.Vy = simple_decay_filter()
+        self.Vz = simple_decay_filter()
+        self.Vyaw = simple_decay_filter()
+
+    def filter_raw(self, raw):
+        result = list()
+        result.append(filters.raw_x_1.next(raw[0]))
+        result.append(filters.raw_x_2.next(raw[1]))
+        result.append(filters.raw_y_1.next(raw[2]))
+        result.append(filters.raw_y_2.next(raw[3]))
+        result.append(filters.raw_z_1.next(raw[4]))
+        result.append(filters.raw_z_2.next(raw[5]))
+        return result
+
+    def filter_position(self, positions, dt, speeds, accelerations):
+        result = list()
+        result.append(self.X.next(positions[0], dt, speeds[0], accelerations[0]))
+        result.append(self.Y.next(positions[1], dt, speeds[1], accelerations[1]))
+        result.append(self.Z.next(positions[2], dt, speeds[2], accelerations[2]))
+        result.append(self.Yaw.next(positions[3], dt, speeds[3], accelerations[3]))
+        return result
