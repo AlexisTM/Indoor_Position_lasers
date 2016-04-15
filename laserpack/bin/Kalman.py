@@ -57,7 +57,9 @@ class KalmanStatic1D:
     return self.PreviousEstimate
 
 
-# Dynamic optimized 3D Filter with 6 lasers to get X, Y, Z, yaw !
+# Dynamic optimized 3D Filter with 6 lasers to get X, Y, Z, yaw 
+# NOT USED because the Kalman gain is stuck @ 0.37 since the error 
+# on the prediction and on the value are constant
 class Custom3DKalman:
     def __init__(self, _ErrorMeasurements, _Error_Yaw, _InitialPrediction, process_covariance_noise_distance=0.01 , process_covariance_noise_angle=0.0174533):
         # Xk is the output value (and the initial value X0 in this case)
@@ -83,7 +85,6 @@ class Custom3DKalman:
         # The Process Covariance NOISE is some additionnal error which is unpredictable or not modelised
         # => Walls are unprecised, could be X cm of error 
         # => 1 cm for distances &  1 degree (0,0523599 radians) for angle
-        # Represents the DIAGONAL of the matrix
         # Represents the DIAGONAL of the matrix
         self.Q = [process_covariance_noise_distance*process_covariance_noise_distance, \
                    process_covariance_noise_distance*process_covariance_noise_distance, \
@@ -145,7 +146,7 @@ def square(array):
   return array
 
 class simple_filter:
-    def __init__(self, Prediction_gain = 0.4, Last_output_gain = 0.2, data_length = 10):
+    def __init__(self, Prediction_gain = 0.4, New_data_gain = 0.2, data_length = 10):
         # data length is the number of sample to take, AT LEAST 3
         self.max_length = data_length
         # Lower the gain is, the more we take in account the prediction
@@ -155,9 +156,7 @@ class simple_filter:
         # If you don't trust that much your Speed/Acceleration 
         # use 0.6
         # If you do not know, just leave 0.4
-        self.Prediction_gain = Prediction_gain 
-        self.Last_output_gain = Last_output_gain
-        self.Mean_gain = 1 - Prediction_gain - Last_output_gain
+        self.setGains(Prediction_gain, New_data_gain)
         self.data = []
         self.last_output = 0
 
@@ -173,9 +172,15 @@ class simple_filter:
         while len(self.data) >=  self.max_length :
             self.data.pop(0)
         # calculate the output
-        self.last_output = self.Prediction_gain*prediction + self.Last_output_gain*self.last_output + self.Mean_gain*data_mean
+        self.last_output = self.Prediction_gain*prediction + self.New_data_gain*self.NewData + self.Mean_gain*data_mean
         return self.last_output
 
+    # Gains are 0.4 for prediction, 0.2 for new data, 0.6 for mean on STATIONARY flight
+    # Gains are 0.65 for prediction, 0.35 for new data, 0 for mean on DYNAMIC flight
+    def setGains(self, Prediction_gain = 0.4, New_data_gain = 0.2):
+        self.Prediction_gain = Prediction_gain
+        self.New_data_gain = New_data_gain
+        self.Mean_gain = 1 - Prediction_gain - New_data_gain
 
     # remove one outlier and take the mean
     def mean_unoutlier(self):
@@ -190,6 +195,8 @@ class simple_filter:
         total = sum(v for v in sorted_data)
         return total/len(sorted_data)
 
+# Applies the coeficients of the filter (B in MATLAB, h in the class) to the data
+# NOTE : Applies too much delay
 class simple_lowpass:
     def __init__(self):
         self.data = []
@@ -243,12 +250,12 @@ class filter_container :
 
     def filter_raw(self, raw):
         result = list()
-        result.append(filters.raw_x_1.next(raw[0]))
-        result.append(filters.raw_x_2.next(raw[1]))
-        result.append(filters.raw_y_1.next(raw[2]))
-        result.append(filters.raw_y_2.next(raw[3]))
-        result.append(filters.raw_z_1.next(raw[4]))
-        result.append(filters.raw_z_2.next(raw[5]))
+        result.append(self.raw_x_1.next(raw[0]))
+        result.append(self.raw_x_2.next(raw[1]))
+        result.append(self.raw_y_1.next(raw[2]))
+        result.append(self.raw_y_2.next(raw[3]))
+        result.append(self.raw_z_1.next(raw[4]))
+        result.append(self.raw_z_2.next(raw[5]))
         return result
 
     def filter_position(self, positions, dt, speeds, accelerations):
