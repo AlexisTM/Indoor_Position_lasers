@@ -39,38 +39,43 @@ from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import CommandBool
 
 class UAV:
-    def __init__(self, setpoint_rate=3):
+    def __init__(self, setpoint_rate=10):
         self.flying = True
         self.state = State()
         self.position = (0.0,0.0,0.0)
         self.laser_position = Pose
         self.yaw = 0.0
-        self.position_subscriber = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.position_callback)
+        self.local_position_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
+        self.laser_position_sub = rospy.Subscriber('/lasers/filtered', PoseStamped, self.laser_position_sender)
         self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
         rospy.wait_for_service('mavros/cmd/arming')
         self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
         rospy.wait_for_service('mavros/set_mode')
         self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
+        
         self.setpoint_init()
         self.setpoint_rate = rospy.Rate(setpoint_rate)
         self.setpoint_subscriber = rospy.Subscriber('/UAV/Setpoint', PoseStamped, self.setpoint_callback)
+        self.setPointsCount = 0
+
 
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
         self.position_thread = Thread(target=self.position_sender).start()
 
     def setpoint_init(self):
         # type_mask
-        # 2552 : XYZ & yaw
-        # 2558 : Z & yaw
+        # 2552 : XYZ & yaw - POSITION
+        # 7104 : XYZ, yaw, vXYZ, TAKE_OFF_SETPOINT
+        # 3064 : 0000 1001 1111 1000
         self.setpoint = PositionTarget()
         self.setpoint.coordinate_frame = FRAME_LOCAL_NED
-        self.setpoint.type_mask = 2558
+        self.setpoint.type_mask = 2552
         self.setpoint.position.x = 0.0
         self.setpoint.position.y = 0.0
         self.setpoint.position.z = 0.0
         self.setpoint.yaw = 0.0
 
-    def position_callback(self, topic):
+    def local_position_callback(self, topic):
         self.position = (topic.pose.position.x, topic.pose.position.y, topic.pose.position.z)
         q = (topic.pose.orientation.x, topic.pose.orientation.y, topic.pose.orientation.z, topic.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
@@ -82,14 +87,21 @@ class UAV:
     def setpoint_callback(self, setpoint):
         self.setpoint = setpoint
 
-    def position_sender(self):
+    def laser_position_sender(self, data):
         local_pos_pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
         while(self.flying):
-            local_pos_pub.publish(self.position)
+            data.header.stamp = rospy.Time.now()
+            data.header.seq=self.positionCount
+            self.positionCount = self.positionCount + 1
+            local_pos_pub.publish(data)
 
     def setpoint_sender(self):
         setpoint_publisher = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
         while(self.flying):
+            self.setpoint = PoseStamped()
+            self.setpoint.header.stamp = rospy.Time.now()
+            self.setpoint.header.seq=self.setPointsCount
+            self.setPointsCount = self.setPointsCount + 1
             setpoint_publisher.publish(self.setpoint)
             self.setpoint_rate.sleep()
 
@@ -99,10 +111,9 @@ class UAV:
     def set_offboard(self):
         self.set_mode_client(custom_mode = "OFFBOARD")
 
-
 class taskController:
     """ The task controller handle a list with every tasks """
-    def __init__(self, rate=10, setpoint_rate=3):
+    def __init__(self, rate=10, setpoint_rate=10):
         self.tasks = list()
         self.count = 0
         self.current = 0

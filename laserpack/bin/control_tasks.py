@@ -33,33 +33,30 @@ import mavros
 import time
 from getch import *
 from threading import Thread
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Point
 from mavros.utils import *
 from tasks import *
 import sys
 
-
 def interface_getch():
-    global xPosition
-    global yPosition
-    global zPosition
+    global setpoint
     global Controller
     global stop
 
     what = getch()
 
     if what == "z":
-        xPosition = xPosition + 0.1
+        setpoint.x = setpoint.x + 0.1
     if what == "s":
-        xPosition = xPosition - 0.1
+        setpoint.x = setpoint.x - 0.1
     if what == "q":
-        yPosition = yPosition + 0.1
+        setpoint.y = setpoint.y + 0.1
     if what == "d":
-        yPosition = yPosition - 0.1
+        setpoint.y = setpoint.y - 0.1
     if what == "u":
-        zPosition = zPosition + 0.1
+        setpoint.z = setpoint.z + 0.1
     if what == "j":
-        zPosition = zPosition - 0.1
+        setpoint.z = setpoint.z - 0.1
     if what == "m":
         stop = True
         sys.exit("SHUTDOWN")
@@ -71,29 +68,31 @@ def main():
 
 
 def do_job():
-    global Controller
+    # Input data
     global stop
+    # Objects
+    global Controller
     while not stop :
         Controller.rate.sleep()
         Controller.spinOnce()
 
 def task_feeder():
     global Controller
-
     Controller.addTask(init_UAV("Init", timeout=1))
     Controller.addTask(target("Position1", 1,1,1,0))
     Controller.addTask(loiter("WaitABit", 10))
     Controller.addTask(target("ComeBack", 0.5, 0.5, 0.5, 0))
 
 def init(): 
-    global xPosition
-    global yPosition
-    global zPosition
-    global Controller
+    # Input data
     global stop
-
+    # Objects
+    global setpoint, Controller
+    # Data initiation
     stop = False
-    xPosition, yPosition, zPosition = (0,0,0)
+    setpoint = Point()
+
+    # Node initiation
     rospy.init_node('laserpack_control')
     Controller = taskController(rate=3, setpoint_rate=10)
 
