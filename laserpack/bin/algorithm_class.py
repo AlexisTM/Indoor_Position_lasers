@@ -53,9 +53,9 @@ def velocity_callback(data):
     global linear_velocity
     global angular_velocity
     global filters
-    linear_velocity = (filters.Vx.next(data.twist.linear.x), 
+    linear_velocity = [filters.Vx.next(data.twist.linear.x), 
                        filters.Vy.next(data.twist.linear.y), 
-                       filters.Vz.next(data.twist.linear.z))
+                       filters.Vz.next(data.twist.linear.z)]
     angular_velocity = filters.Vyaw.next(data.twist.angular.z)
 
 # update IMU
@@ -176,7 +176,7 @@ def preCorrectionLasers(data):
         # Divide by 100 => centimeters to meters
         deoffset.append((data.lasers[i]*lasers.list[i].offset[0] + lasers.list[i].offset[1])/100)
 
-    deoffset = filters.filter_raw(deoffset)
+    #deoffset = filters.filter_raw(deoffset)
     return deoffset
 
 # init should get values of posiion of the lasers
@@ -191,13 +191,14 @@ def init():
     global last_time_acceleration
     global linearAcceleration
     global gravity
-    global linearAcceleration_imu, filters
+    global linearAcceleration_imu
+    global filters
 
     last_time_acceleration = 0.0
     linearAcceleration =[0,0,0]
     gravity = [0,0,9.81]
     last_time_kalman = time()
-    linear_velocity = (0,0,0)
+    linear_velocity = [0,0,0]
     angular_velocity = 0.0
 
     yawprint = (0,0)
