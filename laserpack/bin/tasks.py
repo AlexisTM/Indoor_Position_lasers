@@ -40,8 +40,14 @@ from mavros_msgs.srv import CommandBool
 
 class UAV:
     def __init__(self, setpoint_rate=10):
-        self.stopped = False
-        self.flying = True
+        # Configurations : 
+        rospy.init_node("UAV_Node")
+        self.type_mask_Fly = 2552 # 2552 - 0000 1001 1111 1000, position setpoint + Pxyz Yaw
+        self.type_mask_Takeoff = 6599 # 6599 - 0001 1001 1100 0111, Takeoff setpoint + Vxyz Yaw
+        self.type_mask_Land = 10695 # 10695 - 0010 1001 1100 0111, Land setpoint + Vxyz Yaw
+        # Could be : 
+        # self.type_mask_Land = 10688 # 10695 - 0010 1001 1100 0000, Land setpoint + Pxyz Vxyz Yaw
+        self.type_mask_Loiter = 14784 # 14784 - 0011 1001 1100 0000, Loiter setpoint + Pxyz Vxyz Yaw
 
         # Variable initiating
         self.state = State()
@@ -49,6 +55,8 @@ class UAV:
         self.local_yaw = 0.0
         self.laser_position = Point()
         self.laser_yaw = 0.0
+        self.stopped = False
+        self.flying = True
 
         # Configurations
         self.landing_speed = -0.1 # 0.1 meters/s to go down
@@ -64,10 +72,10 @@ class UAV:
         self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
         
         # Arming & mode Services
-        rospy.wait_for_service('mavros/cmd/arming')
-        self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
-        rospy.wait_for_service('mavros/set_mode')
-        self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
+        # rospy.wait_for_service('mavros/cmd/arming')
+        # self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
+        # rospy.wait_for_service('mavros/set_mode')
+        # self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
 
         # Setpoints
         self.setpoint_init()
@@ -79,14 +87,7 @@ class UAV:
         # Senders threads
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
 
-        # Configurations : 
-        self.type_mask_Fly = 2555 # 2552 - 0000 1001 1111 1000, position setpoint + Pxyz Yaw
-        self.type_mask_Takeoff = 6599 # 6599 - 0001 1001 1100 0111, Takeoff setpoint + Vxyz Yaw
-        self.type_mask_Land = 10695 # 10695 - 0010 1001 1100 0111, Land setpoint + Vxyz Yaw
-        # Could be : 
-        # self.type_mask_Land = 10688 # 10695 - 0010 1001 1100 0000, Land setpoint + Pxyz Vxyz Yaw
-        self.type_mask_Loiter = 14784 # 14784 - 0011 1001 1100 0000, Loiter setpoint + Pxyz Vxyz Yaw
-
+       
     def setpoint_position(self, position, yaw):
         self.setpoint.type_mask = self.type_mask_Fly
         self.setpoint.velocity = Vector3()
@@ -120,10 +121,10 @@ class UAV:
         self.setpoint.yaw_rate = 0.0
 
     def local_position_callback(self, local):
-        self.local_position = (local.pose.position.x, local.pose.position.y, local.pose.position.z)
+        self.local_position = Point(local.pose.position.x, local.pose.position.y, local.pose.position.z)
         q = (local.pose.orientation.x, local.pose.orientation.y, local.pose.orientation.z, local.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
-        self.yaw = yaw
+        self.local_yaw = yaw
 
     def state_callback(self, state):
         self.state = state
@@ -132,12 +133,13 @@ class UAV:
     #     self.setpoint = setpoint
 
     def laser_position_sender(self, data):
-        local_pos_pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
+        laser_pos_pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
         while(not self.stopped):
             data.header.stamp = rospy.Time.now()
             data.header.seq=self.positionCount
             self.positionCount = self.positionCount + 1
-            local_pos_pub.publish(data)
+            laser_pos_pub.publish(data)
+            self.setpoint_rate.sleep()
 
     def setpoint_sender(self):
         setpoint_publisher = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
@@ -162,7 +164,7 @@ class taskController:
         self.current = 0
         self.setRate(rate)
         self.UAV = UAV(setpoint_rate=setpoint_rate)
-	    
+        
     def __str__(self):
         controller_string = "Task Controller :\n"
         for task in self.tasks: 
@@ -249,7 +251,7 @@ class target(task, object):
 
     def run(self, UAV):
         if(not self.sent):
-            UAV.setpoint_position(self.target, yaw):
+            UAV.setpoint_position(self.target, yaw)
         return self.isDone(UAV)
 
     def isDone(self, UAV):
