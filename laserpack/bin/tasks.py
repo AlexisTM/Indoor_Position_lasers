@@ -31,7 +31,7 @@ import rospy
 import time
 from math import fabs
 from threading import Thread
-from geometry_msgs.msg import PoseStamped, Quaternion, Pose
+from geometry_msgs.msg import PoseStamped, Quaternion, Pose, Point, Vector3
 from transformations import *
 from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
@@ -40,27 +40,70 @@ from mavros_msgs.srv import CommandBool
 
 class UAV:
     def __init__(self, setpoint_rate=10):
+        self.stopped = False
         self.flying = True
+
+        # Variable initiating
         self.state = State()
-        self.position = (0.0,0.0,0.0)
-        self.laser_position = Pose
-        self.yaw = 0.0
+        self.local_position = Point()
+        self.local_yaw = 0.0
+        self.laser_position = Point()
+        self.laser_yaw = 0.0
+
+        # Configurations
+        self.landing_speed = -0.1 # 0.1 meters/s to go down
+        self.landing_altitude = 0.10 # At 0.1 meters, shutdown motors, you are done
+        self.takeoff_speed = 0.5 # 0.5 meters/s to get up
+        self.takeoff_altitude = 0.50 # 0.5 meters to takeoff, once there, takeoff is succeeded
+
+
+        # PixHawk position subscriber
         self.local_position_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        self.laser_position_sub = rospy.Subscriber('/lasers/filtered', PoseStamped, self.laser_position_sender)
+        
+        # State subscriber
         self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
+        
+        # Arming & mode Services
         rospy.wait_for_service('mavros/cmd/arming')
         self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
         rospy.wait_for_service('mavros/set_mode')
         self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
-        
+
+        # Setpoints
         self.setpoint_init()
         self.setpoint_rate = rospy.Rate(setpoint_rate)
-        self.setpoint_subscriber = rospy.Subscriber('/UAV/Setpoint', PoseStamped, self.setpoint_callback)
+        #self.setpoint_subscriber = rospy.Subscriber('/UAV/Setpoint', PoseStamped, self.setpoint_callback)
+        self.laser_position_sub  = rospy.Subscriber('/UAV/Position', PoseStamped, self.laser_position_sender)
         self.setPointsCount = 0
 
-
+        # Senders threads
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
-        self.position_thread = Thread(target=self.position_sender).start()
+
+        # Configurations : 
+        self.type_mask_Fly = 2555 # 2552 - 0000 1001 1111 1000, position setpoint + Pxyz Yaw
+        self.type_mask_Takeoff = 6599 # 6599 - 0001 1001 1100 0111, Takeoff setpoint + Vxyz Yaw
+        self.type_mask_Land = 10695 # 10695 - 0010 1001 1100 0111, Land setpoint + Vxyz Yaw
+        # Could be : 
+        # self.type_mask_Land = 10688 # 10695 - 0010 1001 1100 0000, Land setpoint + Pxyz Vxyz Yaw
+        self.type_mask_Loiter = 14784 # 14784 - 0011 1001 1100 0000, Loiter setpoint + Pxyz Vxyz Yaw
+
+    def setpoint_position(self, position, yaw):
+        self.setpoint.type_mask = self.type_mask_Fly
+        self.setpoint.velocity = Vector3()
+        self.setpoint.position = position
+        self.setpoint.yaw = yaw
+
+    def setpoint_takeoff(self):
+        self.setpoint.type_mask = self.type_mask_Takeoff
+        self.setpoint.velocity = Vector3(0.0,self.takeoff_speed,0.0)
+
+    def setpoint_land(self):
+        self.setpoint.type_mask = self.type_mask_Land
+        self.setpoint.velocity = Vector3(0.0,self.landing_speed,0.0)
+
+    def setpoint_loiter(self):
+        self.setpoint.type_mask = self.type_mask_Loiter
+        self.setpoint.velocity = Vector3(0.0,0.0,0.0)
 
     def setpoint_init(self):
         # type_mask
@@ -68,28 +111,29 @@ class UAV:
         # 7104 : XYZ, yaw, vXYZ, TAKE_OFF_SETPOINT
         # 3064 : 0000 1001 1111 1000
         self.setpoint = PositionTarget()
-        self.setpoint.coordinate_frame = FRAME_LOCAL_NED
-        self.setpoint.type_mask = 2552
-        self.setpoint.position.x = 0.0
-        self.setpoint.position.y = 0.0
-        self.setpoint.position.z = 0.0
+        self.setpoint.coordinate_frame = self.setpoint.FRAME_LOCAL_NED
+        self.setpoint.type_mask = self.type_mask_Fly
+        self.setpoint.position = Point()
         self.setpoint.yaw = 0.0
+        self.setpoint.velocity = Vector3()
+        self.setpoint.acceleration_or_force = Vector3()
+        self.setpoint.yaw_rate = 0.0
 
-    def local_position_callback(self, topic):
-        self.position = (topic.pose.position.x, topic.pose.position.y, topic.pose.position.z)
-        q = (topic.pose.orientation.x, topic.pose.orientation.y, topic.pose.orientation.z, topic.pose.orientation.w)
+    def local_position_callback(self, local):
+        self.local_position = (local.pose.position.x, local.pose.position.y, local.pose.position.z)
+        q = (local.pose.orientation.x, local.pose.orientation.y, local.pose.orientation.z, local.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
         self.yaw = yaw
 
     def state_callback(self, state):
         self.state = state
 
-    def setpoint_callback(self, setpoint):
-        self.setpoint = setpoint
+    # def setpoint_callback(self, setpoint):
+    #     self.setpoint = setpoint
 
     def laser_position_sender(self, data):
         local_pos_pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
-        while(self.flying):
+        while(not self.stopped):
             data.header.stamp = rospy.Time.now()
             data.header.seq=self.positionCount
             self.positionCount = self.positionCount + 1
@@ -97,8 +141,7 @@ class UAV:
 
     def setpoint_sender(self):
         setpoint_publisher = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
-        while(self.flying):
-            self.setpoint = PoseStamped()
+        while(not self.stopped):
             self.setpoint.header.stamp = rospy.Time.now()
             self.setpoint.header.seq=self.setPointsCount
             self.setPointsCount = self.setPointsCount + 1
@@ -120,7 +163,6 @@ class taskController:
         self.setRate(rate)
         self.UAV = UAV(setpoint_rate=setpoint_rate)
 	    
-
     def __str__(self):
         controller_string = "Task Controller :\n"
         for task in self.tasks: 
@@ -159,9 +201,9 @@ class taskController:
         if self.current < self.count :
             task = self.tasks[self.current]
             result = task.run(self.UAV)
-            print result
             if result: # returns True if done
                 self.current = self.current + 1
+                self.runTask(self)
 
         print self.current, self.count
         return 
@@ -180,7 +222,6 @@ class task:
         return True
        
     def run(self, UAV):
-       
         # do something then return isDone
         return self.isDone()
 
@@ -197,33 +238,18 @@ class target(task, object):
     the target""" 
     def __init__(self, name, x, y, z, yaw, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
         super(target, self).__init__("target", name)
-        self.target       = (x,y,z)
+        self.target       = Point(x,y,z)
         self.orientation  = yaw
-        self.precisionXY  = precisionXY
-        self.precisionZ   = precisionZ
+        self.precision    = Point(precisionXY, precisionXY, precisionZ)
         self.precisionYAW = precisionYAW
         self.sent         = False
-        self.quaternion   = quaternion_from_euler(0, 0, self.orientation)
 
     def __str__(self):
         return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
 
-
     def run(self, UAV):
-        # Send the position once to the SENDER thread then only check if arrived 
-        if not(self.sent) :
-            sender = rospy.Publisher('/UAV/Setpoint', PoseStamped, queue_size=1)
-            msg = PoseStamped()
-            msg.pose.position.x = self.target[0]
-            msg.pose.position.y = self.target[1]
-            msg.pose.position.z = self.target[2]
-            msg.pose.orientation.x = self.quaternion[0]
-            msg.pose.orientation.y = self.quaternion[1]
-            msg.pose.orientation.z = self.quaternion[2]
-            msg.pose.orientation.w = self.quaternion[3]
-            sender.publish(msg)
-            self.sent = True
-        
+        if(not self.sent):
+            UAV.setpoint_position(self.target, yaw):
         return self.isDone(UAV)
 
     def isDone(self, UAV):
@@ -231,13 +257,87 @@ class target(task, object):
 
         Better solution for more complex surfaces : 
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
-        if(fabs(UAV.position[0] - self.target[0]) > self.precisionXY):
+        if(fabs(UAV.position.x - self.target.x) > self.precision.x):
             return False
-        if(fabs(UAV.position[1] - self.target[1]) > self.precisionXY):
+        if(fabs(UAV.position.y - self.target.y) > self.precision.y):
             return False
-        if(fabs(UAV.position[2] - self.target[2]) > self.precisionZ):
+        if(fabs(UAV.position.z - self.target.z) > self.precision.z):
             return False
         if(fabs(UAV.yaw - self.yaw) > self.precisionYAW):
+            return False
+        # it is done
+        return True
+
+
+# Sleeping the right time
+class loiter(task, object):
+    """The loiter class is a task. It is just a waiting task"""
+    def __init__(self, name, waitTime):
+        self.waitTime = rospy.Rate(1.0/waitTime)
+        self.last = None
+        super(loiter, self).__init__("loiter", name)
+
+    def __str__(self):
+        return super(loiter, self).__str__()
+
+    def run(self, UAV):
+        if(self.last == None):
+            self.last = time.time()
+            UAV.setpoint_loiter()
+
+        return self.isDone()
+
+    def isDone(self):
+        waitTime.sleep()
+        return True
+
+class takeoff(task, object):
+    """The takeoff class is a task. It says to the UAV to go to 
+    takeoff""" 
+    def __init__(self, name, precision=0.05):
+        super(takeoff, self).__init__("target", name)
+        self.sent             = False
+        self.takeoff_altitude = 0.5
+        self.precision        = precision
+
+    def __str__(self):
+        return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
+
+    def run(self, UAV):
+        if(not self.sent):
+            UAV.setpoint_takeoff()
+            self.takeoff_altitude = UAV.takeoff_altitude
+        return self.isDone(UAV)
+
+    def isDone(self, UAV):
+        """ Just verify if we correctly take off or not """
+        if(fabs(UAV.position.z - self.takeoff_altitude) > precision):
+            return False
+        # it is done
+        return True
+
+
+class land(task, object):
+    """The land class is a task. It says to the UAV to go to 
+    land""" 
+    def __init__(self, name, precision=0.05):
+        super(land, self).__init__("target", name)
+        self.sent             = False
+        self.landing_altitude = 0.1
+        self.precision        = precision
+
+    def __str__(self):
+        return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
+
+    def run(self, UAV):
+        if(not self.sent):
+            UAV.setpoint_land()
+            self.landing_altitude = UAV.landing_altitude
+        return self.isDone(UAV)
+
+    def isDone(self, UAV):
+        """ Just verify if we correctly landed or not, maximum landing_altitude + precision (15cm) """
+        if(fabs(UAV.position.z - self.landing_altitude) > precision):
             return False
         # it is done
         return True
@@ -262,25 +362,6 @@ class grab(task, object):
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
         return True
 
-# Sleeping the right time
-class loiter(task, object):
-    """The loiter class is a task. It is just a waiting task"""
-    def __init__(self, name, waitTime):
-        self.waitTime = rospy.Rate(1.0/waitTime)
-        self.last = None
-        super(loiter, self).__init__("loiter", name)
-
-    def __str__(self):
-        return super(loiter, self).__str__()
-
-    def run(self, UAV):
-        if(self.last == None):
-            self.last = time.time()
-        return self.isDone()
-
-    def isDone(self):
-        waitTime.sleep()
-        return True
 
 
 # Waiting testing time 
