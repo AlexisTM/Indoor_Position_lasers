@@ -156,6 +156,17 @@ class UAV:
     def set_offboard(self):
         self.set_mode_client(custom_mode = "OFFBOARD")
 
+    def die(self):
+        self.setpoint_land()
+        self.stopped = True
+
+    def __del__(self):
+        self.die()
+
+    def __exit__(self):
+        self.die()
+
+
 class taskController:
     """ The task controller handle a list with every tasks """
     def __init__(self, rate=10, setpoint_rate=10):
