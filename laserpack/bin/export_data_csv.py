@@ -179,7 +179,6 @@ def subscribers():
     filtered_sub        = rospy.Subscriber('lasers/filtered', PoseStamped, filteredCB)
     accel_sub           = rospy.Subscriber('lasers/accel_without_gravity', Accel, accel_no_gravityCB)
     state_sub           = rospy.Subscriber('mavros/state', State, stateCB)
-
     pub_Xkp             = rospy.Subscriber('lasers/Xkp', Quaternion, XkpCB)
     pub_K               = rospy.Subscriber('lasers/K', Quaternion, KCB)
     pub_Xk              = rospy.Subscriber('lasers/Xk', Quaternion, XkCB)

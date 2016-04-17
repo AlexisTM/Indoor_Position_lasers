@@ -29,78 +29,154 @@ Copyright (c) Nabil Nehri 2016
  
 import rospy
 import mavros
-import time
-import tf
-import numpy as np
 from getch import *
 from threading import Thread
-from geometry_msgs.msg import PoseStamped
-from sensor_msgs.msg import Imu
-from mavros_msgs.srv import SetMode
-from mavros_msgs.msg import State
-from mavros_msgs.srv import CommandBool
-from mavros.utils import *
+from laserpack.msg import Report, RPYPose, Battery, Distance
+from geometry_msgs.msg import PoseStamped, Point, Vector3, TwistStamped
+from std_msgs.msg import Header
+from mavros_msgs.msg import BatteryStatus, State, PositionTarget
+from transformations import euler_from_quaternion
+from algorithm_functions import rad2degf, deg2radf
 
 
-def sendSetpoint():
-    global ack_send
-    global run
-    global setPointsCount
-    local_setpoint_pub = rospy.Publisher('/Ack', PoseStamped, queue_size=10)
-    rate = rospy.Rate(20.0)
+def report_sender():
+    global report
+    report_publisher = rospy.Publisher('/web/report', PoseStamped, queue_size=10)
+    rate = rospy.Rate(5.0)
     while run:
-        msg = PoseStamped()
-        msg.pose.position.x = 1
-        msg.pose.position.y = 2
-        msg.pose.position.z = 3
-        msg.pose.orientation.x = 0.0
-        msg.pose.orientation.y = 0.0
-        msg.pose.orientation.z = 0.0
-        msg.pose.orientation.w = 1.0
-        local_setpoint_pub.publish(msg)
-        setPointsCount = setPointsCount + 1
+        report_publisher.publish(report)
+        reports_count = reports_count + 1
         rate.sleep()
 
+### CALLBACKS ###
+def setpoint_callback(data):
+    global report
+    quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
+                  data.pose.orientation.z, data.pose.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    report.setpoint.position = data.pose.position
+    report.setpoint.roll = roll
+    report.setpoint.roll = pitch
+    report.setpoint.roll = yaw
+
+def mocap_callback(data):
+    global report
+    quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
+                  data.pose.orientation.z, data.pose.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    report.mocap.position = data.pose.position
+    report.mocap.roll = roll
+    report.mocap.roll = pitch
+    report.mocap.roll = yaw
+
+def vision_callback(data):
+    global report
+    quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
+                  data.pose.orientation.z, data.pose.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    report.vision.position = data.pose.position
+    report.vision.roll = roll
+    report.vision.roll = pitch
+    report.vision.roll = yaw
 
 
+def local_callback(data):
+    global report
+    quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
+                  data.pose.orientation.z, data.pose.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    report.local.position = data.pose.position
+    report.local.roll = roll
+    report.local.roll = pitch
+    report.local.roll = yaw
+
+
+def lasers_callback(data):
+    global report
+    quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
+                  data.pose.orientation.z, data.pose.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    report.lasers_pose.position = data.pose.position
+    report.lasers_pose.roll = roll
+    report.lasers_pose.roll = pitch
+    report.lasers_pose.roll = yaw
+
+
+def lasers_filtered_callback(data):
+    global report
+    quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
+                  data.pose.orientation.z, data.pose.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    report.lasers_filtered.position = data.pose.position
+    report.lasers_filtered.roll = roll
+    report.lasers_filtered.roll = pitch
+    report.lasers_filtered.roll = yaw
+
+
+def lasers_raw_callback(data):
+    global report
+    report.lasers_raw = data
+
+def state_callback(data):
+    global report 
+    report.connected = data.connected
+    report.armed = data.armed
+    report.guided = data.guided
+    report.mode = data.mode
+
+def battery_callback(data):
+    global report 
+    report.voltage = data.voltage
+    report.current = data.current
+    report.remaining = data.remaining
+    pass
+
+def velocity_callback(data):
+    pass
 
 def InterfaceKeyboard():
-    global setPointsCount
     global run
-  
-
     what = getch()
-    if what == "m":
+    if what == "q":
         run = False
         time.sleep(1)
         exit()
-
-    
-    rospy.loginfo("Ack sent : %s", setPointsCount )
-
+    rospy.loginfo("Reports sent : %s", reports_count )
 
 def init(): 
-   
-  
-    global setPointsCount
-    global ack_pub    
+    global reports_count
     global run 
-    setPointsCount = 0
+    global report
+    report = Report()
+    reports_count = 0
     run = True
-    
-    rospy.init_node('send_pose')
-    tSetPoints = Thread(target=sendSetpoint).start()
+    rospy.init_node('web_reporter')
 
-    
+    tWebReport = Thread(target=report_sender).start()
+
+def subscribers():
+
+    setpoint_position_sub= rospy.Subscriber('mavros/setpoint_position/local', PoseStamped, setpoint_callback)
+    mocap_sub            = rospy.Subscriber('mavros/mocap/pose', PoseStamped, mocap_callback)
+    vision_sub           = rospy.Subscriber('mavros/vision_pose/pose', PoseStamped, vision_callback)
+    local_position_sub   = rospy.Subscriber('mavros/local_position/pose', PoseStamped, local_callback)
+    velocity_sub         = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
+    filtered_sub         = rospy.Subscriber('lasers/filtered', PoseStamped, lasers_filtered_callback)
+    pose_lasers          = rospy.Subscriber('lasers/pose', PoseStamped, lasers_callback)
+    raw_lasers           = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
+    state_sub            = rospy.Subscriber('mavros/state', State, state_callback)
+    battery_sub          = rospy.Subscriber('mavros/battery', BatteryStatus, battery_callback)
+
+def main():
     while not rospy.is_shutdown(): 
         InterfaceKeyboard()
 
 
 if __name__ == '__main__':
-    rospy.loginfo("We are ready")
     try:
         init()
-
+        subscribers()
+        main()
     except rospy.ROSInterruptException:
         rospy.loginfo("init failed")
         pass
