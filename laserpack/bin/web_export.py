@@ -40,8 +40,8 @@ from algorithm_functions import rad2degf, deg2radf
 from sensor_msgs.msg import Imu
 
 def report_sender():
-    global report, report_rate
-    report_publisher = rospy.Publisher('/web/report', PoseStamped, queue_size=10)
+    global report, report_rate, reports_count
+    report_publisher = rospy.Publisher('/web/report', Report, queue_size=1)
     while run:
         report_publisher.publish(report)
         reports_count = reports_count + 1
@@ -151,15 +151,13 @@ def InterfaceKeyboard():
     rospy.loginfo("Reports sent : %s", reports_count )
 
 def init(): 
-    global reports_count
-    global run 
-    global report
-    global report_rate
+    global reports_count, run, report, report_rate
 
     rospy.init_node('web_reporter')
 
     report_rate = rospy.Rate(24)
     report = Report()
+    report.header = Header()
     reports_count = 0
     run = True
 
