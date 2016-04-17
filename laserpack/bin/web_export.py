@@ -37,16 +37,15 @@ from std_msgs.msg import Header
 from mavros_msgs.msg import BatteryStatus, State, PositionTarget
 from transformations import euler_from_quaternion
 from algorithm_functions import rad2degf, deg2radf
-
+from sensor_msgs.msg import Imu
 
 def report_sender():
-    global report
+    global report, report_rate
     report_publisher = rospy.Publisher('/web/report', PoseStamped, queue_size=10)
-    rate = rospy.Rate(5.0)
     while run:
         report_publisher.publish(report)
         reports_count = reports_count + 1
-        rate.sleep()
+        report_rate.sleep()
 
 ### CALLBACKS ###
 def setpoint_callback(data):
@@ -117,6 +116,7 @@ def lasers_raw_callback(data):
     global report
     report.lasers_raw = data
 
+
 def state_callback(data):
     global report 
     report.connected = data.connected
@@ -132,7 +132,14 @@ def battery_callback(data):
     pass
 
 def velocity_callback(data):
-    pass
+    global report
+    # velocity
+    report.angular_speed = data.twist.angular
+    report.linear_speed = data.twist.linear
+
+def imu_callback(data):
+    global report 
+    report.linear_acceleration = data.linear_acceleration
 
 def InterfaceKeyboard():
     global run
@@ -147,30 +154,34 @@ def init():
     global reports_count
     global run 
     global report
+    global report_rate
+
+    rospy.init_node('web_reporter')
+
+    report_rate = rospy.Rate(24)
     report = Report()
     reports_count = 0
     run = True
-    rospy.init_node('web_reporter')
 
     tWebReport = Thread(target=report_sender).start()
 
 def subscribers():
-
-    setpoint_position_sub= rospy.Subscriber('mavros/setpoint_position/local', PoseStamped, setpoint_callback)
-    mocap_sub            = rospy.Subscriber('mavros/mocap/pose', PoseStamped, mocap_callback)
-    vision_sub           = rospy.Subscriber('mavros/vision_pose/pose', PoseStamped, vision_callback)
-    local_position_sub   = rospy.Subscriber('mavros/local_position/pose', PoseStamped, local_callback)
-    velocity_sub         = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
-    filtered_sub         = rospy.Subscriber('lasers/filtered', PoseStamped, lasers_filtered_callback)
-    pose_lasers          = rospy.Subscriber('lasers/pose', PoseStamped, lasers_callback)
-    raw_lasers           = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
-    state_sub            = rospy.Subscriber('mavros/state', State, state_callback)
-    battery_sub          = rospy.Subscriber('mavros/battery', BatteryStatus, battery_callback)
+    # Subscribers
+    setpoint_position_sub = rospy.Subscriber('mavros/setpoint_position/local', PoseStamped, setpoint_callback)
+    mocap_sub             = rospy.Subscriber('mavros/mocap/pose', PoseStamped, mocap_callback)
+    vision_sub            = rospy.Subscriber('mavros/vision_pose/pose', PoseStamped, vision_callback)
+    local_position_sub    = rospy.Subscriber('mavros/local_position/pose', PoseStamped, local_callback)
+    filtered_sub          = rospy.Subscriber('lasers/filtered', PoseStamped, lasers_filtered_callback)
+    pose_lasers           = rospy.Subscriber('lasers/pose', PoseStamped, lasers_callback)
+    raw_lasers            = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
+    state_sub             = rospy.Subscriber('mavros/state', State, state_callback)
+    battery_sub           = rospy.Subscriber('mavros/battery', BatteryStatus, battery_callback)
+    velocity_sub          = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
+    imu_sub               = rospy.Subscriber('mavros/imu', Imu, imu_callback)
 
 def main():
     while not rospy.is_shutdown(): 
         InterfaceKeyboard()
-
 
 if __name__ == '__main__':
     try:
