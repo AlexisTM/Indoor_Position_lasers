@@ -54,9 +54,9 @@ def setpoint_callback(data):
                   data.pose.orientation.z, data.pose.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     report.setpoint.position = data.pose.position
-    report.setpoint.roll = roll
-    report.setpoint.roll = pitch
-    report.setpoint.roll = yaw
+    report.setpoint.orientation.roll = roll
+    report.setpoint.orientation.pitch = pitch
+    report.setpoint.orientation.yaw = yaw
 
 def mocap_callback(data):
     global report
@@ -64,9 +64,9 @@ def mocap_callback(data):
                   data.pose.orientation.z, data.pose.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     report.mocap.position = data.pose.position
-    report.mocap.roll = roll
-    report.mocap.roll = pitch
-    report.mocap.roll = yaw
+    report.mocap.orientation.roll = roll
+    report.mocap.orientation.pitch = pitch
+    report.mocap.orientation.yaw = yaw
 
 def vision_callback(data):
     global report
@@ -74,9 +74,9 @@ def vision_callback(data):
                   data.pose.orientation.z, data.pose.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     report.vision.position = data.pose.position
-    report.vision.roll = roll
-    report.vision.roll = pitch
-    report.vision.roll = yaw
+    report.vision.orientation.roll = roll
+    report.vision.orientation.pitch = pitch
+    report.vision.orientation.yaw = yaw
 
 
 def local_callback(data):
@@ -85,9 +85,9 @@ def local_callback(data):
                   data.pose.orientation.z, data.pose.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     report.local.position = data.pose.position
-    report.local.roll = roll
-    report.local.roll = pitch
-    report.local.roll = yaw
+    report.local.orientation.roll = roll
+    report.local.orientation.pitch = pitch
+    report.local.orientation.yaw = yaw
 
 
 def lasers_callback(data):
@@ -96,9 +96,9 @@ def lasers_callback(data):
                   data.pose.orientation.z, data.pose.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     report.lasers_pose.position = data.pose.position
-    report.lasers_pose.roll = roll
-    report.lasers_pose.roll = pitch
-    report.lasers_pose.roll = yaw
+    report.lasers_pose.orientation.roll = roll
+    report.lasers_pose.orientation.pitch = pitch
+    report.lasers_pose.orientation.yaw = yaw
 
 
 def lasers_filtered_callback(data):
@@ -106,10 +106,10 @@ def lasers_filtered_callback(data):
     quaternion = (data.pose.orientation.x, data.pose.orientation.y, \
                   data.pose.orientation.z, data.pose.orientation.w)
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
-    report.lasers_filtered.position = data.pose.position
-    report.lasers_filtered.roll = roll
-    report.lasers_filtered.roll = pitch
-    report.lasers_filtered.roll = yaw
+    report.laser_filtered.position = data.pose.position
+    report.laser_filtered.orientation.roll = roll
+    report.laser_filtered.orientation.pitch = pitch
+    report.laser_filtered.orientation.yaw = yaw
 
 
 def lasers_raw_callback(data):
@@ -126,10 +126,9 @@ def state_callback(data):
 
 def battery_callback(data):
     global report 
-    report.voltage = data.voltage
-    report.current = data.current
-    report.remaining = data.remaining
-    pass
+    report.battery.voltage = data.voltage
+    report.battery.current = data.current
+    report.battery.remaining = data.remaining
 
 def velocity_callback(data):
     global report

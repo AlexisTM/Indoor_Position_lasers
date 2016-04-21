@@ -163,6 +163,7 @@ class simple_filter:
     def next(self, NewData, dt = 1, Speed = 0, Acceleration = 0):
         if type(NewData) is list :
             self.data += NewData
+            NewData = (NewData[0]+NewData[1])/2
         else : 
             self.data.append(NewData)
         prediction = self.last_output + Speed*dt + Acceleration*dt*dt
@@ -172,7 +173,7 @@ class simple_filter:
         while len(self.data) >=  self.max_length :
             self.data.pop(0)
         # calculate the output
-        self.last_output = self.Prediction_gain*prediction + self.New_data_gain*self.NewData + self.Mean_gain*data_mean
+        self.last_output = self.Prediction_gain*prediction + self.New_data_gain*NewData + self.Mean_gain*data_mean
         return self.last_output
 
     # Gains are 0.4 for prediction, 0.2 for new data, 0.6 for mean on STATIONARY flight

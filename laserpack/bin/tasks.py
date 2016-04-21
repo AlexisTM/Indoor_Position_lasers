@@ -41,7 +41,6 @@ from mavros_msgs.srv import CommandBool
 class UAV:
     def __init__(self, setpoint_rate=10):
         # Configurations : 
-        rospy.init_node("UAV_Node")
         self.type_mask_Fly = 2552 # 2552 - 0000 1001 1111 1000, position setpoint + Pxyz Yaw
         self.type_mask_Takeoff = 6599 # 6599 - 0001 1001 1100 0111, Takeoff setpoint + Vxyz Yaw
         self.type_mask_Land = 10695 # 10695 - 0010 1001 1100 0111, Land setpoint + Vxyz Yaw
@@ -57,13 +56,14 @@ class UAV:
         self.laser_yaw = 0.0
         self.stopped = False
         self.flying = True
+        self.home = Point()
+
 
         # Configurations
         self.landing_speed = -0.1 # 0.1 meters/s to go down
         self.landing_altitude = 0.10 # At 0.1 meters, shutdown motors, you are done
-        self.takeoff_speed = 0.5 # 0.5 meters/s to get up
+        self.takeoff_speed = 2 # 0.5 meters/s to get up
         self.takeoff_altitude = 0.50 # 0.5 meters to takeoff, once there, takeoff is succeeded
-
 
         # PixHawk position subscriber
         self.local_position_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
@@ -71,21 +71,21 @@ class UAV:
         # State subscriber
         self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
         
-        # Arming & mode Services
-        # rospy.wait_for_service('mavros/cmd/arming')
-        # self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
-        # rospy.wait_for_service('mavros/set_mode')
-        # self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
+        #Arming & mode Services
+        rospy.wait_for_service('mavros/cmd/arming')
+        self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
+        rospy.wait_for_service('mavros/set_mode')
+        self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
 
         # Setpoints
         self.setpoint_init()
         self.setpoint_rate = rospy.Rate(setpoint_rate)
         #self.setpoint_subscriber = rospy.Subscriber('/UAV/Setpoint', PoseStamped, self.setpoint_callback)
-        self.laser_position_sub  = rospy.Subscriber('/UAV/Position', PoseStamped, self.laser_position_sender)
+        self.laser_position_sub  = rospy.Subscriber('/lasers/filtered', PoseStamped, self.laser_position_sender)
         self.setPointsCount = 0
-
         # Senders threads
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
+        self.positionCount = 0
 
        
     def setpoint_position(self, position, yaw):
@@ -150,6 +150,9 @@ class UAV:
             setpoint_publisher.publish(self.setpoint)
             self.setpoint_rate.sleep()
 
+    def getPosition(self):
+        return [self.local_position, self.local_yaw]
+
     def arm(self, arming_state):
         self.arming_client(arming_state)
 
@@ -195,17 +198,17 @@ class taskController:
         return self.tasks
     
     def getTask(self, index):
-        index = index - 1 
-        return -1 if (index >= self.count) else self.tasks[index]
+        index = index - 1  # ??
+        return -1 if (self.current >= self.count) else self.tasks[index]
 
     def getCurrentTask(self):
-        return self.tasks[current];
+        return self.tasks[self.current];
 
     def runTask(self):
         if self.current == -1 :
             rospy.loginfo("No task running (-1)")
         else :
-            rospy.loginfo("Running task {0}/{1} - {2}".format(self.current+1, self.count+1, self.tasks[self.current]))
+            rospy.loginfo("Running task {0}/{1} - {2}".format(self.current+1, self.count, self.tasks[self.current]))
 
     def setRate(self, rate):
         self.rate = rospy.Rate(rate)
@@ -216,9 +219,7 @@ class taskController:
             result = task.run(self.UAV)
             if result: # returns True if done
                 self.current = self.current + 1
-                self.runTask(self)
-
-        print self.current, self.count
+                self.runTask()
         return 
 
 class task:
@@ -242,27 +243,27 @@ class task:
         return self.Type
 
     def __str__(self):
-        return "Task {0} - {1}".format(self.type, self.name)
+        return "Task {0} - {1}".format(self.Type, self.name)
 
 
 
 class target(task, object):
     """The target class is a task. It says to the UAV to go to 
     the target""" 
-    def __init__(self, name, x, y, z, yaw, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
+    def __init__(self, name, pointXYZ, yaw, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
         super(target, self).__init__("target", name)
-        self.target       = Point(x,y,z)
+        self.target       = pointXYZ
         self.orientation  = yaw
         self.precision    = Point(precisionXY, precisionXY, precisionZ)
         self.precisionYAW = precisionYAW
         self.sent         = False
 
     def __str__(self):
-        return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
+        return super(target, self).__str__() + "{0} pointing {1} radians".format(self.target, self.orientation)
 
     def run(self, UAV):
         if(not self.sent):
-            UAV.setpoint_position(self.target, yaw)
+            UAV.setpoint_position(self.target, self.orientation)
         return self.isDone(UAV)
 
     def isDone(self, UAV):
@@ -270,13 +271,13 @@ class target(task, object):
 
         Better solution for more complex surfaces : 
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
-        if(fabs(UAV.position.x - self.target.x) > self.precision.x):
+        if(fabs(UAV.local_position.x - self.target.x) > self.precision.x):
             return False
-        if(fabs(UAV.position.y - self.target.y) > self.precision.y):
+        if(fabs(UAV.local_position.y - self.target.y) > self.precision.y):
             return False
-        if(fabs(UAV.position.z - self.target.z) > self.precision.z):
+        if(fabs(UAV.local_position.z - self.target.z) > self.precision.z):
             return False
-        if(fabs(UAV.yaw - self.yaw) > self.precisionYAW):
+        if(fabs(UAV.local_yaw - self.orientation) > self.precisionYAW):
             return False
         # it is done
         return True
@@ -314,7 +315,7 @@ class takeoff(task, object):
         self.precision        = precision
 
     def __str__(self):
-        return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
+        return super(takeoff, self).__str__() + "TakeOff"
 
     def run(self, UAV):
         if(not self.sent):
@@ -324,7 +325,7 @@ class takeoff(task, object):
 
     def isDone(self, UAV):
         """ Just verify if we correctly take off or not """
-        if(fabs(UAV.position.z - self.takeoff_altitude) > precision):
+        if(fabs(UAV.local_position.z - self.takeoff_altitude) > self.precision):
             return False
         # it is done
         return True
@@ -340,7 +341,7 @@ class land(task, object):
         self.precision        = precision
 
     def __str__(self):
-        return super(target, self).__str__(self) + "{0} pointing {1} radians".format(self.target, self.orientation)
+        return super(land, self).__str__() + "Landing"
 
     def run(self, UAV):
         if(not self.sent):
@@ -350,7 +351,7 @@ class land(task, object):
 
     def isDone(self, UAV):
         """ Just verify if we correctly landed or not, maximum landing_altitude + precision (15cm) """
-        if(fabs(UAV.position.z - self.landing_altitude) > precision):
+        if(fabs(UAV.local_position.z - self.landing_altitude) > self.precision):
             return False
         # it is done
         return True
@@ -365,7 +366,7 @@ class grab(task, object):
         self.state = 0;
 
     def __str__(self):
-        return super(grab, self).__str__()
+        return super(grab, self).__str__() + "Grab"
 
     def run(self, UAV):
         return self.isDone()
@@ -386,7 +387,7 @@ class test(task, object):
         self.last = None
 
     def __str__(self):
-        return super(test, self).__str__()
+        return super(test, self).__str__() + "test"
 
     def run(self, UAV):
         if(self.last == None):
@@ -408,16 +409,35 @@ class test(task, object):
             print("waiting")
             return False
         
-# Arm the pixHawk
+# Init the the pixHawk with a home
 class init_UAV(task, object):
-    """The test class is a task. It is just a testing task"""
-    def __init__(self, name, timeout = 1):
-        self.timeout = rospy.Rate(1.0/timeout)
-        self.last = None
+    """The init_UAV class is a task. It wait the UAV to be initialized, set home and set the setpoint to hom"""
+    def __init__(self, name, sleep = 10):
+        self.sleep = rospy.Rate(10/sleep)
         super(init_UAV, self).__init__("INIT_UAV", name)
 
     def __str__(self):
-        return super(test, self).__str__()
+        return super(init_UAV, self).__str__() + " init"
+
+    def run(self, UAV):
+        self.sleep.sleep()
+        UAV.home = Point(UAV.local_position.x, UAV.local_position.y, UAV.local_position.z)
+        UAV.setpoint.position = Point(UAV.local_position.x, UAV.local_position.y, UAV.local_position.z)
+        return self.isDone(UAV)
+
+    def isDone(self, UAV):
+        return UAV.home.x != 0 and UAV.home.y != 0
+
+
+# Arm the pixHawk
+class arm(task, object):
+    """The arm class is a task. It put the UAV in OFFBOARD mode and arm it"""
+    def __init__(self, name, timeout = 1):
+        self.timeout = rospy.Rate(1.0/timeout)
+        super(arm, self).__init__("ARM", name)
+
+    def __str__(self):
+        return super(arm, self).__str__() + " arming"
 
     def run(self, UAV):
         if not UAV.state.armed :
@@ -430,3 +450,24 @@ class init_UAV(task, object):
 
     def isDone(self, UAV):
         return UAV.state.armed and ( UAV.state.mode == "OFFBOARD" or UAV.state.mode == "AUTO.LAND")
+
+
+# Disarm the pixHawk
+class disarm(task, object):
+    """The disarm Class disarms the UAV"""
+    def __init__(self, name, timeout = 1):
+        self.timeout = rospy.Rate(1.0/timeout)
+        self.last = None
+        super(disarm, self).__init__("DISARM", name)
+
+    def __str__(self):
+        return super(disarm, self).__str__() + " disarming"
+
+    def run(self, UAV):
+        if UAV.state.armed :
+            UAV.arm(False)
+        self.timeout.sleep()
+        return self.isDone(UAV)
+
+    def isDone(self, UAV):
+        return not UAV.state.armed 

@@ -63,7 +63,6 @@ def laser_callback(data):
     # Output data
     global laser_position_count
 
-    data = PoseStamped()
     data.header.stamp=rospy.Time.now()
     data.header.seq=laser_position_count
     laserposition = data

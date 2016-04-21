@@ -45,21 +45,25 @@ def interface_getch():
 
     what = getch()
 
-    if what == "z":
+    if what == "g":
         setpoint.x = setpoint.x + 0.1
-    if what == "s":
+    if what == "t":
         setpoint.x = setpoint.x - 0.1
-    if what == "q":
+    if what == "h":
         setpoint.y = setpoint.y + 0.1
-    if what == "d":
+    if what == "f":
         setpoint.y = setpoint.y - 0.1
-    if what == "u":
+    if what == "i":
         setpoint.z = setpoint.z + 0.1
-    if what == "j":
+    if what == "k":
         setpoint.z = setpoint.z - 0.1
     if what == "m":
         stop = True
         sys.exit("SHUTDOWN")
+
+
+    task = Controller.getCurrentTask()
+    #rospy.loginfo(task) 
 
 def main():
     do_job_thread = Thread(target=do_job).start()
@@ -75,19 +79,29 @@ def do_job():
     while not stop :
         Controller.rate.sleep()
         Controller.spinOnce()
+    if stop : 
+        Controller.UAV.arm(False)
 
 def task_feeder():
     global Controller
-    Controller.addTask(init_UAV("Init", timeout=1))
-    Controller.addTask(target("Position1", 1,1,1,0))
-    Controller.addTask(loiter("WaitABit", 10))
-    Controller.addTask(target("ComeBack", 0.5, 0.5, 0.5, 0))
+    Controller.addTask(init_UAV("Init", sleep=10))
+    Controller.addTask(arm("Arming", timeout=1))
+    time.sleep(10)
+    position, yaw = Controller.UAV.getPosition()
+    #Controller.addTask(takeoff("Takeoff"))
+    Controller.addTask(target("Position 1 meter", Point(position.x, position.y, 1.0),0))
+    Controller.addTask(loiter("Wait 5 seconds", 5))
+    Controller.addTask(target("Position 1 meter", Point(position.x, position.y, 0.5),0))
+    Controller.addTask(land("Landing incoming"))
+    Controller.addTask(disarm("Shutdown now"))
 
 def init(): 
     # Input data
     global stop
     # Objects
     global setpoint, Controller
+
+    global uav
     # Data initiation
     stop = False
     setpoint = Point()
