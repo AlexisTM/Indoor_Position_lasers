@@ -1,3 +1,4 @@
+var cmd = init();
 var Configurations = {
     setpoints: {
         min: 0.5,
@@ -119,6 +120,68 @@ var plotZ = $.plot($("#PlotLocalZ"), [{
 });
 
 
+
+function init()
+{
+    var cmd = {}
+    var ros = new ROSLIB.Ros({
+        url: 'ws://192.168.137.18:9090'
+    });
+
+    ros.on('connection', function() {
+        console.log('Connected to websocket server.');
+    });
+
+    ros.on('error', function(error) {
+        console.log('Error connecting to websocket server: ', error);
+    });
+
+    ros.on('close', function() {
+        console.log('Connection to websocket server closed.');
+    });
+
+    var listener = new ROSLIB.Topic({
+    ros: ros,
+    name: 'web/report',
+    messageType: 'laserpack/Report'
+    });
+
+    var sendMission = new ROSLIB.Topic({
+      ros : ros,
+      name : 'web/mission',
+      messageType : 'laserpack/Mission'
+    });
+
+    var sendTask = new ROSLIB.Topic({
+      ros : ros,
+      name : 'web/task',
+      messageType : 'laserpack/Task'
+    });
+
+    var sendCMDCSV = new ROSLIB.Topic({
+      ros : ros,
+      name : 'web/csv/run',
+      messageType : 'Bool'
+    });
+
+    var sendSaveCSV = new ROSLIB.Topic({
+      ros : ros,
+      name : 'web/csv/save',
+      messageType : 'std_msgs/String'
+    });
+
+    cmd = { 
+        Mission : sendMission,
+        Task : sendTask,
+        CSV : {
+          Run : sendCMDCSV,
+          Save : sendSaveCSV
+         },
+         listen : listener
+    };
+    return cmd
+}
+/*
 var ros = new ROSLIB.Ros({
     url: 'ws://192.168.137.18:9090'
 });
@@ -133,7 +196,7 @@ ros.on('error', function(error) {
 
 ros.on('close', function() {
     console.log('Connection to websocket server closed.');
-});
+});*/
 
 // Publishing a Topic
 // ------------------
@@ -174,17 +237,13 @@ var msg = new ROSLIB.Message({
   console.log("Publishing data");
   exampleTopic.publish(msg);   
 
+
 */
-var listener = new ROSLIB.Topic({
-    ros: ros,
-    name: 'web/report',
-    messageType: 'laserpack/Report'
-});
 
 
 var data = {};
 
-listener.subscribe(function(message) {
+cmd.listen.subscribe(function(message) {
     //console.log(message);
     data = message;
 
@@ -253,7 +312,6 @@ function changeStatus(id, raw) {
 $("button.landing").click(landing)
 
 function landing() {
-    alert("landing");
 }
 
 $("button.motorstop").click(motorstop)
@@ -277,9 +335,11 @@ $("div#selector").children().click(function(event) {
 
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
-        alert("Arm")
+
+        cmd.Task.publish(new ROSLIB.Message({mission_type : 13}))
     } else {
-        alert("disarm")
+        cmd.Task.publish(new ROSLIB.Message({mission_type : 11}))
+
     }
 });
 
