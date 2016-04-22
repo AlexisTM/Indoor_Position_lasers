@@ -45,7 +45,8 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
             left: "#7F8790"
         },
         hoverable: true,
-        clickable: true
+        clickable: true,
+        shadowSize: 0
     },
     selection: {
         mode: "xy",
@@ -206,11 +207,9 @@ listener.subscribe(function(message) {
     document.getElementById("arm").innerHTML = data.armed;
     document.getElementById("mode").innerHTML = data.guided;
 
-    data1 = data.local.position.x;
-    data2 = data.local.position.y;
-
+    plotLocalXY(data.local.position.x, data.local.position.y,
+        data.setpoint.position.x, data.setpoint.position.y);
     plotLocalZ(data.header.seq / 25, data.local.position.z)
-    plotLocalXY(data1, data2);
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
