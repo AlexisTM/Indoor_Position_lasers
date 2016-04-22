@@ -51,6 +51,8 @@ add_message_files(
   RPYPose.msg
   Battery.msg
   Reports.msg
+  Mission.msg
+  Missions.msg
 )
 
 ## Generate services in the 'srv' folder
