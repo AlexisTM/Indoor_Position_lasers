@@ -46,7 +46,7 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
         },
         hoverable: true,
         clickable: true,
-        shadowSize: 0
+        shadowSize: 1
     },
     selection: {
         mode: "xy",
@@ -290,7 +290,7 @@ function plotLocalXY(x, y, sx, sy) {
         data: [
             [x, y]
         ],
-
+hoverable : false,
         points: {
             symbol: "circle",
         }
@@ -298,14 +298,16 @@ function plotLocalXY(x, y, sx, sy) {
         label: "setpoint",
         data: [
             [sx, sy]
-        ],
+        ],hoverable : false,
+
         points: {
             symbol: "cross"
         }
     }, {
         data: [
             [currentSelection.x, currentSelection.y]
-        ],
+        ],hoverable : false,
+
         points: {
             symbol: "square"
         }
