@@ -183,9 +183,11 @@ listener.subscribe(function(message) {
  data1=data.local.position.x;
  data2=data.local.position.y;
 
-plotLocalZ(data.header.seq/25, data.local.position.z)
-plotLocalXY(data1,data2);
+  plotLocalZ(data.header.seq/25, data.local.position.z)
+  plotLocalXY(data1,data2);
 
+  $("div#selector").children().removeClass("btn-primary")
+  $("button:contains('" + data.mode + "')").addClass("btn-primary")
 
  });
 
@@ -221,10 +223,39 @@ function changeStatus(id, raw){
 
 }
 
-$("button.motorstop").click(test)
-function test() {
-    alert(4);
+
+
+$("button.landing").click(landing)
+function landing() {
+    alert("landing");
 }
+
+$("button.motorstop").click(motorstop)
+function motorstop() {
+    alert("motorstop");
+}
+
+$("button.actualpose").click(actualpose)
+function actualpose() {
+    alert("actualpose");
+
+}
+
+
+$("div#selector").children().click(function(event){
+    var modeToSend = event.target.innerHTML;
+    console.log(modeToSend);
+  }
+)
+
+$("input.arm").change(function () {
+      if (document.getElementById('option1').checked) {
+        alert("Arm") 
+      }
+      else {
+        alert("disarm")
+      }
+});
 
 function plotLocalXY(x,y){
   plotXY.setData([[[x,y]]]);
