@@ -12,6 +12,6 @@ uint8 TYPE_TEST = 254       # 0b11111110
 std_msgs/Header header      
 std_msgs/String name        # Can be unique, you can use it as you please
 uint8 mission_type          # Type of the mission
-Point position
+geometry_msgs/Point position
 float64 yaw
 int32 data                  # Can be multiple data, like time to sleep, time to loiter, etc.
