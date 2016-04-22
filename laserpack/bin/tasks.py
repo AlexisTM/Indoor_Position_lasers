@@ -161,7 +161,10 @@ class UAV:
 
     def die(self):
         self.setpoint_land()
+        self.sleep(3)
         self.stopped = True
+        self.sleep(1)
+        self.arm(False)
 
     def __del__(self):
         self.die()
