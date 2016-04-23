@@ -1,9 +1,13 @@
 var cmd = {}
 init();
 var Configurations = {
+    ip: 'ws://192.168.1.10:9090',
     setpoints: {
         min: 0.5,
         max: 3.0
+    },
+    graphs: {
+        maxPoints: 200
     }
 }
 
@@ -14,9 +18,17 @@ var currentSelection = {
 }
 
 
-var dataZ = [
-    []
-];
+var dataXYZ = {
+    x: [
+        []
+    ],
+    y: [
+        []
+    ],
+    z: [
+        []
+    ]
+};
 
 var plotXY = $.plot($("#PlotLocalXY"), [{
     label: "Local XY",
@@ -80,9 +92,8 @@ plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
 });
 
 
-var plotZ = $.plot($("#PlotLocalZ"), [{
-    label: "Local Z",
-    data: dataZ
+var plotXYZ = $.plot($("#PlotLocalZ"), [{
+    label: "Local position variations",
 }], {
     series: {
         curvedLines: {
@@ -269,7 +280,7 @@ cmd.listen.subscribe(function(message) {
 
     plotLocalXY(data.local.position.x, data.local.position.y,
         data.setpoint.position.x, data.setpoint.position.y);
-    plotLocalZ(data.header.seq / 25, data.local.position.z)
+    plotLocalZ(data.header.seq / 25, data.local.position)
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
@@ -377,12 +388,30 @@ hoverable : false,
     plotXY.draw();
 }
 
+function plotLocalXYZ(time, point) {
 
-function plotLocalZ(time, z) {
-    dataZ.push([time, z])
-    plotZ.setData([dataZ]);
-    if (dataZ.length > 100)
-        dataZ.shift()
-    plotZ.setupGrid();
-    plotZ.draw();
+    dataXYZ.x.push([time, point.x])
+    dataXYZ.y.push([time, point.y])
+    dataXYZ.z.push([time, point.z])
+
+    var dataset = [{
+        label: "X",
+        data: dataXYZ.x,
+    }, {
+        label: "Y",
+        data: dataXYZ.y,
+    }, {
+        label: "Z",
+        data: dataXYZ.z,
+    }];
+
+    plotXYZ.setData(dataset);
+    if (dataXYZ.x.length > Configurations.graphs.maxPoints) {
+        dataXYZ.x.shift()
+        dataXYZ.y.shift()
+        dataXYZ.z.shift()
+    }
+
+    plotXYZ.setupGrid();
+    plotXYZ.draw();
 }
