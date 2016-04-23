@@ -1,4 +1,5 @@
-var cmd = init();
+var cmd = {}
+init();
 var Configurations = {
     setpoints: {
         min: 0.5,
@@ -123,7 +124,7 @@ var plotZ = $.plot($("#PlotLocalZ"), [{
 
 function init()
 {
-    var cmd = {}
+    //var cmd = {}
     var ros = new ROSLIB.Ros({
         url: 'ws://192.168.137.18:9090'
     });
@@ -179,7 +180,7 @@ function init()
          },
          listen : listener
     };
-    return cmd
+    //return cmd
 }
 /*
 var ros = new ROSLIB.Ros({
@@ -336,9 +337,9 @@ $("div#selector").children().click(function(event) {
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
 
-        cmd.Task.publish(new ROSLIB.Message({mission_type : 13}))
+        cmd.Task.publish({mission_type : 13})
     } else {
-        cmd.Task.publish(new ROSLIB.Message({mission_type : 11}))
+        cmd.Task.publish({mission_type : 11})
 
     }
 });
