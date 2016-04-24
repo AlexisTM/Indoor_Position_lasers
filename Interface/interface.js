@@ -288,7 +288,8 @@ cmd.listen.subscribe(function(message) {
 
     plotLocalXY(data.local.position.x, data.local.position.y,
     data.setpoint.position.x, data.setpoint.position.y);
-    //plotLocalZ(data.header.seq / 25, data.local.position)
+    plotLocalXYZ(data.header.seq /25, data.local.position);
+    console.log("graph");
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
