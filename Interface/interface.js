@@ -1,4 +1,5 @@
 var cmd = {}
+var setpoint_x =0;
 init();
 var Configurations = {
     ip: 'ws://192.168.1.10:9090',
@@ -158,6 +159,12 @@ function init()
     messageType: 'laserpack/Report'
     });
 
+    var listener2 = new ROSLIB.Topic({
+    ros: ros,
+    name: '/new',
+    messageType: 'laserpack/Task'
+    });
+
     var sendMission = new ROSLIB.Topic({
       ros : ros,
       name : 'web/mission',
@@ -189,7 +196,8 @@ function init()
           Run : sendCMDCSV,
           Save : sendSaveCSV
          },
-         listen : listener
+         listen : listener,
+         listen2 : listener2
     };
     //return cmd
 }
@@ -279,8 +287,8 @@ cmd.listen.subscribe(function(message) {
     document.getElementById("mode").innerHTML = data.guided;
 
     plotLocalXY(data.local.position.x, data.local.position.y,
-        data.setpoint.position.x, data.setpoint.position.y);
-    plotLocalZ(data.header.seq / 25, data.local.position)
+    data.setpoint.position.x, data.setpoint.position.y);
+    //plotLocalZ(data.header.seq / 25, data.local.position)
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
@@ -324,18 +332,35 @@ function changeStatus(id, raw) {
 $("button.landing").click(landing)
 
 function landing() {
+    var msg = new ROSLIB.Message({
+                mission_type : 123
+                        });
+        cmd.Task.publish(msg)
 }
 
 $("button.motorstop").click(motorstop)
 
 function motorstop() {
-    alert("motorstop");
+    var msg = new ROSLIB.Message({
+                mission_type : 11
+                        });
+        cmd.Task.publish(msg)
 }
 
 $("button.actualpose").click(actualpose)
 
 function actualpose() {
-    alert("actualpose");
+    var msg = new ROSLIB.Message({
+                position : {
+                      x : -0.1,
+                      y : -0.2,
+                      z : -0.3
+                    },
+                yaw : 0.0
+                });
+        cmd.Task.publish(msg)
+        console.log("Publishing actual");
+
 
 }
 
@@ -343,14 +368,26 @@ function actualpose() {
 $("div#selector").children().click(function(event) {
     var modeToSend = event.target.innerHTML;
     console.log(modeToSend);
+    if (modeToSend =="OFFBOARD"){
+    var msg = new ROSLIB.Message({
+                mission_type : 9
+                        });
+        cmd.Task.publish(msg) 
+    }
+
 })
 
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
-
-        cmd.Task.publish({mission_type : 13})
+        var msg = new ROSLIB.Message({
+                mission_type : 13
+                        });
+        cmd.Task.publish(msg)
     } else {
-        cmd.Task.publish({mission_type : 11})
+        var msg = new ROSLIB.Message({
+                mission_type : 11
+                        });
+        cmd.Task.publish(msg)
 
     }
 });
