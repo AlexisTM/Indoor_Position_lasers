@@ -306,6 +306,15 @@ function changePose(id, position) {
     elem.find('.dataz').text(position.z.toFixed(3));
 }
 
+function showValue(newValue){
+    document.getElementById("range").innerHTML=newValue;
+    console.log(newValue);
+    var msg = new ROSLIB.Message({
+                position : {z : newValue}
+                });
+        cmd.Task.publish(msg)
+}
+
 function changeRaw(id, raw) {
     var elem = $(id);
     elem.find('.datax1').text(raw.lasers[0]);
