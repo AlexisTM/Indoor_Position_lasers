@@ -154,7 +154,7 @@ def init():
 
     rospy.init_node('web_reporter')
 
-    report_rate = rospy.Rate(24)
+    report_rate = rospy.Rate(5)
     report = Report()
     report.header = Header()
     reports_count = 0
