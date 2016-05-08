@@ -22,10 +22,10 @@
   <link href="css/icheck/flat/green.css" rel="stylesheet" />
   <link href="css/floatexamples.css" rel="stylesheet" type="text/css" />
  <script type="text/javascript"
-      src="http://cdn.robotwebtools.org/EventEmitter2/0.4.14/eventemitter2.min.js">
+      src="js/roslibjs/eventemitter2.min.js">
  </script>
  <script type="text/javascript"
-      src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js">
+      src="js/roslibjs/roslib.min.js">
   </script>
   <script src="js/jquery.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
@@ -134,7 +134,7 @@
               <div class="dashboard_graph x_panel">
                 <div class="row x_title">
                   <div class="col-md-12">
-                    <h3>Raw <small>Valeurs des lasers mesurées</small></h3>
+                    <h3>Local_position <small>Position en X, Y et Z </small></h3>
                   </div>
                 </div>
                 <div class="x_content">
@@ -170,10 +170,10 @@
 
  <div class="col-md-6 col-xs-6">
   <div class="panel panel-default">
-  <div class="panel-heading"><h2>Contrôle </h2></div>
+  <div class="panel-heading" ><h2>Contrôle </h2></div>
               <div class="x_panel">
                 
-                <div class="panel-body">
+                <div class="panel-body" style="height:1000px">
                   <form class="form-horizontal form-label-left">
 
                     <div class="">
@@ -206,20 +206,20 @@
 
                 <br /> <br /> <br /> 
                 <!--div class="col-md-4 col-sm-4 col-xs-6"-->
-              <div class="dashboard_graph x_panel">
-                <div class="row x_title">
-                  <div class="col-md-12">
-                    <h3>Setpoint <small>Vue en XY</small></h3>
-                  </div>
-                </div>
-                <div class="x_content">
-                  <div class="demo-container" style="height:250px">
-                    <div id="PlotLocalXY" class="demo-placeholder" style="width: 100%; height:250px;"></div>
-                  </div>
-                </div>
-              </div>
               
-
+              
+             <div class="dashboard_graph x_panel">
+                  <div class="row x_title">
+                    <div class="col-md-12">
+                      <h3>Setpoint <small>Vue en XY</small></h3>
+                    </div>
+                  </div>
+                  <div class="x_content" >
+                    <div class="demo-container" style="height:500px">
+                      <div id="PlotLocalXY" class="demo-placeholder" style="width: 100%; height:100%;"></div>
+                    </div>
+                  </div>
+                </div>
 
                <!--div class="x_content">
                     <div class="row grid_slider">
@@ -373,6 +373,8 @@
                         <button class="btn btn-success landing" onclick="return false">ATTERISSAGE</button>
                       </div>
                     </div>
+
+                   
 
                   </form>
               </div>

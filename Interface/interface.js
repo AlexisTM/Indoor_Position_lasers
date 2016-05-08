@@ -2,13 +2,13 @@ var cmd = {}
 var setpoint_x =0;
 init();
 var Configurations = {
-    ip: 'ws://192.168.1.10:9090',
+    ip: 'ws://192.168.43.174:9090',
     setpoints: {
         min: 0.5,
         max: 3.0
     },
     graphs: {
-        maxPoints: 200
+        maxPoints: 50
     }
 }
 
@@ -36,11 +36,19 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
 }], {
     yaxis: {
         min: 0,
-        max: 4
+        max: 4,
+        position: "right",
+        reverseSpace: true,
+        transform: function(a) { return -a;},
+        inverseTransform: function(a) { return -a;}
     },
     xaxis: {
         min: 0,
-        max: 4
+        max: 4,
+        position: "top",
+        reverseSpace: true,
+        transform: function(a) { return -a;},
+        inverseTransform: function(a) { return -a;}
     },
     points: {
         fill: false,
@@ -90,6 +98,15 @@ plotXY.getPlaceholder().bind("plothover", function(event, pos) {
 plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
     // Send setpoint
     console.log("Sending setpoint : ", currentSelection);
+      var msg = new ROSLIB.Message({
+                position : {
+                      x : currentSelection.x,
+                      y : currentSelection.y,
+                    },
+                yaw : 0.0
+                });
+        cmd.Task.publish(msg)
+
 });
 
 
@@ -138,6 +155,7 @@ function init()
 {
     //var cmd = {}
     var ros = new ROSLIB.Ros({
+        //url: 'ws://192.168.43.174:9090'
         url: 'ws://192.168.137.18:9090'
     });
 
@@ -313,6 +331,8 @@ function showValue(newValue){
                 position : {z : newValue}
                 });
         cmd.Task.publish(msg)
+        console.log("Publish Z");
+
 }
 
 function changeRaw(id, raw) {
@@ -346,6 +366,7 @@ function landing() {
                 mission_type : 123
                         });
         cmd.Task.publish(msg)
+         console.log("publish landing");
 }
 
 $("button.motorstop").click(motorstop)
@@ -355,6 +376,7 @@ function motorstop() {
                 mission_type : 11
                         });
         cmd.Task.publish(msg)
+        console.log("Publish stop");
 }
 
 $("button.actualpose").click(actualpose)
@@ -362,9 +384,8 @@ $("button.actualpose").click(actualpose)
 function actualpose() {
     var msg = new ROSLIB.Message({
                 position : {
-                      x : -0.1,
-                      y : -0.2,
-                      z : -0.3
+                      x : 2.43,
+                      y : 1.37
                     },
                 yaw : 0.0
                 });
@@ -383,6 +404,7 @@ $("div#selector").children().click(function(event) {
                 mission_type : 9
                         });
         cmd.Task.publish(msg) 
+         console.log("Publish OFFBOARD");
     }
 
 })
@@ -393,11 +415,14 @@ $("input.arm").change(function() {
                 mission_type : 13
                         });
         cmd.Task.publish(msg)
+         console.log("Publish Arm");
     } else {
         var msg = new ROSLIB.Message({
                 mission_type : 11
                         });
         cmd.Task.publish(msg)
+         console.log("Publish Disarm");
+
 
     }
 });
