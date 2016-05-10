@@ -1,911 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <!-- Meta, title, CSS, favicons, etc. -->
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>Interface </title>
-
-  <!-- Bootstrap core CSS -->
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font-awesome.min.css ajoute les outils sur les box -->
-  <link href="fonts/css/font-awesome.min.css" rel="stylesheet">
-  <link href="css/animate.min.css" rel="stylesheet">
-
-  <!-- Custom styling plus plugins -->
-  <link href="css/custom.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="css/maps/jquery-jvectormap-2.0.3.css" />
-  <link href="css/icheck/flat/green.css" rel="stylesheet" />
-  <link href="css/floatexamples.css" rel="stylesheet" type="text/css" />
- <script type="text/javascript"
-      src="http://cdn.robotwebtools.org/EventEmitter2/0.4.14/eventemitter2.min.js">
- </script>
- <script type="text/javascript"
-      src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js">
-  </script>
-  <script src="js/jquery.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-
-  <!-- bootstrap progress js -->
-  <script src="js/progressbar/bootstrap-progressbar.min.js"></script>
-  <script src="js/nicescroll/jquery.nicescroll.min.js"></script>
-  <!-- icheck -->
-  <script src="js/icheck/icheck.min.js"></script>
-  <!-- gauge js 
-  <script type="text/javascript" src="js/gauge/gauge.min.js"></script>
-  <script type="text/javascript" src="js/gauge/gauge_demo.js"></script>-->
-  <!-- daterangepicker -->
-  <script type="text/javascript" src="js/moment/moment.min.js"></script>
-  <script type="text/javascript" src="js/datepicker/daterangepicker.js"></script>
-  <!-- chart js -->
-  <script src="js/chartjs/chart.min.js"></script>
-  <!-- sparkline -->
-  <script src="js/sparkline/jquery.sparkline.min.js"></script>
-
-  <script src="js/custom.js"></script>
-  <!-- skycons -->
-  <script src="js/skycons/skycons.min.js"></script>
-
-  <!-- flot js -->
-  <!--[if lte IE 8]><script type="text/javascript" src="js/excanvas.min.js"></script><![endif]-->
-  <script type="text/javascript" src="js/flot/jquery.flot.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.pie.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.orderBars.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.time.min.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.spline.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.stack.js"></script>
-  <script type="text/javascript" src="js/flot/curvedLines.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.resize.js"></script>
-  <script type="text/javascript" src="js/flot/jquery.flot.symbol.min.js"></script>
-  <!-- range slider -->
-  <script src="js/ion_range/ion.rangeSlider.min.js"></script>
-  <!-- pace -->
-  <script src="js/pace/pace.min.js"></script>
-  <!-- flot -->
-
-
-
-
-</head>
-
-
-<body class="nav-md">
-
-  <div class="container body">
-
-
-    <div class="main_container">
-
-      <div class="col-md-3 left_col">
-        <div class="left_col scroll-view">
-
-          <div class="navbar nav_title" style="border: 0;">
-            <a href="index.html" class="site_title"><i class="fa fa-paw">
-            </i> <span>Interface drone</span></a>
-          </div>
-          <div class="clearfix"></div>
-
-
-          
-
-          <br />
-
-          <!-- sidebar menu -->
-          <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
-
-            <div class="menu_section">
-              <h3>General</h3>
-              <ul class="nav side-menu">
-                <li><a href="index.html"><i class="fa fa-desktop"></i>Contrôle</a>
-                
-                </li>
-              
-              </ul>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!-- Meta, title, CSS, favicons, etc. -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Interface </title>
+        <!-- Bootstrap core CSS -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <!-- Font-awesome.min.css ajoute les outils sur les box -->
+        <link href="fonts/css/font-awesome.min.css" rel="stylesheet">
+        <link href="css/animate.min.css" rel="stylesheet">
+        <!-- Custom styling plus plugins -->
+        <link href="css/custom.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="css/maps/jquery-jvectormap-2.0.3.css" />
+        <link href="css/icheck/flat/green.css" rel="stylesheet" />
+        <link href="css/floatexamples.css" rel="stylesheet" type="text/css" />
+        <script type="text/javascript"
+        src="http://cdn.robotwebtools.org/EventEmitter2/0.4.14/eventemitter2.min.js">
+        </script>
+        <script type="text/javascript"
+        src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js">
+        </script>
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <!-- bootstrap progress js -->
+        <script src="js/progressbar/bootstrap-progressbar.min.js"></script>
+        <script src="js/nicescroll/jquery.nicescroll.min.js"></script>
+        <!-- icheck -->
+        <script src="js/icheck/icheck.min.js"></script>
+        <!-- gauge js
+        <script type="text/javascript" src="js/gauge/gauge.min.js"></script>
+        <script type="text/javascript" src="js/gauge/gauge_demo.js"></script>-->
+        <!-- daterangepicker -->
+        <script type="text/javascript" src="js/moment/moment.min.js"></script>
+        <script type="text/javascript" src="js/datepicker/daterangepicker.js"></script>
+        <!-- chart js -->
+        <script src="js/chartjs/chart.min.js"></script>
+        <!-- sparkline -->
+        <script src="js/sparkline/jquery.sparkline.min.js"></script>
+        <script src="js/custom.js"></script>
+        <!-- skycons -->
+        <script src="js/skycons/skycons.min.js"></script>
+        <!-- flot js -->
+        <!--[if lte IE 8]><script type="text/javascript" src="js/excanvas.min.js"></script><![endif]-->
+        <script type="text/javascript" src="js/flot/jquery.flot.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.pie.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.orderBars.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.time.min.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.spline.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.stack.js"></script>
+        <script type="text/javascript" src="js/flot/curvedLines.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.resize.js"></script>
+        <script type="text/javascript" src="js/flot/jquery.flot.symbol.min.js"></script>
+        <!-- range slider -->
+        <script src="js/ion_range/ion.rangeSlider.min.js"></script>
+        <!-- pace -->
+        <script src="js/pace/pace.min.js"></script>
+        <!-- flot -->
+    </head>
+    <body class="nav-md">
+        <div class="container body">
+            <div class="main_container">
+                <div class="col-md-3 left_col">
+                    <div class="left_col scroll-view">
+                        <div class="navbar nav_title" style="border: 0;">
+                            <a href="index.html" class="site_title"><i class="fa fa-paw">
+                                </i> <span>Interface drone</span></a>
+                            </div>
+                            <div class="clearfix"></div>
+                            
+                            <br />
+                            <!-- sidebar menu -->
+                            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                                <div class="menu_section">
+                                    <h3>General</h3>
+                                    <ul class="nav side-menu">
+                                        <li><a href="index.html"><i class="fa fa-desktop"></i>Contrôle</a>
+                                        
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- /sidebar menu -->
+                    </div>
+                </div>
+                <!-- page content -->
+                <div class="right_col" role="main">
+                    
+                    <!-- début 2ème ligne  -->
+                    <div class="row">
+                        <div class="col-md-4 col-sm-4 col-xs-6">
+                            <div class="dashboard_graph x_panel">
+                                <div class="row x_title">
+                                    <div class="col-md-12">
+                                        <h3>Local_positions <small>Position local en fonction du temps</small></h3>
+                                    </div>
+                                </div>
+                                <div class="x_content">
+                                    <div class="demo-container" style="height:250px">
+                                        <div id="PlotLocalXY" class="demo-placeholder" style="width: 100%; height:250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-6">
+                            <div class="dashboard_graph x_panel">
+                                <div class="row x_title">
+                                    <div class="col-md-12">
+                                        <h3>Raw <small>Valeurs des lasers mesurées</small></h3>
+                                    </div>
+                                </div>
+                                <div class="x_content">
+                                    <div class="demo-container" style="height:250px">
+                                        <div id="PlotLocalZ" class="demo-placeholder" style="width: 100%; height:250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-6">
+                            <div class="dashboard_graph x_panel">
+                                <div class="row x_title">
+                                    <div class="col-md-12">
+                                        <h3>Yaw <small>Valeur de YAW mesurée</small></h3>
+                                    </div>
+                                </div>
+                                <div class="x_content">
+                                    <div class="demo-container" style="height:250px">
+                                        <div id="placeholder3xx5" class="demo-placeholder" style="width: 100%; height:250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- début 3ème ligne  -->
+                    <div class="row">
+                        <!-- Début contenu des topics -->
+                        <div class="col-md-6 col-xs-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading"><h2>Contrôle </h2></div>
+                                <div class="x_panel">
+                                    
+                                    <div class="panel-body">
+                                        <form class="form-horizontal form-label-left">
+                                            <div class="">
+                                                <h2>Mode </h2>
+                                                <ul class="list-inline prod_size col-md-offset-2">
+                                                    
+                                                    <div id="selector" class="btn-group">
+                                                        <button type="button" class="btn  btn-default btn-xs offboard">OFFBOARD</button>
+                                                        <button type="button" class="btn  btn-default btn-xs altctl" id ='un'>ALTCTL</button>
+                                                        <button type="button" class="btn  btn-default btn-xs posctl">POSCTL</button>
+                                                        <button type="button" class="btn  btn-default btn-xs auto">AUTO</button>
+                                                    </div>
+                                                    
+                                                </div>
+                                                <div class="ln_solid"></div>
+                                                <div class="">
+                                                    
+                                                    <div class="btn-group" data-toggle="buttons"  >
+                                                        <label class="btn btn-default">
+                                                            <input  class ="arm" type="radio" name="options" id="option1" > Armer
+                                                        </label>
+                                                        <label class="btn btn-default">
+                                                            <input class="arm" type="radio" name="options" id="option2"> Desarmer
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="ln_solid"></div>
+                                                <div class="x_content">
+                                                    <div class="row grid_slider">
+                                                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_x</label>
+                                                        <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range" onchange="showValue(this.value)" />
+                                                        <span id="range">0</span>
+                                                        <script type="text/javascript">
+                                                        function showValue(newValue)
+                                                        {
+                                                        document.getElementById("range").innerHTML=newValue;
+                                                        }
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                <div class="x_content">
+                                                    <div class="row grid_slider">
+                                                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_y</label>
+                                                        <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range1" onchange="showValues(this.value)" />
+                                                        <span id="range1">0</span>
+                                                        <script type="text/javascript">
+                                                        function showValues(newValue)
+                                                        {
+                                                        document.getElementById("range1").innerHTML=newValue;
+                                                        }
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                <div class="x_content">
+                                                    <div class="row grid_slider">
+                                                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_z</label>
+                                                        <input type="range" min="0" max="10" value="0" step="0.1" name ="range3" onchange="showValuez(this.value)" />
+                                                        <span id="range3">0</span>
+                                                        <script type="text/javascript">
+                                                        function showValuez(newValue)
+                                                        {
+                                                        document.getElementById("range3").innerHTML=newValue;
+                                                        }
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_YAW</label>
+                                                    <div class="col-md-2 col-sm-2 col-xs-12">
+                                                        <input type="text" class="form-control" placeholder="">
+                                                    </div>
+                                                    <div class="col-md-3 col-sm-3 col-xs-12">
+                                                        <!-- MEttre slider -->
+                                                    </div>
+                                                </div>
+                                                <div class="ln_solid"></div>
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-sm-3 col-xs-3">Setpoint à la position actuelle </label>
+                                                    <div class="col-md-4 col-sm-4 col-xs-4 col-md-offset-2 ">
+                                                        <button type="button" class="btn btn-primary actualpose" onclick="return false">Send</button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!--
+                                                <div class="ln_solid"></div>
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-sm-3 col-xs-12 control-label">Régulation
+                                                        <br>
+                                                    </label>
+                                                    <div class="col-md-9 col-sm-9 col-xs-12">
+                                                        <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox" value=""> Active X
+                                                            </label>
+                                                        </div>
+                                                        <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox" value=""> Active Y
+                                                            </label>
+                                                        </div>
+                                                        <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox" value=""> Active Z
+                                                            </label>
+                                                        </div>
+                                                        <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox" value=""> Active YAW
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="ln_solid"></div>
+                                                
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3 col-sm-3 col-xs-12">Mode - Ajout de ce que l'on veut</label>
+                                                    <div class="col-md-9 col-sm-9 col-xs-12">
+                                                        <div class="">
+                                                            <label>
+                                                                <input type="checkbox" class="js-switch" checked /> Checked
+                                                            </label>
+                                                        </div>
+                                                        <div class="">
+                                                            <label>
+                                                                <input type="checkbox" class="js-switch" /> Unchecked
+                                                            </label>
+                                                        </div>
+                                                        <div class="">
+                                                            <label>
+                                                                <input type="checkbox" class="js-switch" disabled="disabled" /> Disabled
+                                                            </label>
+                                                        </div>
+                                                        <div class="">
+                                                            <label>
+                                                                <input type="checkbox" class="js-switch" disabled="disabled" checked="checked" /> Disabled Checked
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div> -->
+                                                <div class="ln_solid"></div>
+                                                <div class="form-group">
+                                                    <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
+                                                        <button class="btn btn-primary motorstop" onclick="return false">ARRÊT MOTEURS</button>
+                                                        <button class="btn btn-success landing" onclick="return false">ATTERISSAGE</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>      </div>
+                                
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <div class="x_panel" id='laser_pose'>
+                                        <div class="x_title">
+                                            <h2 id='demo'>Lasers/Pose </h2>
+                                            <ul class="nav navbar-right panel_toolbox">
+                                                <li>
+                                                    <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                                </li>
+                                                
+                                                <li>
+                                                    <a class="close-link"><i class="fa fa-close"></i></a>
+                                                </li>
+                                            </ul>
+                                            
+                                            <div class="clearfix"></div>
+                                        </div>
+                                        
+                                        <div class="x_content">
+                                            <table class="table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>X</td>
+                                                        <td class='datax'></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Y</td>
+                                                        <td class='datay'></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Z</td>
+                                                        <td class='dataz'></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>YAW</td>
+                                                        <td id ='yaw_lasers'></td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <div class="x_panel" id='laser_filtered'>
+                                        <div class="x_title">
+                                            <h2>Lasers/Filtered </h2>
+                                            <ul class="nav navbar-right panel_toolbox">
+                                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                            </li>
+                                            
+                                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                                        </li>
+                                    </ul>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <td>X</td>
+                                                <td class='datax'></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Y</td>
+                                                <td class='datay'></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Z</td>
+                                                <td class='dataz'></td>
+                                                
+                                            </tr>
+                                            <tr>
+                                                <td>YAW</td>
+                                                <td id='yaw_filtered'></td>
+                                            </tr>
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 col-sm-3 col-xs-12">
+                            <div class="x_panel">
+                                <div class="x_title">
+                                    <h2>IMU - Pixhawk </h2>
+                                    <ul class="nav navbar-right panel_toolbox">
+                                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                    </li>
+                                    
+                                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                                </li>
+                            </ul>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="x_content">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td>Pitch</td>
+                                        <td id='pitch'></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yaw</td>
+                                        <td id='yaw'></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Roll</td>
+                                        <td id ='roll'></td>
+                                    </tr>
+                                    
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <div class="x_panel" id ='mocap' >
+                        <div class="x_title">
+                            <h2>Mocap/pose </h2>
+                            <ul class="nav navbar-right panel_toolbox">
+                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            
+                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td>X</td>
+                                <td class='datax'></td>
+                            </tr>
+                            <tr>
+                                <td>Y</td>
+                                <td class='datay'></td>
+                            </tr>
+                            <tr>
+                                <td>Z</td>
+                                <td class='dataz'></td>
+                            </tr>
+                            
+                            
+                        </tbody>
+                    </table>
+                </div>
             </div>
-          </div>
-          <!-- /sidebar menu -->
-
         </div>
-      </div>
-
-
-
-      <!-- page content -->
-
-
-
-      <div class="right_col" role="main">
-
-     
-
-      <!-- début 2ème ligne  -->
-
-
-          <div class="row">
-
-
-            <div class="col-md-4 col-sm-4 col-xs-6">
-              <div class="dashboard_graph x_panel">
-                <div class="row x_title">
-                  <div class="col-md-12">
-                    <h3>Local_positions <small>Position local en fonction du temps</small></h3>
-                  </div>
-                </div>
-                <div class="x_content">
-                  <div class="demo-container" style="height:250px">
-                    <div id="PlotLocalXY" class="demo-placeholder" style="width: 100%; height:250px;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-4 col-sm-4 col-xs-6">
-              <div class="dashboard_graph x_panel">
-                <div class="row x_title">
-                  <div class="col-md-12">
-                    <h3>Raw <small>Valeurs des lasers mesurées</small></h3>
-                  </div>
-                </div>
-                <div class="x_content">
-                  <div class="demo-container" style="height:250px">
-                    <div id="PlotLocalZ" class="demo-placeholder" style="width: 100%; height:250px;"></div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-4 col-sm-4 col-xs-6">
-              <div class="dashboard_graph x_panel">
-                <div class="row x_title">
-                  <div class="col-md-12">
-                    <h3>Yaw <small>Valeur de YAW mesurée</small></h3>
-                  </div>
-                </div>
-                <div class="x_content">
-                  <div class="demo-container" style="height:250px">
-                    <div id="placeholder3xx5" class="demo-placeholder" style="width: 100%; height:250px;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-
-          </div>
-
-
-
-
-
-
-
-              
-
-            <!-- début 3ème ligne  -->
-
-
-
-
-          <div class="row">
-     <!-- Début contenu des topics -->
-
- <div class="col-md-6 col-xs-6">
-  <div class="panel panel-default">
-  <div class="panel-heading"><h2>Contrôle </h2></div>
-              <div class="x_panel">
-                
-                <div class="panel-body">
-                  <form class="form-horizontal form-label-left">
-
-                    <div class="">
-                      <h2>Mode </h2>
-                      <ul class="list-inline prod_size col-md-offset-2">
-
-                         
-
-                     <div id="selector" class="btn-group">
-                      <button type="button" class="btn  btn-default btn-xs offboard">OFFBOARD</button>
-                      <button type="button" class="btn  btn-default btn-xs altctl" id ='un'>ALTCTL</button>
-                      <button type="button" class="btn  btn-default btn-xs posctl">POSCTL</button>
-                      <button type="button" class="btn  btn-default btn-xs auto">AUTO</button>
-                    </div>
-
-
-                        
-                    </div>
-                    <div class="ln_solid"></div>
-
-                <div class="">
-                      
-                      <div class="btn-group" data-toggle="buttons"  >
-                        <label class="btn btn-default">
-                          <input  class ="arm" type="radio" name="options" id="option1" > Armer
-                        </label>
-                        <label class="btn btn-default">
-                          <input class="arm" type="radio" name="options" id="option2"> Desarmer
-                        </label>
-                     </div>
-                </div>
-
-                  <div class="ln_solid"></div>
-
-               <div class="x_content">
-                    <div class="row grid_slider">
-                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_x</label>
-                      <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range" onchange="showValue(this.value)" />
-
-                          <span id="range">0</span>
-                          <script type="text/javascript">
-                          function showValue(newValue)
-                          {
-                         document.getElementById("range").innerHTML=newValue;
-
-                          }
-                          </script>
-                    </div>
-                  </div>
-
-
-                  <div class="x_content">
-                    <div class="row grid_slider">
-                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_y</label>
-                      <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range1" onchange="showValues(this.value)" />
-
-                          <span id="range1">0</span>
-                          <script type="text/javascript">
-                          function showValues(newValue)
-                          {
-                         document.getElementById("range1").innerHTML=newValue;
-
-                          }
-                          </script>
-                    </div>
-                  </div>
-
-                <div class="x_content">
-                    <div class="row grid_slider">
-                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_z</label>
-                      <input type="range" min="0" max="10" value="0" step="0.1" name ="range3" onchange="showValuez(this.value)" />
-                          <span id="range3">0</span>
-                          <script type="text/javascript">
-                          function showValuez(newValue)
-                          {
-                            document.getElementById("range3").innerHTML=newValue;
-                          }
-                          </script>
-                    </div> 
-                </div>
-
-
-                    <div class="form-group">
-                      <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_YAW</label>
-                      <div class="col-md-2 col-sm-2 col-xs-12">
-                        <input type="text" class="form-control" placeholder="">
-                      </div>
-
-                      <div class="col-md-3 col-sm-3 col-xs-12">
-                        <!-- MEttre slider -->
-                      </div>
-                    </div>
-
-                  <div class="ln_solid"></div>
-
-                <div class="form-group">
-                    <label class="col-md-3 col-sm-3 col-xs-3">Setpoint à la position actuelle </label>
-                  <div class="col-md-4 col-sm-4 col-xs-4 col-md-offset-2 ">
-                        <button type="button" class="btn btn-primary actualpose" onclick="return false">Send</button>
-                  </div>
-              </div>
-                
-
-
-
-                     <!--
-                       <div class="ln_solid"></div>
-                    <div class="form-group">
-                      <label class="col-md-3 col-sm-3 col-xs-12 control-label">Régulation
-                        <br>
-                      </label>
-
-                      <div class="col-md-9 col-sm-9 col-xs-12">
-                        <div class="checkbox">
-                          <label>
-                            <input type="checkbox" value=""> Active X
-                          </label>
-                        </div>
-                        <div class="checkbox">
-                          <label>
-                            <input type="checkbox" value=""> Active Y
-                          </label>
-                        </div>
-                         <div class="checkbox">
-                          <label>
-                            <input type="checkbox" value=""> Active Z
-                          </label>
-                        </div>
-                         <div class="checkbox">
-                          <label>
-                            <input type="checkbox" value=""> Active YAW
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                   <div class="ln_solid"></div>
-
-
-                
-                    <div class="form-group">
-                      <label class="control-label col-md-3 col-sm-3 col-xs-12">Mode - Ajout de ce que l'on veut</label>
-                      <div class="col-md-9 col-sm-9 col-xs-12">
-                        <div class="">
-                          <label>
-                            <input type="checkbox" class="js-switch" checked /> Checked
-                          </label>
-                        </div>
-                        <div class="">
-                          <label>
-                            <input type="checkbox" class="js-switch" /> Unchecked
-                          </label>
-                        </div>
-                        <div class="">
-                          <label>
-                            <input type="checkbox" class="js-switch" disabled="disabled" /> Disabled
-                          </label>
-                        </div>
-                        <div class="">
-                          <label>
-                            <input type="checkbox" class="js-switch" disabled="disabled" checked="checked" /> Disabled Checked
-                          </label>
-                        </div>
-                      </div>
-                    </div> -->
-
-
-                    <div class="ln_solid"></div>
-                    <div class="form-group">
-                      <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
-                        <button class="btn btn-primary motorstop" onclick="return false">ARRÊT MOTEURS</button>
-                        <button class="btn btn-success landing" onclick="return false">ATTERISSAGE</button>
-                      </div>
-                    </div>
-
-                  </form>
-              </div>
-          </div>
-      </div>      </div>
-
-            
-
- <div class="col-md-3 col-sm-3 col-xs-12">
-      <div class="x_panel" id='laser_pose'>
-        <div class="x_title">
-            <h2 id='demo'>Lasers/Pose </h2>
-
-            <ul class="nav navbar-right panel_toolbox">
-            <li>
-              <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-            </li>
+        <div class="col-md-3 col-sm-3 col-xs-12">
+            <div class="x_panel" id ='setpoint'>
+                <div class="x_title">
+                    <h2>Setpoint/Local </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
                     
-            <li>
-              <a class="close-link"><i class="fa fa-close"></i></a>
-            </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                </li>
             </ul>
-                  
-        <div class="clearfix"></div>
-      </div>
-                
-      <div class="x_content">
-
-          <table class="table table-bordered">
-              <tbody>
-                  <tr>
-                    <td>X</td>
-                    <td class='datax'></td>
-                  </tr>
-                  <tr>
-                    <td>Y</td>
-                    <td class='datay'></td>
-                  </tr>
-                  <tr>
-                     <td>Z</td>
-                    <td class='dataz'></td>
-                  </tr>
-                  <tr>
-                     <td>YAW</td>
-                     <td id ='yaw_lasers'></td>
-                   </tr>
-                      
-                </tbody>
-              </table>
-
-      </div>
-          </div>
-         </div>
-
-             <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel" id='laser_filtered'>
-                <div class="x_title">
-                  <h2>Lasers/Filtered </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr>
-                        <td>X</td>
-                        <td class='datax'></td>
-                      </tr>
-                      <tr>
-                        <td>Y</td>
-                        <td class='datay'></td>
-                      </tr>
-                      <tr>
-                        <td>Z</td>
-                        <td class='dataz'></td>
-                        
-                      </tr>
-                      <tr>
-                        <td>YAW</td>
-                        <td id='yaw_filtered'></td>
-                      </tr>
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-
-                 
-
-
-
-  <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel">
-                <div class="x_title">
-                  <h2>IMU - Pixhawk </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr>
-                        <td>Pitch</td>
-                        <td id='pitch'></td>
-                      </tr>
-                      <tr>
-                        <td>Yaw</td>
-                        <td id='yaw'></td>
-                      </tr>
-                      <tr>
-                        <td>Roll</td>
-                        <td id ='roll'></td>
-                      </tr>
-                    
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-
-
-
-    <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel" id ='mocap' >
-                <div class="x_title">
-                  <h2>Mocap/pose </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr>
-                        <td>X</td>
-                        <td class='datax'></td>
-                      </tr>
-                      <tr>
-                        <td>Y</td>
-                        <td class='datay'></td>
-                      </tr>
-                      <tr>
-                        <td>Z</td>
-                        <td class='dataz'></td>
-                      </tr>
-                      
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel" id ='setpoint'>
-                <div class="x_title">
-                  <h2>Setpoint/Local </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
                         <td>X</td>
                         <td class = 'datax'></td>
-                      </tr>
-                      <tr>
+                    </tr>
+                    <tr>
                         <td>Y</td>
                         <td class = 'datay'>3.2</td>
-                      </tr>
-                      <tr>
+                    </tr>
+                    <tr>
                         <td>Z</td>
                         <td class = 'dataz'></td>
-                      </tr>
-                      <tr>
+                    </tr>
+                    <tr>
                         <td>YAW</td>
                         <td id='setpoint_yaw'></td>
-                      </tr>
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-
-
- <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel" id='lasers_raw'>
-                <div class="x_title">
-                  <h2>Raw/lasers </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
+                    </tr>
                     
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table  class="table table-bordered">
-                    <tbody>
-                      <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Laser 1</th>
-                        <th>Laser 2</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">X</th>
-                        <td class='datax1'></td>
-                        <td class='datax2'></td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Y</th>
-                        <td class='datay1'></td>
-                        <td class='datay1'></td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Z</th>
-                        <td class='dataz1'></td>
-                        <td class='dataz2'></td>
-                      </tr>
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-
- <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel" id='local_pose'>
-                <div class="x_title">
-                  <h2>Local/Pose </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr>
-                        <td>X</td>
-                        <td class='datax'></td>
-                      </tr>
-                      <tr>
-                        <td>Y</td>
-                        <td class='datay'></td>
-                      </tr>
-                      <tr>
-                        <td>Z</td>
-                        <td class='dataz'></td>
-                      </tr>
-                    
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-
-
- <div class="col-md-3 col-sm-3 col-xs-12">
-              <div class="x_panel">
-                <div class="x_title">
-                  <h2>State </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-
-                  <table class="table table-bordered">
-                    <tbody>
-                      <tr>
-                        <td>Arm</td>
-                        <td id='arm'></td>
-                      </tr>
-                      <tr>
-                        <td>OFFBOARD</td>
-                        <td id='mode'></td>
-                      </tr>
-                      <tr>
-                        <td>Battery voltage</td>
-                        <td id='battery_voltage'> V</td>
-                      </tr>
-                    
-                      
-                    </tbody>
-                  </table>
-
-                </div>
-              </div>
-            </div>
-             
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-           
-
-<div class="col-md-7 col-sm-7 col-xs-12">
-            <div class="x_content">
-              <table class="table table-striped responsive-utilities jambo_table bulk_action">
-                    <thead>
-                      <tr class="headings">
-                        <th>
-                          <input type="checkbox" id="check-all" class="flat">
-                        </th>
-                        <th class="column-title">Laser </th>
-                        <th class="column-title">Etat </th>
-                        <th class="column-title no-link last"><span class="nobr">Action</span>
-                        </th>
-                        <th class="bulk-actions" colspan="7">
-                          <a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      <tr class="even pointer">
-                        <td class="a-center ">
-                          <input type="checkbox" class="flat" name="table_records">
-                        </td>
-                        <td class=" ">Laser X1</td>
-                        <td class=" ">Problème</td>
-                        <td class=" last"><a href="#">Reset</a>
-                        </td>
-                      </tr>
-                       <tr class="even pointer">
-                        <td class="a-center ">
-                          <input type="checkbox" class="flat" name="table_records">
-                        </td>
-                        <td class=" ">Laser X2</td>
-                        <td class=" ">OK</td>
-                        <td class=" last"><a href="#">Reset</a>
-                        </td>
-                      </tr>
-                       <tr class="even pointer">
-                        <td class="a-center ">
-                          <input type="checkbox" class="flat" name="table_records">
-                        </td>
-                        <td class=" ">Laser Y1</td>
-                        <td class=" ">Problème</td>
-                        <td class=" last"><a href="#">Reset</a>
-                        </td>
-                      </tr>
-                       <tr class="even pointer">
-                        <td class="a-center ">
-                          <input type="checkbox" class="flat" name="table_records">
-                        </td>
-                        <td class=" ">Laser Y2</td>
-                        <td class=" ">OK</td>
-                        <td class=" last"><a href="#">Reset</a>
-                        </td>
-                      </tr>
-                       <tr class="even pointer">
-                        <td class="a-center ">
-                          <input type="checkbox" class="flat" name="table_records">
-                        </td>
-                        <td class=" ">Laser Z1</td>
-                        <td class=" ">OK</td>
-                        <td class=" last"><a href="#">Reset</a>
-                        </td>
-                      </tr>
-                       <tr class="even pointer">
-                        <td class="a-center ">
-                          <input type="checkbox" class="flat" name="table_records">
-                        </td>
-                        <td class=" ">Laser Z2</td>
-                        <td class=" ">OK</td>
-                        <td class=" last"><a href="#">Reset</a>
-                        </td>
-                      </tr>
-             
-                      
-                    </tbody>
-
-                  </table>
-                  <div class="form-group">
-                      
-                        <button type="submit" class="btn btn-primary col-md-offset-3 ">Reset lasers selectionné</button>
-                      
-                    </div>
-                </div>
-                
-              </div>
-            
-
-
-
-<div class="col-md-5 col-sm-5 col-xs-12">
-              <div class="x_panel">
-                <div class="x_title">
-                  <h2>Export CSV </h2>
-                  <ul class="nav navbar-right panel_toolbox">
-                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                    </li>
-                   
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                    </li>
-                  </ul>
-                  <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-                  <br />
-                  <form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
-
-                    
-                    <div class="form-group">
-                      <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">Nom du fichier</label>
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <input id="middle-name" class="form-control col-md-7 col-xs-12" type="text" name="middle-name">
-                      </div>
-                    </div>
-                    
-                  
-                    <div class="ln_solid"></div>
-                    <div class="form-group">
-
-                      <a class="btn btn-app">
-                    
-                    <i class="fa fa-edit"></i> CreateFile</a>
-                      <a class="btn btn-app">
-                    
-                    <i class="fa fa-play"></i> Play</a>
-                         <a class="btn btn-app">
-                            <i class="fa fa-pause"></i> Pause </a>
-
-                         <a class="btn btn-app">
-                            <i class="fa fa-save"></i> Save </a>
-                  
-                      </div>
-
-                  </form>
-                </div>
-              </div>
-
-</div>
-
-      
-
-        
-
-      </div>
-      <!-- /page content -->
+                </tbody>
+            </table>
+        </div>
     </div>
-
-
-      <!-- age content 
-
-  <div id="custom_notifications" class="custom-notifications dsp_none">
-    <ul class="list-unstyled notifications clearfix" data-tabbed_notifications="notif-group">
+</div>
+<div class="col-md-3 col-sm-3 col-xs-12">
+    <div class="x_panel" id='lasers_raw'>
+        <div class="x_title">
+            <h2>Raw/lasers </h2>
+            <ul class="nav navbar-right panel_toolbox">
+                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            
+            <li><a class="close-link"><i class="fa fa-close"></i></a>
+        </li>
     </ul>
     <div class="clearfix"></div>
-    <div id="notif-group" class="tabbed_notifications"></div>
-  </div     
-   -->
-
+</div>
+<div class="x_content">
+    <table  class="table table-bordered">
+        <tbody>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Laser 1</th>
+                    <th>Laser 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">X</th>
+                    <td class='datax1'></td>
+                    <td class='datax2'></td>
+                </tr>
+                <tr>
+                    <th scope="row">Y</th>
+                    <td class='datay1'></td>
+                    <td class='datay1'></td>
+                </tr>
+                <tr>
+                    <th scope="row">Z</th>
+                    <td class='dataz1'></td>
+                    <td class='dataz2'></td>
+                </tr>
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+<div class="col-md-3 col-sm-3 col-xs-12">
+<div class="x_panel" id='local_pose'>
+    <div class="x_title">
+        <h2>Local/Pose </h2>
+        <ul class="nav navbar-right panel_toolbox">
+            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+        </li>
+        
+        <li><a class="close-link"><i class="fa fa-close"></i></a>
+    </li>
+</ul>
+<div class="clearfix"></div>
+</div>
+<div class="x_content">
+<table class="table table-bordered">
+    <tbody>
+        <tr>
+            <td>X</td>
+            <td class='datax'></td>
+        </tr>
+        <tr>
+            <td>Y</td>
+            <td class='datay'></td>
+        </tr>
+        <tr>
+            <td>Z</td>
+            <td class='dataz'></td>
+        </tr>
+        
+        
+    </tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="col-md-3 col-sm-3 col-xs-12">
+<div class="x_panel">
+<div class="x_title">
+<h2>State </h2>
+<ul class="nav navbar-right panel_toolbox">
+    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+</li>
+<li><a class="close-link"><i class="fa fa-close"></i></a>
+</li>
+</ul>
+<div class="clearfix"></div>
+</div>
+<div class="x_content">
+<table class="table table-bordered">
+<tbody>
+<tr>
+    <td>Arm</td>
+    <td id='arm'></td>
+</tr>
+<tr>
+    <td>OFFBOARD</td>
+    <td id='mode'></td>
+</tr>
+<tr>
+    <td>Battery voltage</td>
+    <td id='battery_voltage'> V</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="col-md-7 col-sm-7 col-xs-12">
+<div class="x_content">
+<table class="table table-striped responsive-utilities jambo_table bulk_action">
+<thead>
+<tr class="headings">
+<th>
+    <input type="checkbox" id="check-all" class="flat">
+</th>
+<th class="column-title">Laser </th>
+<th class="column-title">Etat </th>
+<th class="column-title no-link last"><span class="nobr">Action</span>
+</th>
+<th class="bulk-actions" colspan="7">
+<a class="antoo" style="color:#fff; font-weight:500;">Bulk Actions ( <span class="action-cnt"> </span> ) <i class="fa fa-chevron-down"></i></a>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even pointer">
+<td class="a-center ">
+<input type="checkbox" class="flat" name="table_records">
+</td>
+<td class=" ">Laser X1</td>
+<td class=" ">Problème</td>
+<td class=" last"><a href="#">Reset</a>
+</td>
+</tr>
+<tr class="even pointer">
+<td class="a-center ">
+<input type="checkbox" class="flat" name="table_records">
+</td>
+<td class=" ">Laser X2</td>
+<td class=" ">OK</td>
+<td class=" last"><a href="#">Reset</a>
+</td>
+</tr>
+<tr class="even pointer">
+<td class="a-center ">
+<input type="checkbox" class="flat" name="table_records">
+</td>
+<td class=" ">Laser Y1</td>
+<td class=" ">Problème</td>
+<td class=" last"><a href="#">Reset</a>
+</td>
+</tr>
+<tr class="even pointer">
+<td class="a-center ">
+<input type="checkbox" class="flat" name="table_records">
+</td>
+<td class=" ">Laser Y2</td>
+<td class=" ">OK</td>
+<td class=" last"><a href="#">Reset</a>
+</td>
+</tr>
+<tr class="even pointer">
+<td class="a-center ">
+<input type="checkbox" class="flat" name="table_records">
+</td>
+<td class=" ">Laser Z1</td>
+<td class=" ">OK</td>
+<td class=" last"><a href="#">Reset</a>
+</td>
+</tr>
+<tr class="even pointer">
+<td class="a-center ">
+<input type="checkbox" class="flat" name="table_records">
+</td>
+<td class=" ">Laser Z2</td>
+<td class=" ">OK</td>
+<td class=" last"><a href="#">Reset</a>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="form-group">
+<button type="submit" class="btn btn-primary col-md-offset-3 ">Reset lasers selectionné</button>
+</div>
+</div>
+</div>
+<div class="col-md-5 col-sm-5 col-xs-12">
+<div class="x_panel">
+<div class="x_title">
+<h2>Export CSV </h2>
+<ul class="nav navbar-right panel_toolbox">
+<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+</li>
+<li><a class="close-link"><i class="fa fa-close"></i></a>
+</li>
+</ul>
+<div class="clearfix"></div>
+</div>
+<div class="x_content">
+<br />
+<form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+<div class="form-group">
+<label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">Nom du fichier</label>
+<div class="col-md-6 col-sm-6 col-xs-12">
+<input id="middle-name" class="form-control col-md-7 col-xs-12" type="text" name="middle-name">
+</div>
+</div>
+<div class="ln_solid"></div>
+<div class="form-group">
+<a class="btn btn-app">
+<i class="fa fa-edit"></i> CreateFile</a>
+<a class="btn btn-app">
+<i class="fa fa-play"></i> Play</a>
+<a class="btn btn-app">
+<i class="fa fa-pause"></i> Pause </a>
+<a class="btn btn-app">
+<i class="fa fa-save"></i> Save </a>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+<!-- /page content -->
+</div>
+<!-- age content
+<div id="custom_notifications" class="custom-notifications dsp_none">
+<ul class="list-unstyled notifications clearfix" data-tabbed_notifications="notif-group">
+</ul>
+<div class="clearfix"></div>
+<div id="notif-group" class="tabbed_notifications"></div>
+</div
+-->
 <script type="text/javascript" src= "interface.js"></script>
- 
-
-
-  <!-- /flot -->
- 
-
-  <!-- moris js -->
-  <script src="js/moris/raphael-min.js"></script>
-  <script src="js/moris/morris.min.js"></script>
-  
-
- 
+<!-- /flot -->
+<!-- moris js -->
+<script src="js/moris/raphael-min.js"></script>
+<script src="js/moris/morris.min.js"></script>
 </body>
-
 </html>
