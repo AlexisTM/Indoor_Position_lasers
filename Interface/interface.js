@@ -132,8 +132,7 @@ var plotXYZ = $.plot($("#PlotLocalZ"), [{
 
 
 
-function init()
-{
+function init() {
     var cmd = {}
     var ros = new ROSLIB.Ros({
         url: 'ws://192.168.137.18:9090'
@@ -152,43 +151,43 @@ function init()
     });
 
     var listener = new ROSLIB.Topic({
-    ros: ros,
-    name: 'web/report',
-    messageType: 'laserpack/Report'
+        ros: ros,
+        name: 'web/report',
+        messageType: 'laserpack/Report'
     });
 
     var sendMission = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/mission',
-      messageType : 'laserpack/Mission'
+        ros: ros,
+        name: 'web/mission',
+        messageType: 'laserpack/Mission'
     });
 
     var sendTask = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/task',
-      messageType : 'laserpack/Task'
+        ros: ros,
+        name: 'web/task',
+        messageType: 'laserpack/Task'
     });
 
     var sendCMDCSV = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/csv/run',
-      messageType : 'Bool'
+        ros: ros,
+        name: 'web/csv/run',
+        messageType: 'Bool'
     });
 
     var sendSaveCSV = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/csv/save',
-      messageType : 'std_msgs/String'
+        ros: ros,
+        name: 'web/csv/save',
+        messageType: 'std_msgs/String'
     });
 
-    cmd = { 
-        Mission : sendMission,
-        Task : sendTask,
-        CSV : {
-          Run : sendCMDCSV,
-          Save : sendSaveCSV
-         },
-         listen : listener
+    cmd = {
+        Mission: sendMission,
+        Task: sendTask,
+        CSV: {
+            Run: sendCMDCSV,
+            Save: sendSaveCSV
+        },
+        listen: listener
     };
     return cmd
 }
@@ -322,8 +321,7 @@ function changeStatus(id, raw) {
 
 $("button.landing").click(landing)
 
-function landing() {
-}
+function landing() {}
 
 $("button.motorstop").click(motorstop)
 
@@ -347,9 +345,13 @@ $("div#selector").children().click(function(event) {
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
 
-        cmd.Task.publish(new ROSLIB.Message({mission_type : 13}))
+        cmd.Task.publish(new ROSLIB.Message({
+            mission_type: 13
+        }))
     } else {
-        cmd.Task.publish(new ROSLIB.Message({mission_type : 11}))
+        cmd.Task.publish(new ROSLIB.Message({
+            mission_type: 11
+        }))
 
     }
 });
@@ -361,7 +363,7 @@ function plotLocalXY(x, y, sx, sy) {
         data: [
             [x, y]
         ],
-hoverable : false,
+        hoverable: false,
         points: {
             symbol: "circle",
         }
@@ -369,7 +371,8 @@ hoverable : false,
         label: "setpoint",
         data: [
             [sx, sy]
-        ],hoverable : false,
+        ],
+        hoverable: false,
 
         points: {
             symbol: "cross"
@@ -377,7 +380,8 @@ hoverable : false,
     }, {
         data: [
             [currentSelection.x, currentSelection.y]
-        ],hoverable : false,
+        ],
+        hoverable: false,
 
         points: {
             symbol: "square"
