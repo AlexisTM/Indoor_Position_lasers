@@ -48,6 +48,12 @@ from getch import getch
 from Kalman import filter_container
 
 
+def local_position_callback(data):
+    # Input data : local position
+    # Output data 
+    global local_pose
+    local_pose = data.pose.position
+
 # update the velocity
 def velocity_callback(data):
     # Input data
@@ -96,7 +102,7 @@ def imu_callback(data):
 # Handle lasers
 def raw_lasers_callback(data):
     # Input data
-    global raw, imu, linear_velocity, angular_velocity, linearAcceleration
+    global raw, imu, linear_velocity, angular_velocity, linearAcceleration, local_pose
     # Output data
     global yawprint, last_time_filter
     # Publishers 
@@ -119,6 +125,14 @@ def raw_lasers_callback(data):
 
     #
     target = lasers.target(q, raw)
+
+    ### Avoid "too short" measures for Z lasers
+    # if(target[4][2] < 0.3 or target[5][2] < 0.3):
+    #     if target[4][2] < target[5][2] : 
+    #         target[5] = target[4]
+    #     else :
+    #         target[4] = target[5]
+    # ###
     
     yawprint=(rad2degf(yawMeasured), rad2degf(yaw))
 
@@ -181,7 +195,7 @@ def init():
     # Input data
     # Output data
     global raw, yawprint, linear_velocity, angular_velocity, last_time_filter, \
-           last_time_acceleration, linearAcceleration, gravity, imu
+           last_time_acceleration, linearAcceleration, gravity, imu, local_pose
     # Publishers 
     # Objects 
     global lasers, filters
@@ -195,6 +209,7 @@ def init():
     raw = Distance()
     imu = Imu()
     imu.orientation.w = 1 
+    local_pose = Point()
 
     last_time_acceleration = time()
     last_time_filter = time()
@@ -222,6 +237,7 @@ def subscribers():
     
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', Distance, raw_lasers_callback)
+    velocity_sub    = rospy.Subscriber('mavros/local_position/pose', PoseStamped, local_position_callback)
     velocity_sub    = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
 
 

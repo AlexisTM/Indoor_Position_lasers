@@ -18,10 +18,10 @@
         <link href="css/icheck/flat/green.css" rel="stylesheet" />
         <link href="css/floatexamples.css" rel="stylesheet" type="text/css" />
         <script type="text/javascript"
-        src="http://cdn.robotwebtools.org/EventEmitter2/0.4.14/eventemitter2.min.js">
+        src="js/roslibjs/eventemitter2.min.js">
         </script>
         <script type="text/javascript"
-        src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js">
+        src="js/roslibjs/roslib.min.js">
         </script>
         <script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.min.js"></script>
@@ -92,25 +92,12 @@
                     
                     <!-- début 2ème ligne  -->
                     <div class="row">
-                        <div class="col-md-4 col-sm-4 col-xs-6">
+                        
+                        <div class="col-md-12 col-sm-12 col-xs-12">
                             <div class="dashboard_graph x_panel">
                                 <div class="row x_title">
                                     <div class="col-md-12">
-                                        <h3>Local_positions <small>Position local en fonction du temps</small></h3>
-                                    </div>
-                                </div>
-                                <div class="x_content">
-                                    <div class="demo-container" style="height:250px">
-                                        <div id="PlotLocalXY" class="demo-placeholder" style="width: 100%; height:250px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-sm-4 col-xs-6">
-                            <div class="dashboard_graph x_panel">
-                                <div class="row x_title">
-                                    <div class="col-md-12">
-                                        <h3>Raw <small>Valeurs des lasers mesurées</small></h3>
+                                        <h3>Local_position <small>Position en X, Y et Z </small></h3>
                                     </div>
                                 </div>
                                 <div class="x_content">
@@ -120,20 +107,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4 col-sm-4 col-xs-6">
-                            <div class="dashboard_graph x_panel">
-                                <div class="row x_title">
-                                    <div class="col-md-12">
-                                        <h3>Yaw <small>Valeur de YAW mesurée</small></h3>
-                                    </div>
-                                </div>
-                                <div class="x_content">
-                                    <div class="demo-container" style="height:250px">
-                                        <div id="placeholder3xx5" class="demo-placeholder" style="width: 100%; height:250px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
                     
                     <!-- début 3ème ligne  -->
@@ -141,10 +115,10 @@
                         <!-- Début contenu des topics -->
                         <div class="col-md-6 col-xs-6">
                             <div class="panel panel-default">
-                                <div class="panel-heading"><h2>Contrôle </h2></div>
+                                <div class="panel-heading" ><h2>Contrôle </h2></div>
                                 <div class="x_panel">
                                     
-                                    <div class="panel-body">
+                                    <div class="panel-body" style="height:1000px">
                                         <form class="form-horizontal form-label-left">
                                             <div class="">
                                                 <h2>Mode </h2>
@@ -156,7 +130,6 @@
                                                         <button type="button" class="btn  btn-default btn-xs posctl">POSCTL</button>
                                                         <button type="button" class="btn  btn-default btn-xs auto">AUTO</button>
                                                     </div>
-                                                    
                                                 </div>
                                                 <div class="ln_solid"></div>
                                                 <div class="">
@@ -170,359 +143,338 @@
                                                         </label>
                                                     </div>
                                                 </div>
-                                                <div class="ln_solid"></div>
-                                                <div class="x_content">
-                                                    <div class="row grid_slider">
-                                                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_x</label>
-                                                        <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range" onchange="showValue(this.value)" />
-                                                        <span id="range">0</span>
-                                                        <script type="text/javascript">
-                                                        function showValue(newValue)
-                                                        {
-                                                        document.getElementById("range").innerHTML=newValue;
-                                                        }
-                                                        </script>
-                                                    </div>
-                                                </div>
-                                                <div class="x_content">
-                                                    <div class="row grid_slider">
-                                                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_y</label>
-                                                        <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range1" onchange="showValues(this.value)" />
-                                                        <span id="range1">0</span>
-                                                        <script type="text/javascript">
-                                                        function showValues(newValue)
-                                                        {
-                                                        document.getElementById("range1").innerHTML=newValue;
-                                                        }
-                                                        </script>
-                                                    </div>
-                                                </div>
-                                                <div class="x_content">
-                                                    <div class="row grid_slider">
-                                                        <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_z</label>
-                                                        <input type="range" min="0" max="10" value="0" step="0.1" name ="range3" onchange="showValuez(this.value)" />
-                                                        <span id="range3">0</span>
-                                                        <script type="text/javascript">
-                                                        function showValuez(newValue)
-                                                        {
-                                                        document.getElementById("range3").innerHTML=newValue;
-                                                        }
-                                                        </script>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_YAW</label>
-                                                    <div class="col-md-2 col-sm-2 col-xs-12">
-                                                        <input type="text" class="form-control" placeholder="">
-                                                    </div>
-                                                    <div class="col-md-3 col-sm-3 col-xs-12">
-                                                        <!-- MEttre slider -->
-                                                    </div>
-                                                </div>
-                                                <div class="ln_solid"></div>
-                                                <div class="form-group">
-                                                    <label class="col-md-3 col-sm-3 col-xs-3">Setpoint à la position actuelle </label>
-                                                    <div class="col-md-4 col-sm-4 col-xs-4 col-md-offset-2 ">
-                                                        <button type="button" class="btn btn-primary actualpose" onclick="return false">Send</button>
-                                                    </div>
-                                                </div>
+                                                <br /> <br /> <br />
+                                                <!--div class="col-md-4 col-sm-4 col-xs-6"-->
                                                 
-                                                <!--
-                                                <div class="ln_solid"></div>
-                                                <div class="form-group">
-                                                    <label class="col-md-3 col-sm-3 col-xs-12 control-label">Régulation
-                                                        <br>
-                                                    </label>
-                                                    <div class="col-md-9 col-sm-9 col-xs-12">
-                                                        <div class="checkbox">
-                                                            <label>
-                                                                <input type="checkbox" value=""> Active X
-                                                            </label>
+                                                
+                                                <div class="dashboard_graph x_panel">
+                                                    <div class="row x_title">
+                                                        <div class="col-md-12">
+                                                            <h3>Setpoint <small>Vue en XY</small></h3>
                                                         </div>
-                                                        <div class="checkbox">
-                                                            <label>
-                                                                <input type="checkbox" value=""> Active Y
-                                                            </label>
-                                                        </div>
-                                                        <div class="checkbox">
-                                                            <label>
-                                                                <input type="checkbox" value=""> Active Z
-                                                            </label>
-                                                        </div>
-                                                        <div class="checkbox">
-                                                            <label>
-                                                                <input type="checkbox" value=""> Active YAW
-                                                            </label>
+                                                    </div>
+                                                    <div class="x_content" >
+                                                        <div class="demo-container" style="height:500px">
+                                                            <div id="PlotLocalXY" class="demo-placeholder" style="width: 100%; height:100%;"></div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="ln_solid"></div>
-                                                
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-3 col-sm-3 col-xs-12">Mode - Ajout de ce que l'on veut</label>
-                                                    <div class="col-md-9 col-sm-9 col-xs-12">
-                                                        <div class="">
-                                                            <label>
-                                                                <input type="checkbox" class="js-switch" checked /> Checked
-                                                            </label>
-                                                        </div>
-                                                        <div class="">
-                                                            <label>
-                                                                <input type="checkbox" class="js-switch" /> Unchecked
-                                                            </label>
-                                                        </div>
-                                                        <div class="">
-                                                            <label>
-                                                                <input type="checkbox" class="js-switch" disabled="disabled" /> Disabled
-                                                            </label>
-                                                        </div>
-                                                        <div class="">
-                                                            <label>
-                                                                <input type="checkbox" class="js-switch" disabled="disabled" checked="checked" /> Disabled Checked
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div> -->
-                                                <div class="ln_solid"></div>
-                                                <div class="form-group">
-                                                    <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
-                                                        <button class="btn btn-primary motorstop" onclick="return false">ARRÊT MOTEURS</button>
-                                                        <button class="btn btn-success landing" onclick="return false">ATTERISSAGE</button>
-                                                    </div>
+                                                <!--div class="x_content">
+                                                <div class="row grid_slider">
+                                                    <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_x</label>
+                                                    <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range" onchange="showValue(this.value)" />
+                                                    <span id="range">0</span>
+                                                    <script type="text/javascript">
+                                                    function showValue(newValue)
+                                                    {
+                                                    document.getElementById("range").innerHTML=newValue;
+                                                    }
+                                                    </script>
                                                 </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>      </div>
-                                
-                                <div class="col-md-3 col-sm-3 col-xs-12">
-                                    <div class="x_panel" id='laser_pose'>
-                                        <div class="x_title">
-                                            <h2 id='demo'>Lasers/Pose </h2>
-                                            <ul class="nav navbar-right panel_toolbox">
-                                                <li>
-                                                    <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                                                </li>
-                                                
-                                                <li>
-                                                    <a class="close-link"><i class="fa fa-close"></i></a>
-                                                </li>
-                                            </ul>
-                                            
-                                            <div class="clearfix"></div>
-                                        </div>
-                                        
-                                        <div class="x_content">
-                                            <table class="table table-bordered">
-                                                <tbody>
-                                                    <tr>
-                                                        <td>X</td>
-                                                        <td class='datax'></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Y</td>
-                                                        <td class='datay'></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Z</td>
-                                                        <td class='dataz'></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>YAW</td>
-                                                        <td id ='yaw_lasers'></td>
-                                                    </tr>
+                                            </div>
+                                            <div class="x_content">
+                                                <div class="row grid_slider">
+                                                    <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_y</label>
+                                                    <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range1" onchange="showValues(this.value)" />
+                                                    <span id="range1">0</span>
+                                                    <script type="text/javascript">
+                                                    function showValues(newValue)
+                                                    {
+                                                    document.getElementById("range1").innerHTML=newValue;
+                                                    }
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="x_content">
+                                                <div class="row grid_slider">
+                                                    <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_z</label>
+                                                    <input type="range" min="0" max="10" value="0" step="0.1" name ="range3" onchange="showValuez(this.value)" />
+                                                    <span id="range3">0</span>
+                                                    <script type="text/javascript">
+                                                    function showValuez(newValue)
+                                                    {
+                                                    document.getElementById("range3").innerHTML=newValue;
+                                                    }
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_YAW</label>
+                                                <div class="col-md-2 col-sm-2 col-xs-12">
+                                                    <input type="text" class="form-control" placeholder="">
+                                                </div>
+                                                <div class="col-md-3 col-sm-3 col-xs-12">
                                                     
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                </div>
+                                            </div-->
+                                            <div class="x_content">
+                                                <div class="row grid_slider">
+                                                    <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_z</label>
+                                                    <input  type="range" min="0" max="10" value="0" step="0.1"  name ="range" onchange="showValue(this.value)" />
+                                                    <span id="range">0</span>
+                                                    
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-sm-3 col-xs-3">Setpoint à la position actuelle </label>
+                                                <div class="col-md-4 col-sm-4 col-xs-4 col-md-offset-2 ">
+                                                    <button type="button" class="btn btn-primary actualpose" onclick="return false">Send</button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!--
+                                            <div class="ln_solid"></div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-sm-3 col-xs-12 control-label">Régulation
+                                                    <br>
+                                                </label>
+                                                <div class="col-md-9 col-sm-9 col-xs-12">
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" value=""> Active X
+                                                        </label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" value=""> Active Y
+                                                        </label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" value=""> Active Z
+                                                        </label>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" value=""> Active YAW
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="ln_solid"></div>
+                                            
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Mode - Ajout de ce que l'on veut</label>
+                                                <div class="col-md-9 col-sm-9 col-xs-12">
+                                                    <div class="">
+                                                        <label>
+                                                            <input type="checkbox" class="js-switch" checked /> Checked
+                                                        </label>
+                                                    </div>
+                                                    <div class="">
+                                                        <label>
+                                                            <input type="checkbox" class="js-switch" /> Unchecked
+                                                        </label>
+                                                    </div>
+                                                    <div class="">
+                                                        <label>
+                                                            <input type="checkbox" class="js-switch" disabled="disabled" /> Disabled
+                                                        </label>
+                                                    </div>
+                                                    <div class="">
+                                                        <label>
+                                                            <input type="checkbox" class="js-switch" disabled="disabled" checked="checked" /> Disabled Checked
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div> -->
+                                            <div class="ln_solid"></div>
+                                            <div class="form-group">
+                                                <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
+                                                    <button class="btn btn-primary motorstop" onclick="return false">ARRÊT MOTEURS</button>
+                                                    <button class="btn btn-success landing" onclick="return false">ATTERISSAGE</button>
+                                                </div>
+                                            </div>
+                                            
+                                        </form>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-3 col-xs-12">
-                                    <div class="x_panel" id='laser_filtered'>
-                                        <div class="x_title">
-                                            <h2>Lasers/Filtered </h2>
-                                            <ul class="nav navbar-right panel_toolbox">
-                                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </div>      </div>
+                            
+                            <div class="col-md-3 col-sm-3 col-xs-12">
+                                <div class="x_panel" id='laser_pose'>
+                                    <div class="x_title">
+                                        <h2 id='demo'>Lasers/Pose </h2>
+                                        <ul class="nav navbar-right panel_toolbox">
+                                            <li>
+                                                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                                             </li>
                                             
-                                            <li><a class="close-link"><i class="fa fa-close"></i></a>
-                                        </li>
-                                    </ul>
-                                    <div class="clearfix"></div>
-                                </div>
-                                <div class="x_content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                            <tr>
-                                                <td>X</td>
-                                                <td class='datax'></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Y</td>
-                                                <td class='datay'></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Z</td>
-                                                <td class='dataz'></td>
+                                            <li>
+                                                <a class="close-link"><i class="fa fa-close"></i></a>
+                                            </li>
+                                        </ul>
+                                        
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    
+                                    <div class="x_content">
+                                        <table class="table table-bordered">
+                                            <tbody>
+                                                <tr>
+                                                    <td>X</td>
+                                                    <td class='datax'></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Y</td>
+                                                    <td class='datay'></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Z</td>
+                                                    <td class='dataz'></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>YAW</td>
+                                                    <td id ='yaw_lasers'></td>
+                                                </tr>
                                                 
-                                            </tr>
-                                            <tr>
-                                                <td>YAW</td>
-                                                <td id='yaw_filtered'></td>
-                                            </tr>
-                                            
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="col-md-3 col-sm-3 col-xs-12">
-                            <div class="x_panel">
-                                <div class="x_title">
-                                    <h2>IMU - Pixhawk </h2>
-                                    <ul class="nav navbar-right panel_toolbox">
-                                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            <div class="col-md-3 col-sm-3 col-xs-12">
+                                <div class="x_panel" id='laser_filtered'>
+                                    <div class="x_title">
+                                        <h2>Lasers/Filtered </h2>
+                                        <ul class="nav navbar-right panel_toolbox">
+                                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                        </li>
+                                        
+                                        <li><a class="close-link"><i class="fa fa-close"></i></a>
                                     </li>
-                                    
-                                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                                </li>
-                            </ul>
-                            <div class="clearfix"></div>
-                        </div>
-                        <div class="x_content">
-                            <table class="table table-bordered">
-                                <tbody>
-                                    <tr>
-                                        <td>Pitch</td>
-                                        <td id='pitch'></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Yaw</td>
-                                        <td id='yaw'></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Roll</td>
-                                        <td id ='roll'></td>
-                                    </tr>
-                                    
-                                    
-                                </tbody>
-                            </table>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td>X</td>
+                                            <td class='datax'></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Y</td>
+                                            <td class='datay'></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Z</td>
+                                            <td class='dataz'></td>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td>YAW</td>
+                                            <td id='yaw_filtered'></td>
+                                        </tr>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-3 col-sm-3 col-xs-12">
-                    <div class="x_panel" id ='mocap' >
-                        <div class="x_title">
-                            <h2>Mocap/pose </h2>
-                            <ul class="nav navbar-right panel_toolbox">
-                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>IMU - Pixhawk </h2>
+                                <ul class="nav navbar-right panel_toolbox">
+                                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                </li>
+                                
+                                <li><a class="close-link"><i class="fa fa-close"></i></a>
                             </li>
-                            
-                            <li><a class="close-link"><i class="fa fa-close"></i></a>
-                        </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <td>X</td>
-                                <td class='datax'></td>
-                            </tr>
-                            <tr>
-                                <td>Y</td>
-                                <td class='datay'></td>
-                            </tr>
-                            <tr>
-                                <td>Z</td>
-                                <td class='dataz'></td>
-                            </tr>
-                            
-                            
-                        </tbody>
-                    </table>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td>Pitch</td>
+                                    <td id='pitch'></td>
+                                </tr>
+                                <tr>
+                                    <td>Yaw</td>
+                                    <td id='yaw'></td>
+                                </tr>
+                                <tr>
+                                    <td>Roll</td>
+                                    <td id ='roll'></td>
+                                </tr>
+                                
+                                
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3 col-sm-3 col-xs-12">
-            <div class="x_panel" id ='setpoint'>
-                <div class="x_title">
-                    <h2>Setpoint/Local </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            <div class="col-md-3 col-sm-3 col-xs-12">
+                <div class="x_panel" id ='mocap' >
+                    <div class="x_title">
+                        <h2>Mocap/pose </h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                        
+                        <li><a class="close-link"><i class="fa fa-close"></i></a>
                     </li>
-                    
-                    <li><a class="close-link"><i class="fa fa-close"></i></a>
-                </li>
-            </ul>
-            <div class="clearfix"></div>
-        </div>
-        <div class="x_content">
-            <table class="table table-bordered">
-                <tbody>
-                    <tr>
-                        <td>X</td>
-                        <td class = 'datax'></td>
-                    </tr>
-                    <tr>
-                        <td>Y</td>
-                        <td class = 'datay'>3.2</td>
-                    </tr>
-                    <tr>
-                        <td>Z</td>
-                        <td class = 'dataz'></td>
-                    </tr>
-                    <tr>
-                        <td>YAW</td>
-                        <td id='setpoint_yaw'></td>
-                    </tr>
-                    
-                </tbody>
-            </table>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <td>X</td>
+                            <td class='datax'></td>
+                        </tr>
+                        <tr>
+                            <td>Y</td>
+                            <td class='datay'></td>
+                        </tr>
+                        <tr>
+                            <td>Z</td>
+                            <td class='dataz'></td>
+                        </tr>
+                        
+                        
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-<div class="col-md-3 col-sm-3 col-xs-12">
-    <div class="x_panel" id='lasers_raw'>
-        <div class="x_title">
-            <h2>Raw/lasers </h2>
-            <ul class="nav navbar-right panel_toolbox">
-                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+    <div class="col-md-3 col-sm-3 col-xs-12">
+        <div class="x_panel" id ='setpoint'>
+            <div class="x_title">
+                <h2>Setpoint/Local </h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                </li>
+                
+                <li><a class="close-link"><i class="fa fa-close"></i></a>
             </li>
-            
-            <li><a class="close-link"><i class="fa fa-close"></i></a>
-        </li>
-    </ul>
-    <div class="clearfix"></div>
-</div>
-<div class="x_content">
-    <table  class="table table-bordered">
-        <tbody>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Laser 1</th>
-                    <th>Laser 2</th>
-                </tr>
-            </thead>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+        <table class="table table-bordered">
             <tbody>
                 <tr>
-                    <th scope="row">X</th>
-                    <td class='datax1'></td>
-                    <td class='datax2'></td>
+                    <td>X</td>
+                    <td class = 'datax'></td>
                 </tr>
                 <tr>
-                    <th scope="row">Y</th>
-                    <td class='datay1'></td>
-                    <td class='datay1'></td>
+                    <td>Y</td>
+                    <td class = 'datay'>3.2</td>
                 </tr>
                 <tr>
-                    <th scope="row">Z</th>
-                    <td class='dataz1'></td>
-                    <td class='dataz2'></td>
+                    <td>Z</td>
+                    <td class = 'dataz'></td>
+                </tr>
+                <tr>
+                    <td>YAW</td>
+                    <td id='setpoint_yaw'></td>
                 </tr>
                 
             </tbody>
@@ -531,9 +483,9 @@
 </div>
 </div>
 <div class="col-md-3 col-sm-3 col-xs-12">
-<div class="x_panel" id='local_pose'>
+<div class="x_panel" id='lasers_raw'>
     <div class="x_title">
-        <h2>Local/Pose </h2>
+        <h2>Raw/lasers </h2>
         <ul class="nav navbar-right panel_toolbox">
             <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
         </li>
@@ -544,23 +496,68 @@
 <div class="clearfix"></div>
 </div>
 <div class="x_content">
-<table class="table table-bordered">
+<table  class="table table-bordered">
     <tbody>
-        <tr>
-            <td>X</td>
-            <td class='datax'></td>
-        </tr>
-        <tr>
-            <td>Y</td>
-            <td class='datay'></td>
-        </tr>
-        <tr>
-            <td>Z</td>
-            <td class='dataz'></td>
-        </tr>
-        
-        
-    </tbody>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Laser 1</th>
+                <th>Laser 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">X</th>
+                <td class='datax1'></td>
+                <td class='datax2'></td>
+            </tr>
+            <tr>
+                <th scope="row">Y</th>
+                <td class='datay1'></td>
+                <td class='datay1'></td>
+            </tr>
+            <tr>
+                <th scope="row">Z</th>
+                <td class='dataz1'></td>
+                <td class='dataz2'></td>
+            </tr>
+            
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+<div class="col-md-3 col-sm-3 col-xs-12">
+<div class="x_panel" id='local_pose'>
+<div class="x_title">
+    <h2>Local/Pose </h2>
+    <ul class="nav navbar-right panel_toolbox">
+        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+    </li>
+    
+    <li><a class="close-link"><i class="fa fa-close"></i></a>
+</li>
+</ul>
+<div class="clearfix"></div>
+</div>
+<div class="x_content">
+<table class="table table-bordered">
+<tbody>
+    <tr>
+        <td>X</td>
+        <td class='datax'></td>
+    </tr>
+    <tr>
+        <td>Y</td>
+        <td class='datay'></td>
+    </tr>
+    <tr>
+        <td>Z</td>
+        <td class='dataz'></td>
+    </tr>
+    
+    
+</tbody>
 </table>
 </div>
 </div>
@@ -570,8 +567,9 @@
 <div class="x_title">
 <h2>State </h2>
 <ul class="nav navbar-right panel_toolbox">
-    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
 </li>
+
 <li><a class="close-link"><i class="fa fa-close"></i></a>
 </li>
 </ul>
@@ -581,29 +579,34 @@
 <table class="table table-bordered">
 <tbody>
 <tr>
-    <td>Arm</td>
-    <td id='arm'></td>
+<td>Arm</td>
+<td id='arm'></td>
 </tr>
 <tr>
-    <td>OFFBOARD</td>
-    <td id='mode'></td>
+<td>OFFBOARD</td>
+<td id='mode'></td>
 </tr>
 <tr>
-    <td>Battery voltage</td>
-    <td id='battery_voltage'> V</td>
+<td>Battery voltage</td>
+<td id='battery_voltage'> V</td>
 </tr>
+
+
 </tbody>
 </table>
 </div>
 </div>
 </div>
+
+
+
 <div class="col-md-7 col-sm-7 col-xs-12">
 <div class="x_content">
 <table class="table table-striped responsive-utilities jambo_table bulk_action">
 <thead>
 <tr class="headings">
 <th>
-    <input type="checkbox" id="check-all" class="flat">
+<input type="checkbox" id="check-all" class="flat">
 </th>
 <th class="column-title">Laser </th>
 <th class="column-title">Etat </th>
@@ -669,13 +672,19 @@
 <td class=" last"><a href="#">Reset</a>
 </td>
 </tr>
+
+
 </tbody>
 </table>
 <div class="form-group">
+
 <button type="submit" class="btn btn-primary col-md-offset-3 ">Reset lasers selectionné</button>
+
 </div>
 </div>
+
 </div>
+
 <div class="col-md-5 col-sm-5 col-xs-12">
 <div class="x_panel">
 <div class="x_title">
@@ -683,6 +692,7 @@
 <ul class="nav navbar-right panel_toolbox">
 <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
 </li>
+
 <li><a class="close-link"><i class="fa fa-close"></i></a>
 </li>
 </ul>
@@ -691,27 +701,35 @@
 <div class="x_content">
 <br />
 <form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+
 <div class="form-group">
 <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">Nom du fichier</label>
 <div class="col-md-6 col-sm-6 col-xs-12">
 <input id="middle-name" class="form-control col-md-7 col-xs-12" type="text" name="middle-name">
 </div>
 </div>
+
+
 <div class="ln_solid"></div>
 <div class="form-group">
 <a class="btn btn-app">
+
 <i class="fa fa-edit"></i> CreateFile</a>
 <a class="btn btn-app">
+
 <i class="fa fa-play"></i> Play</a>
 <a class="btn btn-app">
 <i class="fa fa-pause"></i> Pause </a>
 <a class="btn btn-app">
 <i class="fa fa-save"></i> Save </a>
+
 </div>
 </form>
 </div>
 </div>
 </div>
+
+
 </div>
 <!-- /page content -->
 </div>
@@ -724,9 +742,13 @@
 </div
 -->
 <script type="text/javascript" src= "interface.js"></script>
+
 <!-- /flot -->
+
 <!-- moris js -->
 <script src="js/moris/raphael-min.js"></script>
 <script src="js/moris/morris.min.js"></script>
+
+
 </body>
 </html>

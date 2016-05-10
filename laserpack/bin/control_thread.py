@@ -35,7 +35,7 @@ import tf
 import numpy as np
 from getch import *
 from threading import Thread
-from geometry_msgs.msg import PoseStamped, Point
+from geometry_msgs.msg import PoseStamped, Point, Pose
 from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State, PositionTarget
@@ -44,9 +44,15 @@ from sensor_msgs.msg import Range
 from mavros.utils import *
 from algorithm_functions import rad2degf, deg2radf
 from transformations import *
-from laserpack.msg import Distance
+from laserpack.msg import Distance, Task
 
 # Callbacks
+def Task_Callback(data):
+    # Output data
+    global setpoint
+    setpoint.x = data.position.x
+    setpoint.y = data.position.y
+
 def State_Callback(data):
     global state
     state = data
@@ -269,6 +275,7 @@ def init():
     laser_pose_sub  = rospy.Subscriber('lasers/filtered', PoseStamped, laser_callback)
     state_sub       = rospy.Subscriber('mavros/state', State, State_Callback)
     laser_sub       = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
+    task_sub        = rospy.Subscriber('web/task', Task, Task_Callback)
     
     local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
     

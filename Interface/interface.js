@@ -1,12 +1,14 @@
-var cmd = init();
+var cmd = {}
+var setpoint_x = 0;
+init();
 var Configurations = {
-    ip: 'ws://192.168.1.10:9090',
+    ip: 'ws://192.168.43.174:9090',
     setpoints: {
         min: 0.5,
         max: 3.0
     },
     graphs: {
-        maxPoints: 200
+        maxPoints: 50
     }
 }
 
@@ -34,11 +36,27 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
 }], {
     yaxis: {
         min: 0,
-        max: 4
+        max: 4,
+        position: "right",
+        reverseSpace: true,
+        transform: function(a) {
+            return -a;
+        },
+        inverseTransform: function(a) {
+            return -a;
+        }
     },
     xaxis: {
         min: 0,
-        max: 4
+        max: 4,
+        position: "top",
+        reverseSpace: true,
+        transform: function(a) {
+            return -a;
+        },
+        inverseTransform: function(a) {
+            return -a;
+        }
     },
     points: {
         fill: false,
@@ -88,6 +106,15 @@ plotXY.getPlaceholder().bind("plothover", function(event, pos) {
 plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
     // Send setpoint
     console.log("Sending setpoint : ", currentSelection);
+    var msg = new ROSLIB.Message({
+        position: {
+            x: currentSelection.x,
+            y: currentSelection.y,
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
+
 });
 
 
@@ -133,8 +160,9 @@ var plotXYZ = $.plot($("#PlotLocalZ"), [{
 
 
 function init() {
-    var cmd = {}
+    //var cmd = {}
     var ros = new ROSLIB.Ros({
+        //url: 'ws://192.168.43.174:9090'
         url: 'ws://192.168.137.18:9090'
     });
 
@@ -154,6 +182,12 @@ function init() {
         ros: ros,
         name: 'web/report',
         messageType: 'laserpack/Report'
+    });
+
+    var listener2 = new ROSLIB.Topic({
+        ros: ros,
+        name: '/new',
+        messageType: 'laserpack/Task'
     });
 
     var sendMission = new ROSLIB.Topic({
@@ -187,23 +221,21 @@ function init() {
             Run: sendCMDCSV,
             Save: sendSaveCSV
         },
-        listen: listener
+        listen: listener,
+        listen2: listener2
     };
-    return cmd
+    //return cmd
 }
 /*
 var ros = new ROSLIB.Ros({
     url: 'ws://192.168.137.18:9090'
 });
-
 ros.on('connection', function() {
     console.log('Connected to websocket server.');
 });
-
 ros.on('error', function(error) {
     console.log('Error connecting to websocket server: ', error);
 });
-
 ros.on('close', function() {
     console.log('Connection to websocket server closed.');
 });*/
@@ -216,13 +248,11 @@ ros.on('close', function() {
   name : '/cmd_vel',
   messageType : 'geometry_msgs/Twist'
 });
-
 var exampleTopic = new ROSLIB.Topic({
       ros: ros,
     name: '/com/endpoint/examp', // use a sensible namespace
       messageType: 'std_msgs/String'
 });
-
 var twist = new ROSLIB.Message({
 linear : {
   x : 0.1,
@@ -235,19 +265,13 @@ angular : {
   z : -0.3
 }
 });
-
-
 var msg = new ROSLIB.Message({
     data : "yesouiok"
 });
-
   console.log("Publishing cmd_vel");
   cmdVel.publish(twist);
-
   console.log("Publishing data");
   exampleTopic.publish(msg);   
-
-
 */
 
 
@@ -278,7 +302,8 @@ cmd.listen.subscribe(function(message) {
 
     plotLocalXY(data.local.position.x, data.local.position.y,
         data.setpoint.position.x, data.setpoint.position.y);
-    plotLocalZ(data.header.seq / 25, data.local.position)
+    plotLocalXYZ(data.header.seq / 25, data.local.position);
+    console.log("graph");
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
@@ -293,6 +318,19 @@ function changePose(id, position) {
     elem.find('.datax').text(position.x.toFixed(3));
     elem.find('.datay').text(position.y.toFixed(3));
     elem.find('.dataz').text(position.z.toFixed(3));
+}
+
+function showValue(newValue) {
+    document.getElementById("range").innerHTML = newValue;
+    console.log(newValue);
+    var msg = new ROSLIB.Message({
+        position: {
+            z: newValue
+        }
+    });
+    cmd.Task.publish(msg)
+    console.log("Publish Z");
+
 }
 
 function changeRaw(id, raw) {
@@ -321,18 +359,37 @@ function changeStatus(id, raw) {
 
 $("button.landing").click(landing)
 
-function landing() {}
+function landing() {
+    var msg = new ROSLIB.Message({
+        mission_type: 123
+    });
+    cmd.Task.publish(msg)
+    console.log("publish landing");
+}
 
 $("button.motorstop").click(motorstop)
 
 function motorstop() {
-    alert("motorstop");
+    var msg = new ROSLIB.Message({
+        mission_type: 11
+    });
+    cmd.Task.publish(msg)
+    console.log("Publish stop");
 }
 
 $("button.actualpose").click(actualpose)
 
 function actualpose() {
-    alert("actualpose");
+    var msg = new ROSLIB.Message({
+        position: {
+            x: 2.43,
+            y: 1.37
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
+    console.log("Publishing actual");
+
 
 }
 
@@ -340,18 +397,30 @@ function actualpose() {
 $("div#selector").children().click(function(event) {
     var modeToSend = event.target.innerHTML;
     console.log(modeToSend);
+    if (modeToSend == "OFFBOARD") {
+        var msg = new ROSLIB.Message({
+            mission_type: 9
+        });
+        cmd.Task.publish(msg)
+        console.log("Publish OFFBOARD");
+    }
+
 })
 
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
-
-        cmd.Task.publish(new ROSLIB.Message({
+        var msg = new ROSLIB.Message({
             mission_type: 13
-        }))
+        });
+        cmd.Task.publish(msg)
+        console.log("Publish Arm");
     } else {
-        cmd.Task.publish(new ROSLIB.Message({
+        var msg = new ROSLIB.Message({
             mission_type: 11
-        }))
+        });
+        cmd.Task.publish(msg)
+        console.log("Publish Disarm");
+
 
     }
 });
