@@ -15,7 +15,14 @@ var Configurations = {
 
 var currentSelection = {
     x: 1,
-    y: 1
+    y: 1,
+    z: 1
+}
+
+var clickedSelection = {
+    x: 1,
+    y: 1,
+    z: 1
 }
 
 
@@ -30,6 +37,97 @@ var dataXYZ = {
         []
     ]
 };
+
+/* TEST DATASET Z */
+/*
+z = 2.3
+setpoint = 1.2
+var dataset = [{
+    label: "position",
+    data: [
+        [0, z]
+    ],
+    hoverable: false,
+    bars: {
+        fill: true,
+        show: true
+    }
+}, {
+    label: "setpoint",
+    data: [
+        [0.5, setpoint]
+    ],
+    hoverable: false,
+    bars: {
+        show: false
+    },
+    points: {
+        symbol: function(ctx, x, y, radius, shadow) {
+            ctx.moveTo(x - radius * 25, y);
+            ctx.lineTo(x + radius * 25, y);
+        },
+        show: true
+    }
+}, {
+    data: [
+        [0.5, currentSelection.z]
+    ],
+    hoverable: true,
+    clickable: true,
+    bars: {
+        show: false
+    },
+    points: {
+        symbol: function(ctx, x, y, radius, shadow) {
+            ctx.moveTo(x - radius * 25, y);
+            ctx.lineTo(x + radius * 25, y);
+        },
+        show: true
+    }
+}];
+*/
+/* TEST DATASET Z */
+
+var plotZControl = $.plot($("#PlotLocalZControl"), dataset, {
+    yaxis: {
+        min: 0,
+        max: 3,
+        position: "center"
+    },
+    xaxis: {
+        min: 0,
+        max: 0,
+        position: "bottom",
+        show: false
+    },
+    bars: {
+        fill: true,
+        radius: 7,
+        show: true
+    },
+    colors: ["#26B99A", "#FE642E", "#808080"],
+    grid: {
+        borderWidth: {
+            top: 0,
+            right: 1,
+            bottom: 0,
+            left: 1
+        },
+        borderColor: {
+            bottom: "#7F8790",
+            left: "#7F8790"
+        },
+        hoverable: true,
+        clickable: true,
+        shadowSize: 1
+    },
+    selection: {
+        mode: "xy",
+        show: false,
+        color: 'rgba(0,0,0,0)'
+    }
+});
+
 
 var plotXY = $.plot($("#PlotLocalXY"), [{
     label: "Local XY",
@@ -100,16 +198,18 @@ plotXY.getPlaceholder().bind("plothover", function(event, pos) {
         currentSelection.y = Configurations.setpoints.max
     else
         currentSelection.y = pos.y
-        //console.log(currentSelection);
 });
 
 plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
     // Send setpoint
-    console.log("Sending setpoint : ", currentSelection);
+    clickedSelection.x = currentSelection.x;
+    clickedSelection.y = currentSelection.y;
+    console.log("Sending setpoint : ", clickedSelection);
     var msg = new ROSLIB.Message({
         position: {
-            x: currentSelection.x,
-            y: currentSelection.y,
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: clickedSelection.z
         },
         yaw: 0.0
     });
@@ -117,6 +217,30 @@ plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
 
 });
 
+plotZControl.getPlaceholder().bind("plothover", function(event, pos) {
+    if (pos.y < Configurations.setpoints.min)
+        currentSelection.z = Configurations.setpoints.min
+    else if (pos.y > Configurations.setpoints.max)
+        currentSelection.z = Configurations.setpoints.max
+    else
+        currentSelection.z = pos.y
+});
+
+plotZControl.getPlaceholder().bind("plotclick", function(event, pos) {
+    // Send setpoint
+    clickedSelection.z = currentSelection.z;
+    console.log("Sending setpoint : ", clickedSelection);
+    var msg = new ROSLIB.Message({
+        position: {
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: clickedSelection.z
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
+
+});
 
 var plotXYZ = $.plot($("#PlotLocalZ"), [{
     label: "Local position variations",
@@ -302,8 +426,8 @@ cmd.listen.subscribe(function(message) {
 
     plotLocalXY(data.local.position.x, data.local.position.y,
         data.setpoint.position.x, data.setpoint.position.y);
+    plotLocalZ(data.local.position.z, data.setpoint.position.z),
     plotLocalXYZ(data.header.seq / 25, data.local.position);
-    console.log("graph");
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
@@ -458,6 +582,56 @@ function plotLocalXY(x, y, sx, sy) {
     }];
     plotXY.setData(dataset);
     plotXY.draw();
+}
+
+function plotLocalZ(z, sz) {
+    var dataset = [{
+        label: "position",
+        data: [
+            [0, z]
+        ],
+        hoverable: false,
+        bars: {
+            fill: true,
+            show: true
+        }
+    }, {
+        label: "setpoint",
+        data: [
+            [0.5, sz]
+        ],
+        hoverable: false,
+        bars: {
+            show: false
+        },
+        points: {
+            symbol: function(ctx, x, y, radius, shadow) {
+                ctx.moveTo(x - radius * 25, y);
+                ctx.lineTo(x + radius * 25, y);
+            },
+            show: true
+        }
+    }, {
+        data: [
+            [0.5, currentSelection.z]
+        ],
+        hoverable: true,
+        clickable: true,
+        bars: {
+            show: false
+        },
+        points: {
+            symbol: function(ctx, x, y, radius, shadow) {
+                ctx.moveTo(x - radius * 25, y);
+                ctx.lineTo(x + radius * 25, y);
+            },
+            show: true
+        }
+    }];
+
+
+    plotZControl.setData(dataset);
+    plotZControl.draw();
 }
 
 function plotLocalXYZ(time, point) {
