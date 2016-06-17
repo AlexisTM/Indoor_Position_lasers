@@ -38,57 +38,8 @@ var dataXYZ = {
     ]
 };
 
-/* TEST DATASET Z */
-/*
-z = 2.3
-setpoint = 1.2
-var dataset = [{
-    label: "position",
-    data: [
-        [0, z]
-    ],
-    hoverable: false,
-    bars: {
-        fill: true,
-        show: true
-    }
-}, {
-    label: "setpoint",
-    data: [
-        [0.5, setpoint]
-    ],
-    hoverable: false,
-    bars: {
-        show: false
-    },
-    points: {
-        symbol: function(ctx, x, y, radius, shadow) {
-            ctx.moveTo(x - radius * 25, y);
-            ctx.lineTo(x + radius * 25, y);
-        },
-        show: true
-    }
-}, {
-    data: [
-        [0.5, currentSelection.z]
-    ],
-    hoverable: true,
-    clickable: true,
-    bars: {
-        show: false
-    },
-    points: {
-        symbol: function(ctx, x, y, radius, shadow) {
-            ctx.moveTo(x - radius * 25, y);
-            ctx.lineTo(x + radius * 25, y);
-        },
-        show: true
-    }
-}];
-*/
-/* TEST DATASET Z */
 
-var plotZControl = $.plot($("#PlotLocalZControl"), dataset, {
+var plotZControl = $.plot($("#PlotLocalZControl"), [[]], {
     yaxis: {
         min: 0,
         max: 3,
@@ -183,6 +134,7 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
         color: 'rgba(0,0,0,0)'
     }
 });
+
 
 plotXY.getPlaceholder().bind("plothover", function(event, pos) {
     if (pos.x < Configurations.setpoints.min)
@@ -661,3 +613,7 @@ function plotLocalXYZ(time, point) {
     plotXYZ.setupGrid();
     plotXYZ.draw();
 }
+
+
+plotLocalXY(1,1,1,1);
+plotLocalZ(1.2,1.1);
