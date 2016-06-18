@@ -1,5 +1,5 @@
 var cmd = {}
-var setpoint_x =0;
+var setpoint_x = 0;
 init();
 var Configurations = {
     ip: 'ws://192.168.0.1:9090',
@@ -15,7 +15,14 @@ var Configurations = {
 
 var currentSelection = {
     x: 1,
-    y: 1
+    y: 1,
+    z: 1
+}
+
+var clickedSelection = {
+    x: 1,
+    y: 1,
+    z: 1
 }
 
 
@@ -31,6 +38,48 @@ var dataXYZ = {
     ]
 };
 
+
+var plotZControl = $.plot($("#PlotLocalZControl"), [[]], {
+    yaxis: {
+        min: 0,
+        max: 3,
+        position: "center"
+    },
+    xaxis: {
+        min: 0,
+        max: 0,
+        position: "bottom",
+        show: false
+    },
+    bars: {
+        fill: true,
+        radius: 7,
+        show: true
+    },
+    colors: ["#26B99A", "#FE642E", "#808080"],
+    grid: {
+        borderWidth: {
+            top: 0,
+            right: 1,
+            bottom: 0,
+            left: 1
+        },
+        borderColor: {
+            bottom: "#7F8790",
+            left: "#7F8790"
+        },
+        hoverable: true,
+        clickable: true,
+        shadowSize: 1
+    },
+    selection: {
+        mode: "xy",
+        show: false,
+        color: 'rgba(0,0,0,0)'
+    }
+});
+
+
 var plotXY = $.plot($("#PlotLocalXY"), [{
     label: "Local XY",
 }], {
@@ -39,16 +88,24 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
         max: 4,
         position: "right",
         reverseSpace: true,
-        transform: function(a) { return -a;},
-        inverseTransform: function(a) { return -a;}
+        transform: function(a) {
+            return -a;
+        },
+        inverseTransform: function(a) {
+            return -a;
+        }
     },
     xaxis: {
         min: 0,
         max: 4,
         position: "top",
         reverseSpace: true,
-        transform: function(a) { return -a;},
-        inverseTransform: function(a) { return -a;}
+        transform: function(a) {
+            return -a;
+        },
+        inverseTransform: function(a) {
+            return -a;
+        }
     },
     points: {
         fill: false,
@@ -78,6 +135,7 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
     }
 });
 
+
 plotXY.getPlaceholder().bind("plothover", function(event, pos) {
     if (pos.x < Configurations.setpoints.min)
         currentSelection.x = Configurations.setpoints.min
@@ -92,23 +150,49 @@ plotXY.getPlaceholder().bind("plothover", function(event, pos) {
         currentSelection.y = Configurations.setpoints.max
     else
         currentSelection.y = pos.y
-        //console.log(currentSelection);
 });
 
 plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
     // Send setpoint
-    console.log("Sending setpoint : ", currentSelection);
-      var msg = new ROSLIB.Message({
-                position : {
-                      x : currentSelection.x,
-                      y : currentSelection.y,
-                    },
-                yaw : 0.0
-                });
-        cmd.Task.publish(msg)
+    clickedSelection.x = currentSelection.x;
+    clickedSelection.y = currentSelection.y;
+    console.log("Sending setpoint : ", clickedSelection);
+    var msg = new ROSLIB.Message({
+        position: {
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: clickedSelection.z
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
 
 });
 
+plotZControl.getPlaceholder().bind("plothover", function(event, pos) {
+    if (pos.y < Configurations.setpoints.min)
+        currentSelection.z = Configurations.setpoints.min
+    else if (pos.y > Configurations.setpoints.max)
+        currentSelection.z = Configurations.setpoints.max
+    else
+        currentSelection.z = pos.y
+});
+
+plotZControl.getPlaceholder().bind("plotclick", function(event, pos) {
+    // Send setpoint
+    clickedSelection.z = currentSelection.z;
+    console.log("Sending setpoint : ", clickedSelection);
+    var msg = new ROSLIB.Message({
+        position: {
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: clickedSelection.z
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
+
+});
 
 var plotXYZ = $.plot($("#PlotLocalZ"), [{
     label: "Local position variations",
@@ -151,8 +235,7 @@ var plotXYZ = $.plot($("#PlotLocalZ"), [{
 
 
 
-function init()
-{
+function init() {
     //var cmd = {}
     var ros = new ROSLIB.Ros({
         //url: 'ws://192.168.43.174:9090'
@@ -172,50 +255,50 @@ function init()
     });
 
     var listener = new ROSLIB.Topic({
-    ros: ros,
-    name: 'web/report',
-    messageType: 'laserpack/Report'
+        ros: ros,
+        name: 'web/report',
+        messageType: 'laserpack/Report'
     });
 
     var listener2 = new ROSLIB.Topic({
-    ros: ros,
-    name: '/new',
-    messageType: 'laserpack/Task'
+        ros: ros,
+        name: '/new',
+        messageType: 'laserpack/Task'
     });
 
     var sendMission = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/mission',
-      messageType : 'laserpack/Mission'
+        ros: ros,
+        name: 'web/mission',
+        messageType: 'laserpack/Mission'
     });
 
     var sendTask = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/task',
-      messageType : 'laserpack/Task'
+        ros: ros,
+        name: 'web/task',
+        messageType: 'laserpack/Task'
     });
 
     var sendCMDCSV = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/csv/run',
-      messageType : 'Bool'
+        ros: ros,
+        name: 'web/csv/run',
+        messageType: 'Bool'
     });
 
     var sendSaveCSV = new ROSLIB.Topic({
-      ros : ros,
-      name : 'web/csv/save',
-      messageType : 'std_msgs/String'
+        ros: ros,
+        name: 'web/csv/save',
+        messageType: 'std_msgs/String'
     });
 
-    cmd = { 
-        Mission : sendMission,
-        Task : sendTask,
-        CSV : {
-          Run : sendCMDCSV,
-          Save : sendSaveCSV
-         },
-         listen : listener,
-         listen2 : listener2
+    cmd = {
+        Mission: sendMission,
+        Task: sendTask,
+        CSV: {
+            Run: sendCMDCSV,
+            Save: sendSaveCSV
+        },
+        listen: listener,
+        listen2: listener2
     };
     //return cmd
 }
@@ -223,15 +306,12 @@ function init()
 var ros = new ROSLIB.Ros({
     url: 'ws://192.168.137.18:9090'
 });
-
 ros.on('connection', function() {
     console.log('Connected to websocket server.');
 });
-
 ros.on('error', function(error) {
     console.log('Error connecting to websocket server: ', error);
 });
-
 ros.on('close', function() {
     console.log('Connection to websocket server closed.');
 });*/
@@ -244,13 +324,11 @@ ros.on('close', function() {
   name : '/cmd_vel',
   messageType : 'geometry_msgs/Twist'
 });
-
 var exampleTopic = new ROSLIB.Topic({
       ros: ros,
     name: '/com/endpoint/examp', // use a sensible namespace
       messageType: 'std_msgs/String'
 });
-
 var twist = new ROSLIB.Message({
 linear : {
   x : 0.1,
@@ -263,19 +341,13 @@ angular : {
   z : -0.3
 }
 });
-
-
 var msg = new ROSLIB.Message({
     data : "yesouiok"
 });
-
   console.log("Publishing cmd_vel");
   cmdVel.publish(twist);
-
   console.log("Publishing data");
   exampleTopic.publish(msg);   
-
-
 */
 
 
@@ -305,9 +377,9 @@ cmd.listen.subscribe(function(message) {
     document.getElementById("mode").innerHTML = data.guided;
 
     plotLocalXY(data.local.position.x, data.local.position.y,
-    data.setpoint.position.x, data.setpoint.position.y);
-    plotLocalXYZ(data.header.seq /25, data.local.position);
-    console.log("graph");
+        data.setpoint.position.x, data.setpoint.position.y);
+    plotLocalZ(data.local.position.z, data.setpoint.position.z),
+    plotLocalXYZ(data.header.seq / 25, data.local.position);
 
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
@@ -324,14 +396,16 @@ function changePose(id, position) {
     elem.find('.dataz').text(position.z.toFixed(3));
 }
 
-function showValue(newValue){
-    document.getElementById("range").innerHTML=newValue;
+function showValue(newValue) {
+    document.getElementById("range").innerHTML = newValue;
     console.log(newValue);
     var msg = new ROSLIB.Message({
-                position : {z : newValue}
-                });
-        cmd.Task.publish(msg)
-        console.log("Publish Z");
+        position: {
+            z: newValue
+        }
+    });
+    cmd.Task.publish(msg)
+    console.log("Publish Z");
 
 }
 
@@ -363,34 +437,34 @@ $("button.landing").click(landing)
 
 function landing() {
     var msg = new ROSLIB.Message({
-                mission_type : 123
-                        });
-        cmd.Task.publish(msg)
-         console.log("publish landing");
+        mission_type: 123
+    });
+    cmd.Task.publish(msg)
+    console.log("publish landing");
 }
 
 $("button.motorstop").click(motorstop)
 
 function motorstop() {
     var msg = new ROSLIB.Message({
-                mission_type : 11
-                        });
-        cmd.Task.publish(msg)
-        console.log("Publish stop");
+        mission_type: 11
+    });
+    cmd.Task.publish(msg)
+    console.log("Publish stop");
 }
 
 $("button.actualpose").click(actualpose)
 
 function actualpose() {
     var msg = new ROSLIB.Message({
-                position : {
-                      x : 2.43,
-                      y : 1.37
-                    },
-                yaw : 0.0
-                });
-        cmd.Task.publish(msg)
-        console.log("Publishing actual");
+        position: {
+            x: 2.43,
+            y: 1.37
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
+    console.log("Publishing actual");
 
 
 }
@@ -399,12 +473,12 @@ function actualpose() {
 $("div#selector").children().click(function(event) {
     var modeToSend = event.target.innerHTML;
     console.log(modeToSend);
-    if (modeToSend =="OFFBOARD"){
-    var msg = new ROSLIB.Message({
-                mission_type : 9
-                        });
-        cmd.Task.publish(msg) 
-         console.log("Publish OFFBOARD");
+    if (modeToSend == "OFFBOARD") {
+        var msg = new ROSLIB.Message({
+            mission_type: 9
+        });
+        cmd.Task.publish(msg)
+        console.log("Publish OFFBOARD");
     }
 
 })
@@ -412,16 +486,16 @@ $("div#selector").children().click(function(event) {
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
         var msg = new ROSLIB.Message({
-                mission_type : 13
-                        });
+            mission_type: 13
+        });
         cmd.Task.publish(msg)
-         console.log("Publish Arm");
+        console.log("Publish Arm");
     } else {
         var msg = new ROSLIB.Message({
-                mission_type : 11
-                        });
+            mission_type: 11
+        });
         cmd.Task.publish(msg)
-         console.log("Publish Disarm");
+        console.log("Publish Disarm");
 
 
     }
@@ -434,7 +508,7 @@ function plotLocalXY(x, y, sx, sy) {
         data: [
             [x, y]
         ],
-hoverable : false,
+        hoverable: false,
         points: {
             symbol: "circle",
         }
@@ -442,7 +516,8 @@ hoverable : false,
         label: "setpoint",
         data: [
             [sx, sy]
-        ],hoverable : false,
+        ],
+        hoverable: false,
 
         points: {
             symbol: "cross"
@@ -450,7 +525,8 @@ hoverable : false,
     }, {
         data: [
             [currentSelection.x, currentSelection.y]
-        ],hoverable : false,
+        ],
+        hoverable: false,
 
         points: {
             symbol: "square"
@@ -458,6 +534,56 @@ hoverable : false,
     }];
     plotXY.setData(dataset);
     plotXY.draw();
+}
+
+function plotLocalZ(z, sz) {
+    var dataset = [{
+        label: "position",
+        data: [
+            [0, z]
+        ],
+        hoverable: false,
+        bars: {
+            fill: true,
+            show: true
+        }
+    }, {
+        label: "setpoint",
+        data: [
+            [0.5, sz]
+        ],
+        hoverable: false,
+        bars: {
+            show: false
+        },
+        points: {
+            symbol: function(ctx, x, y, radius, shadow) {
+                ctx.moveTo(x - radius * 25, y);
+                ctx.lineTo(x + radius * 25, y);
+            },
+            show: true
+        }
+    }, {
+        data: [
+            [0.5, currentSelection.z]
+        ],
+        hoverable: true,
+        clickable: true,
+        bars: {
+            show: false
+        },
+        points: {
+            symbol: function(ctx, x, y, radius, shadow) {
+                ctx.moveTo(x - radius * 25, y);
+                ctx.lineTo(x + radius * 25, y);
+            },
+            show: true
+        }
+    }];
+
+
+    plotZControl.setData(dataset);
+    plotZControl.draw();
 }
 
 function plotLocalXYZ(time, point) {
@@ -487,3 +613,7 @@ function plotLocalXYZ(time, point) {
     plotXYZ.setupGrid();
     plotXYZ.draw();
 }
+
+
+plotLocalXY(1,1,1,1);
+plotLocalZ(1.2,1.1);
