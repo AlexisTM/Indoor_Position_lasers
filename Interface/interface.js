@@ -2,7 +2,7 @@ var cmd = {}
 var setpoint_x = 0;
 init();
 var Configurations = {
-    ip: 'ws://192.168.43.174:9090',
+    ip: 'ws://192.168.0.1:9090',
     setpoints: {
         min: 0.5,
         max: 3.0
@@ -239,7 +239,7 @@ function init() {
     //var cmd = {}
     var ros = new ROSLIB.Ros({
         //url: 'ws://192.168.43.174:9090'
-        url: 'ws://192.168.137.18:9090'
+        url: 'ws://192.168.0.100:9090'
     });
 
     ros.on('connection', function() {
