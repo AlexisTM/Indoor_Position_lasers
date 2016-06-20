@@ -1,5 +1,8 @@
 var cmd = {}
 var setpoint_x = 0;
+
+
+
 init();
 var Configurations = {
     ip: 'ws://192.168.0.1:9090',
@@ -12,17 +15,22 @@ var Configurations = {
     }
 }
 
+var currentPosition =  {
+    x: 1.5,
+    y: 1.5,
+    z: 0
+}
 
 var currentSelection = {
-    x: 1,
-    y: 1,
-    z: 1
+    x: 1.5,
+    y: 1.5,
+    z: 0
 }
 
 var clickedSelection = {
-    x: 1,
-    y: 1,
-    z: 1
+    x: 1.5,
+    y: 1.5,
+    z: 0
 }
 
 
@@ -239,7 +247,7 @@ function init() {
     //var cmd = {}
     var ros = new ROSLIB.Ros({
         //url: 'ws://192.168.43.174:9090'
-        url: 'ws://192.168.0.100:9090'
+        url: 'ws://192.168.0.101:9090'
     });
 
     ros.on('connection', function() {
@@ -384,6 +392,8 @@ cmd.listen.subscribe(function(message) {
     $("div#selector").children().removeClass("btn-primary")
     $("button:contains('" + data.mode + "')").addClass("btn-primary")
 
+
+    currentPosition = data.local.position
 });
 
 
@@ -394,19 +404,6 @@ function changePose(id, position) {
     elem.find('.datax').text(position.x.toFixed(3));
     elem.find('.datay').text(position.y.toFixed(3));
     elem.find('.dataz').text(position.z.toFixed(3));
-}
-
-function showValue(newValue) {
-    document.getElementById("range").innerHTML = newValue;
-    console.log(newValue);
-    var msg = new ROSLIB.Message({
-        position: {
-            z: newValue
-        }
-    });
-    cmd.Task.publish(msg)
-    console.log("Publish Z");
-
 }
 
 function changeRaw(id, raw) {
@@ -436,18 +433,49 @@ function changeStatus(id, raw) {
 $("button.landing").click(landing)
 
 function landing() {
+    clickedSelection = currentPosition;
     var msg = new ROSLIB.Message({
-        mission_type: 123
+        mission_type: 123,
+        position: {
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: clickedSelection.z
+        },
+        yaw: 0.0
     });
     cmd.Task.publish(msg)
     console.log("publish landing");
 }
 
+$("button.decollage").click(decollage)
+
+function decollage() {
+    clickedSelection = currentPosition;
+    var msg = new ROSLIB.Message({
+        mission_type: 122,
+        position: {
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: 0
+        },
+        yaw: 0.0
+    });
+    cmd.Task.publish(msg)
+    console.log("publish decollage");
+}
+
 $("button.motorstop").click(motorstop)
 
 function motorstop() {
+    clickedSelection = currentPosition;
     var msg = new ROSLIB.Message({
-        mission_type: 11
+        mission_type: 11,
+        position: {
+            x: clickedSelection.x,
+            y: clickedSelection.y,
+            z: clickedSelection.z
+        },
+        yaw: 0.0
     });
     cmd.Task.publish(msg)
     console.log("Publish stop");
@@ -456,15 +484,8 @@ function motorstop() {
 $("button.actualpose").click(actualpose)
 
 function actualpose() {
-    var msg = new ROSLIB.Message({
-        position: {
-            x: 2.43,
-            y: 1.37
-        },
-        yaw: 0.0
-    });
-    cmd.Task.publish(msg)
-    console.log("Publishing actual");
+    clickedSelection = currentPosition;
+    console.log("Selection is now the current position");
 
 
 }
@@ -475,7 +496,13 @@ $("div#selector").children().click(function(event) {
     console.log(modeToSend);
     if (modeToSend == "OFFBOARD") {
         var msg = new ROSLIB.Message({
-            mission_type: 9
+            mission_type: 9,
+            position: {
+                x: clickedSelection.x,
+                y: clickedSelection.y,
+                z: clickedSelection.z
+            },
+            yaw: 0.0
         });
         cmd.Task.publish(msg)
         console.log("Publish OFFBOARD");
@@ -485,14 +512,28 @@ $("div#selector").children().click(function(event) {
 
 $("input.arm").change(function() {
     if (document.getElementById('option1').checked) {
+        clickedSelection = currentPosition;
         var msg = new ROSLIB.Message({
-            mission_type: 13
+            mission_type: 13,
+            position: {                
+                x: clickedSelection.x,
+                y: clickedSelection.y,
+                z: clickedSelection.z
+            },
+            yaw: 0.0
         });
         cmd.Task.publish(msg)
         console.log("Publish Arm");
     } else {
+        clickedSelection = currentPosition;
         var msg = new ROSLIB.Message({
-            mission_type: 11
+            mission_type: 11,   
+            position: {
+                x: clickedSelection.x,
+                y: clickedSelection.y,
+                z: clickedSelection.z
+            },
+            yaw: 0.0
         });
         cmd.Task.publish(msg)
         console.log("Publish Disarm");

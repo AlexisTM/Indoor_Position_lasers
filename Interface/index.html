@@ -118,7 +118,7 @@
                                 <div class="panel-heading" ><h2>Contrôle </h2></div>
                                 <div class="x_panel">
                                     
-                                    <div class="panel-body" style="height:1000px">
+                                    <div class="panel-body">
                                         <form class="form-horizontal form-label-left">
                                             <div class="">
                                                 <h2>Mode </h2>
@@ -139,7 +139,7 @@
                                                             <input  class ="arm" type="radio" name="options" id="option1" > Armer
                                                         </label>
                                                         <label class="btn btn-default">
-                                                            <input class="arm" type="radio" name="options" id="option2"> Desarmer
+                                                            <input class="arm" type="radio" name="options" id="option2"> Désarmer
                                                         </label>
                                                     </div>
                                                 </div>
@@ -227,7 +227,7 @@
                                                 <div class="col-md-3 col-sm-3 col-xs-12">
                                                     
                                                 </div>
-                                            </div-->
+                                            </div>
                                             <div class="x_content">
                                                 <div class="row grid_slider">
                                                     <label class="col-md-3 col-sm-3 col-xs-12">Setpoint_z</label>
@@ -235,7 +235,7 @@
                                                     <span id="range">0</span>
                                                     
                                                 </div>
-                                            </div>
+                                            </div-->
                                             
                                             <div class="form-group">
                                                 <label class="col-md-3 col-sm-3 col-xs-3">Setpoint à la position actuelle </label>
@@ -303,15 +303,18 @@
                                             <div class="ln_solid"></div>
                                             <div class="form-group">
                                                 <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
-                                                    <button class="btn btn-primary motorstop" onclick="return false">ARRÊT MOTEURS</button>
-                                                    <button class="btn btn-success landing" onclick="return false">ATTERISSAGE</button>
+                                                    <button class="btn btn-success decollage" onclick="return false">Décollage</button>
+                                                    <button class="btn btn-info landing" onclick="return false">Atterrissage</button>
+                                                    <button class="btn btn-danger motorstop" onclick="return false">Arrêt d'urgence</button>
                                                 </div>
                                             </div>
                                             
                                         </form>
                                     </div>
                                 </div>
-                            </div>      </div>
+                            </div>      
+                        </div>
+
                             
                             <div class="col-md-3 col-sm-3 col-xs-12">
                                 <div class="x_panel" id='laser_pose'>
@@ -465,6 +468,7 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-3 col-sm-3 col-xs-12">
         <div class="x_panel" id ='setpoint'>
             <div class="x_title">
@@ -503,6 +507,7 @@
     </div>
 </div>
 </div>
+
 <div class="col-md-3 col-sm-3 col-xs-12">
 <div class="x_panel" id='lasers_raw'>
     <div class="x_title">
@@ -516,6 +521,7 @@
 </ul>
 <div class="clearfix"></div>
 </div>
+
 <div class="x_content">
 <table  class="table table-bordered">
     <tbody>
@@ -548,6 +554,7 @@
 </div>
 </div>
 </div>
+
 <div class="col-md-3 col-sm-3 col-xs-12">
 <div class="x_panel" id='local_pose'>
 <div class="x_title">
@@ -583,6 +590,7 @@
 </div>
 </div>
 </div>
+
 <div class="col-md-3 col-sm-3 col-xs-12">
 <div class="x_panel">
 <div class="x_title">
@@ -621,7 +629,7 @@
 
 
 
-<div class="col-md-7 col-sm-7 col-xs-12">
+<!--div class="col-md-7 col-sm-7 col-xs-12">
 <div class="x_content">
 <table class="table table-striped responsive-utilities jambo_table bulk_action">
 <thead>
@@ -704,9 +712,9 @@
 </div>
 </div>
 
-</div>
+</div-->
 
-<div class="col-md-5 col-sm-5 col-xs-12">
+<!--div class="col-md-5 col-sm-5 col-xs-12">
 <div class="x_panel">
 <div class="x_title">
 <h2>Export CSV </h2>
@@ -751,8 +759,8 @@
 </div>
 
 
-</div>
-<!-- /page content -->
+</div-->
+<!-- /page content-->
 </div>
 <!-- age content
 <div id="custom_notifications" class="custom-notifications dsp_none">
