@@ -49,9 +49,80 @@ from laserpack.msg import Distance, Task
 # Callbacks
 def Task_Callback(data):
     # Output data
-    global setpoint
-    setpoint.x = data.position.x
-    setpoint.y = data.position.y
+    global setpoint, pose
+    # Classes
+    global arming_client, set_mode_client
+
+    # GOTO
+    if data.mission_type == 0 :
+        setpoint.x = data.position.x
+        setpoint.y = data.position.y
+        setpoint.z = data.position.z
+
+    # Set offboard
+    if data.mission_type == 9 :
+        set_mode_client(custom_mode = "OFFBOARD")
+
+    # Disarm
+    if data.mission_type == 11 :
+        set_mode_client(custom_mode = "OFFBOARD")
+        arming_client(False)
+
+    # Arm
+    if data.mission_type == 13 :
+        setpoint.z = 0
+        setpoint.x = pose.pose.position.x
+        setpoint.y = pose.pose.position.y
+        set_mode_client(custom_mode = "OFFBOARD")
+        arming_client(True)
+
+    # Landing
+    if data.mission_type == 123:
+        setpoint.z = 1
+        while pose.pose.position.z > 1.05 :
+            time.sleep(0.1)
+        time.sleep(0.5)
+
+        setpoint.z = 0.65
+        while pose.pose.position.z > 0.75 :
+            time.sleep(0.1)
+        time.sleep(0.5)
+
+        setpoint.z = 0.1
+        while pose.pose.position.z > 0.35 :
+            time.sleep(0.1)
+
+        setpoint.z = 0
+        while pose.pose.position.z > 0.25 :
+            time.sleep(0.1)
+        arming_client(False)
+        
+    # Takeoff
+    if data.mission_type == 122:
+        set_mode_client(custom_mode = "OFFBOARD")
+        arming_client(True)
+        setpoint.z = 0
+        setpoint.x = pose.pose.position.x
+        setpoint.y = pose.pose.position.y
+        time.sleep(1)
+
+        setpoint.z = 1.5
+        while pose.pose.position.z < 1.0 :
+            time.sleep(0.1)
+        time.sleep(0.5)
+
+        setpoint.z = 1.25
+        time.sleep(0.5)
+        while pose.pose.position.z < 1.0 or pose.pose.position.z > 1.35:
+            time.sleep(0.1)
+
+        setpoint.z = 1
+        time.sleep(0.5)
+        while pose.pose.position.z < 0.9 or pose.pose.position.z > 1.05:
+            time.sleep(0.1)
+        
+        rospy.loginfo("TAKOFF SUCCESS")
+        time.sleep(0.5)
 
 def State_Callback(data):
     global state
@@ -257,6 +328,9 @@ def init():
     pose = PoseStamped()
     laserposition = PoseStamped()
     setpoint = Point()
+    setpoint.x = 1
+    setpoint.y = 1
+    setpoint.z = 1
     # When true, setpoints are positions
     # When false, setpoints is a velocity 
     position_control = True
@@ -269,15 +343,18 @@ def init():
 
     # Node initiation
     rospy.init_node('laserpack_control')
+
+    local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
     
+    time.sleep(1)
+
     # Publishers, subscribers and services
     pose_sub        = rospy.Subscriber('mavros/local_position/pose', PoseStamped, Pose_Callback)
     laser_pose_sub  = rospy.Subscriber('lasers/filtered', PoseStamped, laser_callback)
-    state_sub       = rospy.Subscriber('mavros/state', State, State_Callback)
+    state_sub       = rospy.Subscriber('mavrqos/state', State, State_Callback)
     laser_sub       = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
     task_sub        = rospy.Subscriber('web/task', Task, Task_Callback)
     
-    local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
     
     rospy.wait_for_service('mavros/set_mode')
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
