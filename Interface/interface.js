@@ -87,13 +87,16 @@ var plotZControl = $.plot($("#PlotLocalZControl"), [[]], {
     }
 });
 
+//options.xaxes[0].max = options.yaxes[0].max * $('#ph').width() / $('#ph').height();
+//$.plot($('#ph'), data, options);
+
 
 var plotXY = $.plot($("#PlotLocalXY"), [{
     label: "Local XY",
 }], {
     yaxis: {
         min: 0,
-        max: 4,
+        max: 3,
         position: "right",
         reverseSpace: true,
         transform: function(a) {
@@ -105,7 +108,7 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
     },
     xaxis: {
         min: 0,
-        max: 4,
+        max: 3*$("#PlotLocalXY").width()/$("#PlotLocalXY").height(),
         position: "top",
         reverseSpace: true,
         transform: function(a) {
@@ -142,6 +145,7 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
         color: 'rgba(0,0,0,0)'
     }
 });
+
 
 
 plotXY.getPlaceholder().bind("plothover", function(event, pos) {
