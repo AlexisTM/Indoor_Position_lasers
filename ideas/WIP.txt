@@ -1,0 +1,34 @@
+RTK - Task
+GUIDED MODE 
+
+
+GPS - RTK
+- Configure
+- Test hors-drone
+
+OFFBOARD 
+- Test, confirm & use tasks
+- Export onboard compass to merge with laser yaw
+
+GUIDED MODE
+- Use GPS waypoints with qGroundControl
+- Configure RTK-GPS (Real Time Kinematics)
+- Use RTK-GPS waypoints with qGroundControl
+- Add tasks to add waypoints
+- Add guided mode task 
+
+
+
+PixHawk Configuration for RTK (Piksie) 
+Param   Value   Notes
+GPS_TYPE2   8   Switfnav
+SERIAL4_PROTOCOL    5   GPS Mode
+SERIAL4_BAUD    115 Baud rate of 115200
+GPS_SBP_LOGMASK -1  All messages logged
+GPS_AUTO_SWITCH 1   Switch to GPS reporting best fix for vehicle control
+
+Piksie to RFD 900+ Ultra long range 915Mhz
+http://g01.a.alicdn.com/kf/HTB1L0QwIFXXXXaxXXXXq6xXFXXX5/110807375/HTB1L0QwIFXXXXaxXXXXq6xXFXXX5.jpg
+
+Black wire on the pin 2
+- "up if we see the RFD 900+ writing"
