@@ -34,24 +34,37 @@ import tf
 from time import time
 from transformations import *
 from algorithm_functions import *
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 from nav_msgs.msg import Odometry
 from sensor_msgs import NavSatFix
 
 # Laser position callack to extract the yaw
 def laser_position_callback(data):
-    
+    global yaw_uav_rad
+    quaternion = (data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w)
+    _, _, yaw_uav_rad = euler_from_quaternion(quaternion, axes="sxyz")
 
+def gps_odometry_callback(data):
+    global yaw_uav_rad
+    odometry = data
+    vector = [data.pose.pose.position.x, data.pose.pose.position.y, data.pose.pose.position.z]
+    axis = [0,0,1] # Around axis Z
+    rotationAxisAngle(vector, axis, yaw_uav_rad):
+
+def gps_precision_callback(data):
+    precision = data
 
 # init fonction
 def init():
     # Input data
     # Output data
-    global yaw_uav_rad
+    global yaw_uav_rad, precision, odometry, rotated_odometry
     # Objects
     # Publishers
-    global lasers, filters
 
+    precision = NavSatFix()
+    odometry = Odometry()
+    rotated_odometry = Odometry()
     # in radians
     yaw_uav_rad = 0
 
