@@ -25,10 +25,17 @@ GPS_TYPE2   8   Switfnav
 SERIAL4_PROTOCOL    5   GPS Mode
 SERIAL4_BAUD    115 Baud rate of 115200
 GPS_SBP_LOGMASK -1  All messages logged
-GPS_AUTO_SWITCH 1   Switch to GPS reporting best fix for vehicle control
+GPS_AUTO_SWITCH 1   Siwtch to GPS reporting best fix for vehicle control
 
 Piksie to RFD 900+ Ultra long range 915Mhz
 http://g01.a.alicdn.com/kf/HTB1L0QwIFXXXXaxXXXXq6xXFXXX5/110807375/HTB1L0QwIFXXXXaxXXXXq6xXFXXX5.jpg
 
 Black wire on the pin 2
 - "up if we see the RFD 900+ writing"
+
+
+Piksi config : 
+BASE Piksi Telem : AT&F,ATS1=57,ATS2=64,ATS5=0,ATS15=0,ATS18=2,AT&W,ATZ
+Copter Piksi Telem : AT&F,ATS1=57,ATS2=64,ATS5=0,ATS15=1,ATS18=2,AT&W,ATZ
+
+00:21:d7:b9:88:00

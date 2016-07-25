@@ -18,15 +18,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Originaly published by Vladimir Ermakov (c) 2015 under GNU GPLv3
 Copyright (c) Alexis Paques 2016
 Copyright (c) Nabil Nehri 2016
 """
- 
+
 from __future__ import division
 import rospy
 import mavros
@@ -96,7 +96,7 @@ def Task_Callback(data):
         while pose.pose.position.z > 0.25 :
             time.sleep(0.1)
         arming_client(False)
-        
+
     # Takeoff
     if data.mission_type == 122:
         set_mode_client(custom_mode = "OFFBOARD")
@@ -120,7 +120,7 @@ def Task_Callback(data):
         time.sleep(0.5)
         while pose.pose.position.z < 0.9 or pose.pose.position.z > 1.05:
             time.sleep(0.1)
-        
+
         rospy.loginfo("TAKOFF SUCCESS")
         time.sleep(0.5)
 
@@ -142,7 +142,6 @@ def laser_callback(data):
 
     data.header.stamp=rospy.Time.now()
     data.header.seq=laser_position_count
-    laserposition = data
     # msg = PoseStamped()
     # msg.header.stamp=rospy.Time.now()
     # msg.header.seq=laser_position_count
@@ -187,9 +186,9 @@ def sendSetpoint():
     setPointsCount = 0
     #local_setpoint_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
     local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=1)
-    
+
     rate = rospy.Rate(30)
-    
+
     while run:
         q = quaternion_from_euler(0, 0, deg2radf(yawSetPoint), axes="sxyz")
 
@@ -211,7 +210,7 @@ def sendSetpoint():
         # if(position_control):
         #     #msg.type_mask = msg.IGNORE_PX or msg.IGNORE_PY or msg.IGNORE_VX or msg.IGNORE_VY or msg.IGNORE_VZ or msg.IGNORE.AFX or msg.IGNORE.AFY or msg.IGNORE.AFZ
         #     msg.type_mask = 2552 #0b1001 1111 1000
-        # else : 
+        # else :
         #    #  msg.type_mask = msg.IGNORE_VX or msg.IGNORE_VY or msg.IGNORE_VZ or msg.IGNORE.AFX or msg.IGNORE.AFY or msg.IGNORE.AFZ
         #     msg.type_mask = 2555 # 0b1001 1111 1011
 
@@ -274,7 +273,7 @@ def InterfaceKeyboard():
         yawSetPoint = yawSetPoint + 1
     if what == "n":
         yawSetPoint = yawSetPoint - 1
-    if what == "c": 
+    if what == "c":
         setpoint.x = pose.pose.position.x
         setpoint.y = pose.pose.position.y
         setpoint.z = pose.pose.position.z
@@ -302,7 +301,7 @@ def InterfaceKeyboard():
         pose.pose.orientation.z,
         pose.pose.orientation.w)
     euler = tf.transformations.euler_from_quaternion(Q)
-    
+
     rospy.loginfo("MODE POSITION: ")
     rospy.loginfo("true" if position_control else "false")
     rospy.loginfo("Positions sent : %i",  )
@@ -314,14 +313,14 @@ def InterfaceKeyboard():
     rospy.loginfo("yaw : %s", rad2degf(euler[2]))
     rospy.loginfo("wanted yaw : %s", yawSetPoint)
 
-def init(): 
+def init():
     # Input data
     # Output data
     global state, setpoint, yawSetPoint, setPointsCount, PositionsCount, \
            run, laser_position_count, laserposition, pose, lasers_raw, position_control
-    # Publishers 
+    # Publishers
     global local_pos_pub, arming_client, set_mode_client
-    # Objects 
+    # Objects
 
     # Global variable initialisation
     lasers_raw = Distance(lasers=[0,0,0,0,0,0], status=[0,0,0,0,0,0])
@@ -332,7 +331,7 @@ def init():
     setpoint.y = 1
     setpoint.z = 1
     # When true, setpoints are positions
-    # When false, setpoints is a velocity 
+    # When false, setpoints is a velocity
     position_control = True
     yawSetPoint = 0
     laser_position_count = 0
@@ -345,7 +344,7 @@ def init():
     rospy.init_node('laserpack_control')
 
     local_pos_pub   = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
-    
+
     time.sleep(1)
 
     # Publishers, subscribers and services
@@ -354,21 +353,21 @@ def init():
     state_sub       = rospy.Subscriber('mavrqos/state', State, State_Callback)
     laser_sub       = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
     task_sub        = rospy.Subscriber('web/task', Task, Task_Callback)
-    
-    
+
+
     rospy.wait_for_service('mavros/set_mode')
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
     rospy.wait_for_service('mavros/cmd/arming')
     arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
-    
+
     # Thread to send setpoints
     tSetPoints = Thread(target=sendSetpoint).start()
     # Thread to send Lidar height
     tLidarZ = Thread(target=sendLidar).start()
     # In case we want to send positions with reduced rate, just use this thread
     # tPositions = Thread(target=sendPosition).start()
-    
-    while not rospy.is_shutdown(): 
+
+    while not rospy.is_shutdown():
         InterfaceKeyboard()
 
 if __name__ == '__main__':
