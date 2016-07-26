@@ -18,15 +18,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Originaly published by Vladimir Ermakov (c) 2015 under GNU GPLv3
 Copyright (c) Alexis Paques 2016
 Copyright (c) Nabil Nehri 2016
 """
- 
+
 import rospy
 import mavros
 from getch import *
@@ -37,7 +37,8 @@ from std_msgs.msg import Header
 from mavros_msgs.msg import BatteryStatus, State, PositionTarget
 from transformations import euler_from_quaternion
 from algorithm_functions import rad2degf, deg2radf
-from sensor_msgs.msg import Imu
+from sensor_msgs.msg import Imu, NavSatFix
+from nav_msgs.msg import Odometry
 
 def report_sender():
     global report, report_rate, reports_count
@@ -118,14 +119,14 @@ def lasers_raw_callback(data):
 
 
 def state_callback(data):
-    global report 
+    global report
     report.connected = data.connected
     report.armed = data.armed
     report.guided = data.guided
     report.mode = data.mode
 
 def battery_callback(data):
-    global report 
+    global report
     report.battery.voltage = data.voltage
     report.battery.current = data.current
     report.battery.remaining = data.remaining
@@ -137,8 +138,16 @@ def velocity_callback(data):
     report.linear_speed = data.twist.linear
 
 def imu_callback(data):
-    global report 
+    global report
     report.linear_acceleration = data.linear_acceleration
+
+def gps_odometry_callback(data):
+    global report
+    report.gps.odometry = data
+
+def gps_precision_callback(data):
+    global report
+    report.gps.precision = data
 
 def InterfaceKeyboard():
     global run
@@ -149,7 +158,7 @@ def InterfaceKeyboard():
         exit()
     rospy.loginfo("Reports sent : %s", reports_count )
 
-def init(): 
+def init():
     global reports_count, run, report, report_rate
 
     rospy.init_node('web_reporter')
@@ -175,9 +184,11 @@ def subscribers():
     battery_sub           = rospy.Subscriber('mavros/battery', BatteryStatus, battery_callback)
     velocity_sub          = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocity_callback)
     imu_sub               = rospy.Subscriber('mavros/imu', Imu, imu_callback)
+    sub_gps_odometry      = rospy.Subscriber('gps/rtkfix', Odometry, gps_odometry_callback)
+    sub_gps_satfix        = rospy.Subscriber('gps/fix', NavSatFix, gps_precision_callback)
 
 def main():
-    while not rospy.is_shutdown(): 
+    while not rospy.is_shutdown():
         InterfaceKeyboard()
 
 if __name__ == '__main__':
