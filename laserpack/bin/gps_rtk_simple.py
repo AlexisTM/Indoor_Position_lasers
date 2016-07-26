@@ -97,7 +97,7 @@ def main():
         # rospy.spin()
 
 if __name__ == '__main__':
-    rospy.loginfo("Position algorithm started")
+    rospy.loginfo("GPS RTK rotation example algorithm started")
     try:
         init()
         subscribers()
