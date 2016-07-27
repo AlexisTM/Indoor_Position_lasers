@@ -12,6 +12,8 @@ RPYPose laser_filtered
 geometry_msgs/Vector3 linear_acceleration
 geometry_msgs/Vector3 linear_speed
 geometry_msgs/Vector3 angular_speed
+sensor_msgs/NavSatFix gps_precision
+nav_msgs/Odometry gps_odometry
 Battery battery
 bool connected
 bool armed
