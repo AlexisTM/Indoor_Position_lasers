@@ -3,7 +3,7 @@
 """
 lasers.py
 
-This class represents the lasers real configuration to be used in the 
+This class represents the lasers real configuration to be used in the
 algorithm. It allows to avoid to hardcode the positions.
 
 This file is part of ILPS (Indoor Laser Positioning System).
@@ -21,8 +21,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
@@ -33,7 +33,7 @@ import rospy
 from transformations import *
 from algorithm_functions import *
 
-# offset is defined as 
+# offset is defined as
 class laser:
     def __init__(self, position, orientation, offset):
         self.position = position
@@ -42,14 +42,14 @@ class laser:
         self.length = sqrt(orientation[0]*orientation[0] + orientation[1]*orientation[1] + orientation[2]*orientation[2])
 
 
-class lasersController: 
+class lasersController:
     def __init__(self):
-        self.X1 = laser((0.07,0.21,-0.04), (1,0,0), (1,-19))  
-        self.X2 = laser((-0.15,-0.21,-0.04), (1,0,0), (1,-1)) 
+        self.X1 = laser((0.07,0.21,-0.04), (1,0,0), (1,-19))
+        self.X2 = laser((-0.15,-0.21,-0.04), (1,0,0), (1,-1))
         self.Y1 = laser((0.0,-0.085,0.10), (0,1,0), (1,-6))
         self.Y2 = laser((-0.15,0.275,0.01), (0,1,0), (1,-9)) # NOT IN USE
-        self.Z1 = laser((-0.025,0,-0.015), (0,0,1), (1,0)) 
-        self.Z2 = laser((0.025,0,-0.015), (0,0,1), (1,0))
+        self.Z1 = laser((0.025,0,-0.015), (0,0,1), (1,0))
+        self.Z2 = laser((-0.025,0,-0.015), (0,0,1), (1,0))
         self.list = (self.X1, self.X2, self.Y1, self.Y2, self.Z1, self.Z2)
         self.count = 6
 
