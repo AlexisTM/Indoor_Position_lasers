@@ -21,8 +21,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
@@ -35,23 +35,23 @@ from math import sqrt, asin, acos, sin, cos, tan, atan, atan2
 from time import time
 
 # Returns radians from a degrees list
-def deg2rad(arr): 
+def deg2rad(arr):
 	for i in xrange(len(arr)):
 		arr[i] = float(arr[i])*pi/180
 	return arr
 
 # Returns degrees from a radians list
-def rad2deg(arr): 
+def rad2deg(arr):
 	for i in xrange(len(arr)):
 		arr[i] = float(arr[i])*180/pi
 	return arr
 
 # Returns a radian from a degree
-def deg2radf(a): 
+def deg2radf(a):
 	return float(a)*pi/180
 
 # Returns a degree from a radian
-def rad2degf(a): 
+def rad2degf(a):
 	return float(a)*180/pi
 
 # rotate a point, vector or quaternion by a quaternion
@@ -75,7 +75,7 @@ def extrapolate(p,v,M):
     # find k, the factor to multiply v to get length(v) = M (interpolation)
     # Then add p to v to get the result
     K = sqrt(M*M/(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]))
-    v = (K*v[0]-p[0], K*v[1]-p[1], K*v[2]-p[2])
+    v = (K*v[0]+p[0], K*v[1]+p[1], K*v[2]+p[2])
     return v
 
 # Get the length of the vector or the distance of the point to the origin
@@ -130,7 +130,7 @@ def quaternionRotation(p, q):
     axis, angle = Quaternion2AxisAngle(q)
     return  rotationAxisAngle(p, axis, angle)
 
-# get distance of two 3x1 vectors 
+# get distance of two 3x1 vectors
 def distance(a,b):
     return sqrt((a[0]-b[0])*(a[0]-b[0]) + (a[1]-b[1])*(a[1]-b[1]) + (a[2]-b[2])*(a[2]-b[2]))
 
@@ -140,7 +140,7 @@ def rotateAboutZ(vector, angle):
     sint = sin(angle)
     return (-sint*vector[1] + cost*vector[0], cost*vector[1]+sint*vector[0], vector[2])
 
-# getYawInX 
+# getYawInX
 # gives the yaw (rotation about Z) from the position and orientation and measure of the lasers IN X
 def getYawInX(position1, orientation1, measure1, position2, orientation2, measure2):
     length1 = length(orientation1)
@@ -153,7 +153,7 @@ def getYawInX(position1, orientation1, measure1, position2, orientation2, measur
     return atan2(numerator,denominator)
 
 # getYawInXL
-# gives the yaw (rotation about Z) from the position and orientation and measure of the lasers IN X, knowing 
+# gives the yaw (rotation about Z) from the position and orientation and measure of the lasers IN X, knowing
 # the length of the orientations
 def getYawInXL(position1, orientation1, measure1, length1, position2, orientation2, measure2, length2):
     k1 = measure1/length1
