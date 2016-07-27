@@ -145,7 +145,8 @@ def raw_lasers_callback(data):
         msg.pose.position.y = float(target[2][1])
         msg.pose.position.z = float(target[3][2])
     else : 
-        msg.pose.position.y = float(target[2][1] + target[3][1])/2
+        msg.pose.position.y = target[2][1]
+        #msg.pose.position.y = float(target[2][1] + target[3][1])/2
         msg.pose.position.z = float(target[4][2] + target[5][2])/2
     msg.pose.orientation.x = float(q[0])
     msg.pose.orientation.y = float(q[1])
@@ -181,7 +182,7 @@ def raw_lasers_callback(data):
 def preCorrectionLasers(data):
     # Objects
     global lasers, filters
-    # TODO Handle data, keep old data if outlier/readerror detected
+    # TODO Handle data, keep old data if outlier/read error detected
     deoffset = list()
     for i in range(lasers.count):
         # Divide by 100 => centimeters to meters
@@ -190,7 +191,7 @@ def preCorrectionLasers(data):
     deoffset = filters.filter_raw(deoffset)
     return deoffset
 
-# init should get values of posiion of the lasers
+# init should get values of position of the lasers
 def init():
     # Input data
     # Output data

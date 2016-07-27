@@ -44,12 +44,12 @@ class laser:
 
 class lasersController: 
     def __init__(self):
-        self.X1 = laser((0.07,0.21,-0.04), (1,0,0), (1,-19))        
-        self.X2 = laser((-0.15,-0.21,-0.04), (1,0,0), (1,-1))
+        self.X1 = laser((0.07,0.21,-0.04), (1,0,0), (1,-19))  
+        self.X2 = laser((-0.15,-0.21,-0.04), (1,0,0), (1,-1)) 
         self.Y1 = laser((0.0,-0.085,0.10), (0,1,0), (1,-6))
-        self.Y2 = laser((-0.15,0.275,0.01), (0,1,0), (1,-9))
-        self.Z1 = laser((-0.13,-0.21,-0.075), (0,0,1), (1,-5))
-        self.Z2 = laser((0.10,0.20,-0.075), (0,0,1), (1,4))
+        self.Y2 = laser((-0.15,0.275,0.01), (0,1,0), (1,-9)) # NOT IN USE
+        self.Z1 = laser((-0.025,0,-0.015), (0,0,1), (1,0)) 
+        self.Z2 = laser((0.025,0,-0.015), (0,0,1), (1,0))
         self.list = (self.X1, self.X2, self.Y1, self.Y2, self.Z1, self.Z2)
         self.count = 6
 
