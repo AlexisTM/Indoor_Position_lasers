@@ -143,11 +143,11 @@ def imu_callback(data):
 
 def gps_odometry_callback(data):
     global report
-    report.gps.odometry = data
+    report.gps_odometry = data
 
 def gps_precision_callback(data):
     global report
-    report.gps.precision = data
+    report.gps_precision = data
 
 def InterfaceKeyboard():
     global run
