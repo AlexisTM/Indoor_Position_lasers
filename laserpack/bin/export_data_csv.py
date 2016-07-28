@@ -20,8 +20,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
@@ -38,43 +38,23 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped, TwistStamped, Accel, Quaternion, Point
 from mavros_msgs.msg import State
 from sensor_msgs.msg import Imu
+from nav_msgs.msg import Odometry
 from transformations import *
 from threading import Thread
 
-def target1CB(data):
-    global target1
-    target1 = [str(data.x),str(data.y),str(data.z)]
-def target2CB(data):
-    global target2
-    target2 = [str(data.x),str(data.y),str(data.z)]
+def Odometry(data):
+    global gps_odometry
+    gps_odometry =  [str(data.pose.pose.position.x), str(data.pose.pose.position.y), str(data.pose.pose.position.z)]
 
 def stateCB(data):
-    global state 
+    global state
     state = [str(data.armed)]
-def XkpCB(data):
-    global Xkp 
-    Xkp = [str(data.x), str(data.y),str(data.z),str(rad2degf(data.w))]
-
-def XkCB(data):
-    global Xk 
-    Xk = [str(data.x), str(data.y),str(data.z),str(rad2degf(data.w))]
-
-def KCB(data):
-    global K 
-    K = [str(data.x), str(data.y),str(data.z),str(data.w)]
-
-
-def accel_no_gravityCB(data):
-    global accel_no_gravity
-    accel_no_gravity = [str(data.linear.x), str(data.linear.y), str(data.linear.z)]
 
 def filteredCB(data):
-    global filtered 
+    global filtered
     filtered = poseStamped2Array(data)
 
 def imuCB(data):
-    global imu_orientation
-    imu_orientation = [str(data.orientation.x), str(data.orientation.y), str(data.orientation.z), str(data.orientation.w)]
     global imu_linear_accel
     imu_linear_accel = [str(data.linear_acceleration.x), str(data.linear_acceleration.y), str(data.linear_acceleration.z)]
 
@@ -104,7 +84,7 @@ def lasersrawCB(data):
 
 def poseStamped2Array(data, RollPitch=False):
     quaternion = (data.pose.orientation.x, data.pose.orientation.y, data.pose.orientation.z, data.pose.orientation.w)
-    
+
     roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
     if RollPitch:
         return [ str(data.pose.position.x), str(data.pose.position.y), str(data.pose.position.z), str(rad2degf(roll)), str(rad2degf(pitch)), str(rad2degf(yaw))]
@@ -119,22 +99,16 @@ def writer():
     global lasers_raw
     global lasers_pose
     global writing
-    global imu_orientation
     global imu_linear_accel
     global velocity
-    global filtered 
-    global accel_no_gravity
-    global K
-    global Xk
-    global Xkp
+    global filtered
     global write
     global state
     global diff_time
-    global target1
-    global target2
+    global gps_odometry
 
     rate = rospy.Rate(100)
-    
+
     with open('result.csv', 'w') as csvfile:
         data_writer = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         fieldnames = ['time', 'setpoint_x', 'setpoint_y', 'setpoint_z', 'setpoint_yaw', \
@@ -143,16 +117,9 @@ def writer():
                       'raw_x_1', 'raw_x_2', 'raw_y_1', 'raw_y_2','raw_z_1', 'raw_z_2', \
                       'local_vel_x', 'local_vel_y', 'local_vel_z', 'local_vel_yaw', \
                       'accel_lin_x', 'accel_lin_y', 'accel_lin_z', \
-                      'orientation_x', 'orientation_y', 'orientation_z', 'orientation_w', \
                       'filtered_x', 'filtered_y', 'filtered_z', 'filtered_yaw', \
-                      'accel_no_gravity_x', 'accel_no_gravity_y', 'accel_no_gravity_z', \
-                      'Xk_x', 'Xk_y', 'Xk_z', 'Xk_yaw',  \
-                      'K_x', 'K_y', 'K_z', 'K_yaw',  \
-                      'Xkp_x', 'Xkp_y', 'Xkp_z', 'Xkp_yaw', \
-                      'target1_x', 'target1_y', 'target1_z', \
-                      'target2_x', 'target2_y', 'target2_z', \
+                      'gps_odometry_x', 'gps_odometry_y', 'gps_odometry_z' \
                       'isArmed?', 'information_utilisateur']
-
 
         data_writer.writerow(fieldnames)
         initial_time = time()
@@ -163,9 +130,9 @@ def writer():
         diff_time = 0
         while diff_time < 120 and write:
             diff_time = time()-initial_time
-            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + imu_orientation + filtered + accel_no_gravity + Xk + K + Xkp + target1 + target2 +state + [info_utilisateur])
+            data_writer.writerow([diff_time] + setpoint + position + lasers_pose + lasers_raw + velocity + imu_linear_accel + gps_odometry + filtered +state + [info_utilisateur])
             rate.sleep()
-	    
+
 
 
 def subscribers():
@@ -177,13 +144,8 @@ def subscribers():
     velocity_sub        = rospy.Subscriber('mavros/local_position/velocity', TwistStamped, velocityCB)
     imu_sub             = rospy.Subscriber('mavros/imu/data', Imu, imuCB)
     filtered_sub        = rospy.Subscriber('lasers/filtered', PoseStamped, filteredCB)
-    accel_sub           = rospy.Subscriber('lasers/accel_without_gravity', Accel, accel_no_gravityCB)
     state_sub           = rospy.Subscriber('mavros/state', State, stateCB)
-    pub_Xkp             = rospy.Subscriber('lasers/Xkp', Quaternion, XkpCB)
-    pub_K               = rospy.Subscriber('lasers/K', Quaternion, KCB)
-    pub_Xk              = rospy.Subscriber('lasers/Xk', Quaternion, XkCB)
-    pub_target1         = rospy.Subscriber('lasers/target1', Point, target1CB)
-    pub_target2         = rospy.Subscriber('lasers/target2', Point, target2CB)
+    gps_odom_sub        = rospy.Subscriber('gps/rtkfix', Odometry, gpsOdomCB)
 
 def main():
     global setpoint
@@ -191,43 +153,33 @@ def main():
     global lasers_raw
     global lasers_pose
     global writing
-    global imu_orientation
     global imu_linear_accel
     global velocity
-    global filtered 
-    global accel_no_gravity
-    global K, Xk, Xkp
+    global filtered
     global write
     global state
     global info_utilisateur
     global diff_time
-    global target1
-    global target2
+    global gps_odometry
 
-    target1 = ['', '', '']
-    target2 = ['', '', '']
 
     diff_time = 0
     info_utilisateur = "0"
     write = True
     # init global objects
     state = ["0"]
+    gps_odometry = ['', '', '']
     setpoint = ['', '', '', '']
     lasers_pose = ['', '', '', '']
     position = ['', '', '', '', '', '',]
     lasers_raw = ['', '', '', '', '', '',]
-    imu_orientation = ['', '', '', '']
     imu_linear_accel = ['', '', '']
     velocity = ['', '', '', '']
     filtered = ['', '', '', '']
-    accel_no_gravity = ['', '', '']
-    K = ['', '', '', '']
-    Xk = ['', '', '', '']
-    Xkp = ['', '', '', '']
-    
+
     listener = Thread(target=writer).start()
-    
-    while not rospy.is_shutdown(): 
+
+    while not rospy.is_shutdown():
         what = getch()
         if what == "d":
             # Décollage
