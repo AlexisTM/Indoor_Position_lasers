@@ -1,23 +1,16 @@
 var cmd = {}
-var setpoint_x = 0;
 
-
+var currentGPSOdometry = {x:0, y:0, z:0};
 
 init();
+
 var Configurations = {
     graphs: {
         maxPoints: 600 // 2 minuts @ 5Hz
     }
 }
 
-var dataXYZ = {
-    x: [
-        []
-    ],
-    y: [
-        []
-    ]
-};
+var dataRTK = [];
 
 var plotRTKControl = $.plot($("#PlotRTKControl"), [[]], {
     yaxis: {
@@ -31,7 +24,7 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [[]], {
         max: 5,
         position: "center",
         show: true
-    }
+    },
     colors: ["#26B99A", "#FE642E", "#808080"],
     grid: {
         borderWidth: {
@@ -62,14 +55,16 @@ function init() {
 
     ros.on('connection', function() {
         console.log('Connected to the ROS server.');
+            Messenger().post({type:"success", "message":"Connection au serveur ROS réussie"});
     });
 
     ros.on('error', function(error) {
         console.log('Error connecting to websocket server: ', error);
+            Messenger().post({type:"error", "message":"Erreur de connection au serveur ROS"});
     });
 
     ros.on('close', function() {
-        console.log('Connection to websocket server closed.');
+        Messenger().post({type:"error", "message":"Connection avec le serveur ROS abandonnée"});
     });
 
     var listener = new ROSLIB.Topic({
@@ -78,367 +73,42 @@ function init() {
         messageType: 'laserpack/Report'
     });
 
-    var listener2 = new ROSLIB.Topic({
-        ros: ros,
-        name: '/new',
-        messageType: 'laserpack/Task'
-    });
-
-    var sendMission = new ROSLIB.Topic({
-        ros: ros,
-        name: 'web/mission',
-        messageType: 'laserpack/Mission'
-    });
-
-    var sendTask = new ROSLIB.Topic({
-        ros: ros,
-        name: 'web/task',
-        messageType: 'laserpack/Task'
-    });
-
-    var sendCMDCSV = new ROSLIB.Topic({
-        ros: ros,
-        name: 'web/csv/run',
-        messageType: 'Bool'
-    });
-
-    var sendSaveCSV = new ROSLIB.Topic({
-        ros: ros,
-        name: 'web/csv/save',
-        messageType: 'std_msgs/String'
-    });
-
     cmd = {
-        Mission: sendMission,
-        Task: sendTask,
-        CSV: {
-            Run: sendCMDCSV,
-            Save: sendSaveCSV
-        },
-        listen: listener,
-        listen2: listener2
+        listen: listener
     };
-    //return cmd
-}
-/*
-var ros = new ROSLIB.Ros({
-    url: 'ws://192.168.137.18:9090'
-});
-ros.on('connection', function() {
-    console.log('Connected to websocket server.');
-});
-ros.on('error', function(error) {
-    console.log('Error connecting to websocket server: ', error);
-});
-ros.on('close', function() {
-    console.log('Connection to websocket server closed.');
-});*/
-
-// Publishing a Topic
-// ------------------
-
-/*var cmdVel = new ROSLIB.Topic({
-  ros : ros,
-  name : '/cmd_vel',
-  messageType : 'geometry_msgs/Twist'
-});
-var exampleTopic = new ROSLIB.Topic({
-      ros: ros,
-    name: '/com/endpoint/examp', // use a sensible namespace
-      messageType: 'std_msgs/String'
-});
-var twist = new ROSLIB.Message({
-linear : {
-  x : 0.1,
-  y : 0.2,
-  z : 0.3
-},
-angular : {
-  x : -0.1,
-  y : -0.2,
-  z : -0.3
-}
-});
-var msg = new ROSLIB.Message({
-    data : "yesouiok"
-});
-  console.log("Publishing cmd_vel");
-  cmdVel.publish(twist);
-  console.log("Publishing data");
-  exampleTopic.publish(msg);
-*/
-
-
-var data = {};
-
-cmd.listen.subscribe(function(message) {
-    //console.log(message);
-    data = message;
-
-    changePose('#laser_filtered', data.laser_filtered.position)
-    changePose('#mocap', data.mocap.position)
-    changePose('#setpoint', data.setpoint.position)
-    changePose('#laser_pose', data.lasers_pose.position)
-    changePose('#local_pose', data.local.position)
-    changeRaw('#lasers_raw', data.lasers_raw)
-
-    document.getElementById("pitch").innerHTML = data.local.orientation.pitch.toFixed(3);
-    document.getElementById("yaw").innerHTML = data.local.orientation.yaw.toFixed(3);
-    document.getElementById("roll").innerHTML = data.local.orientation.roll.toFixed(3);
-    document.getElementById("yaw_lasers").innerHTML = data.lasers_pose.orientation.yaw.toFixed(3);
-    document.getElementById("yaw_filtered").innerHTML = data.laser_filtered.orientation.yaw.toFixed(3);
-    //document.getElementById("battery_current").innerHTML = data.battery.current;
-    //document.getElementById("battery_remaining").innerHTML = data.battery.remaining;
-    document.getElementById("battery_voltage").innerHTML = data.battery.voltage.toFixed(3);
-    document.getElementById("setpoint_yaw").innerHTML = data.setpoint.orientation.yaw.toFixed(3);
-    document.getElementById("arm").innerHTML = data.armed;
-    document.getElementById("mode").innerHTML = data.guided;
-
-    plotLocalXY(data.local.position.x, data.local.position.y,
-        data.setpoint.position.x, data.setpoint.position.y);
-    plotLocalZ(data.local.position.z, data.setpoint.position.z),
-    plotLocalXYZ(data.header.seq / 25, data.local.position);
-
-    $("div#selector").children().removeClass("btn-primary")
-    $("button:contains('" + data.mode + "')").addClass("btn-primary")
-
-
-    currentPosition = data.local.position
-});
-
-
-
-
-function changePose(id, position) {
-    var elem = $(id);
-    elem.find('.datax').text(position.x.toFixed(3));
-    elem.find('.datay').text(position.y.toFixed(3));
-    elem.find('.dataz').text(position.z.toFixed(3));
 }
 
-function changeRaw(id, raw) {
-    var elem = $(id);
-    elem.find('.datax1').text(raw.lasers[0]);
-    elem.find('.datax2').text(raw.lasers[1]);
-    elem.find('.datay1').text(raw.lasers[2]);
-    elem.find('.datay2').text(raw.lasers[3]);
-    elem.find('.dataz1').text(raw.lasers[4]);
-    elem.find('.dataz2').text(raw.lasers[5]);
-
-}
-
-function changeStatus(id, raw) {
-    var elem = $(id);
-    elem.find('.datax1').text(raw.status[0].toFixed(3));
-    elem.find('.datax2').text(raw.status[1].toFixed(3));
-    elem.find('.datay1').text(raw.status[2].toFixed(3));
-    elem.find('.datay2').text(raw.status[3].toFixed(3));
-    elem.find('.dataz1').text(raw.status[4].toFixed(3));
-    elem.find('.dataz2').text(raw.status[5].toFixed(3));
-
-}
-
-
-
-$("button.landing").click(landing)
-
-function landing() {
-    clickedSelection = currentPosition;
-    var msg = new ROSLIB.Message({
-        mission_type: 123,
-        position: {
-            x: clickedSelection.x,
-            y: clickedSelection.y,
-            z: clickedSelection.z
-        },
-        yaw: 0.0
-    });
-    cmd.Task.publish(msg)
-    console.log("publish landing");
-}
-
-$("button.decollage").click(decollage)
-
-function decollage() {
-    clickedSelection = currentPosition;
-    var msg = new ROSLIB.Message({
-        mission_type: 122,
-        position: {
-            x: clickedSelection.x,
-            y: clickedSelection.y,
-            z: 0
-        },
-        yaw: 0.0
-    });
-    cmd.Task.publish(msg)
-    console.log("publish decollage");
-}
-
-$("button.motorstop").click(motorstop)
-
-function motorstop() {
-    clickedSelection = currentPosition;
-    var msg = new ROSLIB.Message({
-        mission_type: 11,
-        position: {
-            x: clickedSelection.x,
-            y: clickedSelection.y,
-            z: clickedSelection.z
-        },
-        yaw: 0.0
-    });
-    cmd.Task.publish(msg)
-    console.log("Publish stop");
-}
-
-$("button.actualpose").click(actualpose)
-
-function actualpose() {
-    clickedSelection = currentPosition;
-    console.log("Selection is now the current position");
-
-
-}
-
-
-$("div#selector").children().click(function(event) {
-    var modeToSend = event.target.innerHTML;
-    console.log(modeToSend);
-    if (modeToSend == "OFFBOARD") {
-        var msg = new ROSLIB.Message({
-            mission_type: 9,
-            position: {
-                x: clickedSelection.x,
-                y: clickedSelection.y,
-                z: clickedSelection.z
-            },
-            yaw: 0.0
-        });
-        cmd.Task.publish(msg)
-        console.log("Publish OFFBOARD");
-    }
-
-})
-
-$("input.arm").change(function() {
-    if (document.getElementById('option1').checked) {
-        clickedSelection = currentPosition;
-        var msg = new ROSLIB.Message({
-            mission_type: 13,
-            position: {
-                x: clickedSelection.x,
-                y: clickedSelection.y,
-                z: clickedSelection.z
-            },
-            yaw: 0.0
-        });
-        cmd.Task.publish(msg)
-        console.log("Publish Arm");
-    } else {
-        clickedSelection = currentPosition;
-        var msg = new ROSLIB.Message({
-            mission_type: 11,
-            position: {
-                x: clickedSelection.x,
-                y: clickedSelection.y,
-                z: clickedSelection.z
-            },
-            yaw: 0.0
-        });
-        cmd.Task.publish(msg)
-        console.log("Publish Disarm");
-
-
-    }
+cmd.listen.subscribe(function(message){
+    plotLocalRTK(message.gps_odometry.pose.pose.position)
+    currentGPSOdometry = message.gps_odometry.pose.pose.position
 });
 
-
-function plotLocalXY(x, y, sx, sy) {
+function plotLocalRTK(odometry) {
     var dataset = [{
-        label: "position",
+        label: "Position RTK",
         data: [
-            [x, y]
+            [odometry.x, odometry.y]
         ],
         hoverable: false,
-        points: {
-            symbol: "circle",
+        lines: {
+          show:true
         }
     }, {
-        label: "setpoint",
+        label: "Base RTK",
         data: [
-            [sx, sy]
+            [0, 0]
         ],
         hoverable: false,
-
         points: {
             symbol: "cross"
         }
-    }, {
-        data: [
-            [currentSelection.x, currentSelection.y]
-        ],
-        hoverable: false,
-
-        points: {
-            symbol: "square"
-        }
     }];
-    plotXY.setData(dataset);
-    plotXY.draw();
-}
-
-function plotLocalZ(z, sz) {
-    var dataset = [{
-        label: "position",
-        data: [
-            [0, z]
-        ],
-        hoverable: false,
-        bars: {
-            fill: true,
-            show: true
-        }
-    }, {
-        label: "setpoint",
-        data: [
-            [0.5, sz]
-        ],
-        hoverable: false,
-        bars: {
-            show: false
-        },
-        points: {
-            symbol: function(ctx, x, y, radius, shadow) {
-                ctx.moveTo(x - radius * 25, y);
-                ctx.lineTo(x + radius * 25, y);
-            },
-            show: true
-        }
-    }, {
-        data: [
-            [0.5, currentSelection.z]
-        ],
-        hoverable: true,
-        clickable: true,
-        bars: {
-            show: false
-        },
-        points: {
-            symbol: function(ctx, x, y, radius, shadow) {
-                ctx.moveTo(x - radius * 25, y);
-                ctx.lineTo(x + radius * 25, y);
-            },
-            show: true
-        }
-    }];
-
-
-    plotZControl.setData(dataset);
-    plotZControl.draw();
+    plotRTKControl.setData(dataset);
+    plotRTKControl.draw();
 }
 
 function plotLocalXYZ(time, point) {
-
+    dataRTK.x
     dataXYZ.x.push([time, point.x])
     dataXYZ.y.push([time, point.y])
     dataXYZ.z.push([time, point.z])
@@ -465,6 +135,4 @@ function plotLocalXYZ(time, point) {
     plotXYZ.draw();
 }
 
-
-plotLocalXY(1,1,1,1);
-plotLocalZ(1.2,1.1);
+plotLocalRTK({x:0, y:0})

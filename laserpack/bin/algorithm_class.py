@@ -3,10 +3,10 @@
 """
 algorithm_class.py
 
-This script is the Python implementation of the position algorithm, 
+This script is the Python implementation of the position algorithm,
 using the lasers class which allow to make things easier
 
-It converts 4 or 6 readings into positions and the yaw, filtering 
+It converts 4 or 6 readings into positions and the yaw, filtering
 values via a Kalman Filter
 
 This file is part of ILPS (Indoor Laser Positioning System).
@@ -24,8 +24,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
@@ -50,7 +50,7 @@ from Kalman import filter_container
 
 def local_position_callback(data):
     # Input data : local position
-    # Output data 
+    # Output data
     global local_pose
     local_pose = data.pose.position
 
@@ -59,12 +59,12 @@ def velocity_callback(data):
     # Input data
     global linear_velocity, angular_velocity
     # Output data
-    # Publishers 
-    # Objects 
+    # Publishers
+    # Objects
     global filters
 
-    linear_velocity = [filters.Vx.next(data.twist.linear.x), 
-                       filters.Vy.next(data.twist.linear.y), 
+    linear_velocity = [filters.Vx.next(data.twist.linear.x),
+                       filters.Vy.next(data.twist.linear.y),
                        filters.Vz.next(data.twist.linear.z)]
     angular_velocity = filters.Vyaw.next(data.twist.angular.z)
 
@@ -72,31 +72,8 @@ def velocity_callback(data):
 def imu_callback(data):
     # Input data
     # Output data
-    global imu, last_time_acceleration, linearAcceleration, gravity
-    # Publishers 
-    global accel_pub
-    # Objects 
-    imu = data
-    timeConstant = 0.18
-    alpha = 0.9
-    timestamp = data.header.stamp.nsecs
-
-    dt = (timestamp - last_time_acceleration)/1000000000.0
-    alpha = timeConstant / (timeConstant + dt)
-    gravity[0] = alpha * gravity[0] + (1 - alpha) * data.linear_acceleration.x
-    gravity[1] = alpha * gravity[1] + (1 - alpha) * data.linear_acceleration.y
-    gravity[2] = alpha * gravity[2] + (1 - alpha) * data.linear_acceleration.z
- 
-    linearAcceleration[0] = data.linear_acceleration.x - gravity[0]
-    linearAcceleration[1] = data.linear_acceleration.y - gravity[1]
-    linearAcceleration[2] = data.linear_acceleration.z - gravity[2]
-    last_time_acceleration = timestamp
-
-    msg = Accel()
-    msg.linear.x = linearAcceleration[0]
-    msg.linear.y = linearAcceleration[1]
-    msg.linear.z = linearAcceleration[2]
-    accel_pub.publish(msg)
+    global imu, linearAcceleration
+    # Publishers
 
 
 # Handle lasers
@@ -105,9 +82,9 @@ def raw_lasers_callback(data):
     global raw, imu, linear_velocity, angular_velocity, linearAcceleration, local_pose
     # Output data
     global yawprint, last_time_filter
-    # Publishers 
+    # Publishers
     global pub_position, pub_filtered, pub_target1, pub_target2
-    # Objects 
+    # Objects
     global lasers, filters
 
     raw = preCorrectionLasers(data)
@@ -118,8 +95,8 @@ def raw_lasers_callback(data):
     q = quaternion_from_euler(roll, pitch, 0, axes="sxyz")
     #print rad2degf(roll), rad2degf(pitch), rad2degf(yaw)
     laser1x, orientation1x, laser2x, orientation2x = lasers.preRotateX(q)
-    
-    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)    
+
+    yawMeasured =  getYawInXL(laser1x, orientation1x, raw[0], lasers.X1.length, laser2x, orientation2x, raw[1], lasers.X2.length)
 
     q = quaternion_from_euler(roll, pitch, yawMeasured, axes="sxyz")
 
@@ -128,12 +105,12 @@ def raw_lasers_callback(data):
 
     ### Avoid "too short" measures for Z lasers
     # if(target[4][2] < 0.3 or target[5][2] < 0.3):
-    #     if target[4][2] < target[5][2] : 
+    #     if target[4][2] < target[5][2] :
     #         target[5] = target[4]
     #     else :
     #         target[4] = target[5]
     # ###
-    
+
     yawprint=(rad2degf(yawMeasured), rad2degf(yaw))
 
     # target[i][j]
@@ -144,7 +121,7 @@ def raw_lasers_callback(data):
     if(lasers.count == 4) :
         msg.pose.position.y = float(target[2][1])
         msg.pose.position.z = float(target[3][2])
-    else : 
+    else :
         msg.pose.position.y = target[2][1]
         #msg.pose.position.y = float(target[2][1] + target[3][1])/2
         msg.pose.position.z = float(target[4][2] + target[5][2])/2
@@ -158,7 +135,7 @@ def raw_lasers_callback(data):
     Measurements = ([target[0][0], target[1][0]], \
                    [target[2][1], target[3][1]], \
                    [target[4][2], target[5][2]], \
-                   yawMeasured) 
+                   yawMeasured)
 
     Velocity = linear_velocity + [angular_velocity]
 
@@ -168,13 +145,7 @@ def raw_lasers_callback(data):
 
     filters.filter_position(Measurements, dt, Velocity, [1,1,1,1])
 
-
     pub_filtered.publish(msg)
-
-    point_target1 = Point(target[0][0],target[2][1], target[4][2])
-    pub_target1.publish(point_target1)
-    point_target2 = Point(target[1][0],target[3][1], target[5][2])
-    pub_target2.publish(point_target2)
 
     last_time_filter = time()
 
@@ -197,8 +168,8 @@ def init():
     # Output data
     global raw, yawprint, linear_velocity, angular_velocity, last_time_filter, \
            last_time_acceleration, linearAcceleration, gravity, imu, local_pose
-    # Publishers 
-    # Objects 
+    # Publishers
+    # Objects
     global lasers, filters
 
     # Global variable initialisation
@@ -209,7 +180,7 @@ def init():
     yawprint = (0,0)
     raw = Distance()
     imu = Imu()
-    imu.orientation.w = 1 
+    imu.orientation.w = 1
     local_pose = Point()
 
     last_time_acceleration = time()
@@ -223,19 +194,16 @@ def init():
 def subscribers():
     # Input data
     # Output data
-    # Publishers 
-    global pub_position, pub_filtered, accel_pub, pub_target1, pub_target2
-    # Objects 
+    # Publishers
+    global pub_position, pub_filtered
+    # Objects
 
     # Node initiation
     rospy.init_node('position_algorithm')
 
-    accel_pub       = rospy.Publisher('lasers/accel_without_gravity', Accel, queue_size=1)
     pub_position    = rospy.Publisher('lasers/pose', PoseStamped, queue_size=1)
     pub_filtered    = rospy.Publisher('lasers/filtered', PoseStamped, queue_size=1)
-    pub_target1     = rospy.Publisher('lasers/target1', Point, queue_size=1)
-    pub_target2     = rospy.Publisher('lasers/target2', Point, queue_size=1)
-    
+
     imu_sub         = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
     state_sub       = rospy.Subscriber('lasers/raw', Distance, raw_lasers_callback)
     velocity_sub    = rospy.Subscriber('mavros/local_position/pose', PoseStamped, local_position_callback)
@@ -245,7 +213,7 @@ def subscribers():
 def main():
     # Output data
     global yawprint
-    while not rospy.is_shutdown(): 
+    while not rospy.is_shutdown():
         #rospy.spin()
         what = getch()
         if what == "q":
