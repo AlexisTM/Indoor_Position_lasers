@@ -21,7 +21,7 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         interactive: true
     },
     pan: {
-      interactive:true
+        interactive: true
     },
     yaxis: {
         min: -5,
