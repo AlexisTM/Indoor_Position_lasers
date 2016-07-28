@@ -7,9 +7,15 @@ var currentGPSOdometry = {
 };
 
 var savedData = {
-  status: 0,
-  one : {x:0, y:0},
-  two : {x:0, y:0}
+    status: 0,
+    one: {
+        x: 0,
+        y: 0
+    },
+    two: {
+        x: 0,
+        y: 0
+    }
 }
 
 init();
@@ -37,7 +43,7 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         position: "center",
         show: true
     },
-    colors: ["#00B18C", "#FE642E"],
+    colors: ["#00B18C", "#FEBFD5", "#FE642E"],
     grid: {
         borderWidth: {
             top: 1,
@@ -55,8 +61,7 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
 });
 
 plotRTKControl.getPlaceholder().bind("plotclick", function(event, pos) {
-    console.log(event, pos);
-    // distance entre les touchés successifs
+    addValueClick();
 });
 
 function init() {
@@ -101,10 +106,10 @@ function init() {
 
 cmd.listen.subscribe(function(message) {
     plotLocalRTK(message.gps_odometry.pose.pose.position)
-    currentGPSOdometry = message.gps_odometry.pose.pose.position
 });
 
 function plotLocalRTK(odometry) {
+    currentGPSOdometry = odometry
     dataRTK.push([odometry.x, odometry.y])
     var dataset = [{
         label: "Position RTK",
@@ -112,6 +117,18 @@ function plotLocalRTK(odometry) {
         hoverable: false,
         lines: {
             show: true
+        }
+    }, {
+        label: "Distance meter",
+        data: [
+            [savedData.one.x, savedData.one.y],
+            [savedData.two.x, savedData.two.y]
+        ],
+        hoverable: false,
+        points: {
+            show: true,
+            radius: 8,
+            symbol: "circle"
         }
     }, {
         label: "Base RTK",
@@ -124,6 +141,7 @@ function plotLocalRTK(odometry) {
             radius: 8,
             symbol: "cross"
         }
+
     }];
     plotRTKControl.setData(dataset);
     plotRTKControl.draw();
@@ -133,30 +151,29 @@ function plotLocalRTK(odometry) {
     }
 }
 
-
 plotLocalRTK({
     x: 0,
     y: 0
 })
 
-function addValueClick(){
-  if(savedData.status){
-    // status = 1
-    savedData.one = savedData.two;
-    savedData.two = currentGPSOdometry;
-    savedData.status = 0;
-  }  else {
-    // status = 0
-    savedData.two = savedData.one;
-    savedData.one = currentGPSOdometry;
-    savedData.status = 1
-  }
-  updateDistance();
+function resetAllClick() {
+    dataRTK = [];
 }
 
-function updateDistance(){
-  $('#data1').val("(" + savedData.one.x +","+savedData.one.y+") m");
-  $('#data2').val("(" + savedData.two.x +","+savedData.two.y+") m");
-  $('#distance').val("distance: " + Math.pow(Math.pow((savedData.one.x - savedData.two.x),2)+Math.pow((savedData.one.x - savedData.two.x),2),0.5)+"m");
+function addValueClick() {
+    if (savedData.status) {
+        savedData.two = savedData.one;
+        savedData.one = currentGPSOdometry;
+    } else {
+        savedData.one = currentGPSOdometry;
+        savedData.status = 1;
+    }
 
+    updateDistance();
+}
+
+function updateDistance() {
+    $('#data1').val("(" + savedData.one.x + "," + savedData.one.y + ") m");
+    $('#data2').val("(" + savedData.two.x + "," + savedData.two.y + ") m");
+    $('#distance').val("distance: " + Math.pow(Math.pow((savedData.one.x - savedData.two.x), 2) + Math.pow((savedData.one.y - savedData.two.y), 2), 0.5) + "m");
 }
