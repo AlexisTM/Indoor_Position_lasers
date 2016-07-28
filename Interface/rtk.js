@@ -1,23 +1,7 @@
 var cmd = {}
 
-var currentGPSOdometry = {
-    x: 0,
-    y: 0,
-    z: 0
-};
-
-var savedData = {
-    status: 0,
-    one: {
-        x: 0,
-        y: 0
-    },
-    two: {
-        x: 0,
-        y: 0
-    }
-}
-
+var dataRTK, savedData;
+resetAllClick()
 init();
 
 var Configurations = {
@@ -26,11 +10,19 @@ var Configurations = {
     }
 }
 
-var dataRTK = [];
-
 var plotRTKControl = $.plot($("#PlotRTKControl"), [
     []
 ], {
+    coordinate: {
+        type: "auto",
+        ratioXY: 1
+    },
+    zoom: {
+        interactive: true
+    },
+    pan: {
+      interactive:true
+    },
     yaxis: {
         min: -5,
         max: 5,
@@ -58,10 +50,6 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         clickable: true,
         shadowSize: 0
     }
-});
-
-plotRTKControl.getPlaceholder().bind("plotclick", function(event, pos) {
-    addValueClick();
 });
 
 function init() {
@@ -158,17 +146,36 @@ plotLocalRTK({
 
 function resetAllClick() {
     dataRTK = [];
+    savedData = {
+        status: 0,
+        one: {
+            x: 0,
+            y: 0
+        },
+        two: {
+            x: 0,
+            y: 0
+        }
+    }
+    currentGPSOdometry = {
+        x: 0,
+        y: 0,
+        z: 0
+    };
 }
 
-function addValueClick() {
-    if (savedData.status) {
-        savedData.two = savedData.one;
-        savedData.one = currentGPSOdometry;
-    } else {
-        savedData.one = currentGPSOdometry;
-        savedData.status = 1;
-    }
 
+
+$("<div class='button' style='left:20px;top:20px'>zoom out</div>")
+    .appendTo(plotRTKControl.getPlaceholder())
+    .click(function(event) {
+        event.preventDefault();
+        plot.zoomOut();
+    });
+
+function addValueClick() {
+    savedData.two = savedData.one;
+    savedData.one = currentGPSOdometry;
     updateDistance();
 }
 
@@ -177,3 +184,8 @@ function updateDistance() {
     $('#data2').val("(" + savedData.two.x + "," + savedData.two.y + ") m");
     $('#distance').val("distance: " + Math.pow(Math.pow((savedData.one.x - savedData.two.x), 2) + Math.pow((savedData.one.y - savedData.two.y), 2), 0.5) + "m");
 }
+
+plotLocalRTK({
+    x: 0,
+    y: 0
+})
