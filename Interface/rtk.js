@@ -6,7 +6,7 @@ init();
 
 var Configurations = {
     graphs: {
-        maxPoints: 600 // 2 minuts @ 5Hz
+        maxPoints: 200 // 2 minuts @ 5Hz
     }
 }
 
@@ -18,19 +18,19 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         ratioXY: 1
     },
     zoom: {
-        interactive: false
+        interactive: true
     },
     pan: {
-        interactive: false
+        interactive: true
     },
     yaxis: {
-        min: -10,
-        max: 10,
+        min: -30,
+        max: 30,
         show: true
     },
     xaxis: {
-        min: -10,
-        max: 10,
+        min: -30,
+        max: 30,
         show: true
     },
     colors: ["#00B18C", "#FEBFD5", "#FE642E"],
@@ -49,6 +49,7 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         shadowSize: 0
     }
 });
+
 
 function init() {
     //var cmd = {}
@@ -85,13 +86,25 @@ function init() {
         messageType: 'laserpack/Report'
     });
 
+    var odomlitener = new ROSLIB.Topic({
+          ros: ros,
+          name: 'gps/rtkfix',
+          messageType: 'nav_msgs/Odometry'
+    })
+
     cmd = {
-        listen: listener
+        listen: listener,
+        odometry: odomlitener
     };
 }
 
-cmd.listen.subscribe(function(message) {
+/*cmd.listen.subscribe(function(message) {
+    console.log(message)
     plotLocalRTK(message.gps_odometry.pose.pose.position)
+});*/
+cmd.odometry.subscribe(function(message) {
+    //console.log(message)
+    plotLocalRTK(message.pose.pose.position)
 });
 
 function plotLocalRTK(odometry) {
@@ -162,6 +175,8 @@ function resetAllClick() {
         z: 0
     };
 }
+
+Mess
 
 function addValueClick() {
     savedData.two = savedData.one;

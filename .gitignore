@@ -35,4 +35,5 @@ data.txt
 *.csv
 *.pyc
 data/
-.bag
+*.bag
+*.jar
