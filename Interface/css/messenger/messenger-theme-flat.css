@@ -460,3 +460,18 @@ ul.messenger-theme-flat .messenger-spinner {
   width: 32px;
   z-index: 10;
 }
+
+/* click though */ 
+
+.message {
+  pointer-events: none;
+  touch-action: none;
+}
+.messenger-message-slot{
+  pointer-events: none;
+  touch-action: none; 
+}
+.messenger{
+  pointer-events: none;
+  touch-action: none; 
+}
