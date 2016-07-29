@@ -17,12 +17,6 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         type: "auto",
         ratioXY: 1
     },
-    zoom: {
-        interactive: true
-    },
-    pan: {
-        interactive: true
-    },
     yaxis: {
         min: -5,
         max: 5,
