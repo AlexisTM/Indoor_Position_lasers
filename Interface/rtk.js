@@ -17,16 +17,20 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         type: "auto",
         ratioXY: 1
     },
+    zoom: {
+        interactive: false
+    },
+    pan: {
+        interactive: false
+    },
     yaxis: {
-        min: -5,
-        max: 5,
-        position: "center",
+        min: -10,
+        max: 10,
         show: true
     },
     xaxis: {
-        min: -5,
-        max: 5,
-        position: "center",
+        min: -10,
+        max: 10,
         show: true
     },
     colors: ["#00B18C", "#FEBFD5", "#FE642E"],
@@ -126,6 +130,7 @@ function plotLocalRTK(odometry) {
 
     }];
     plotRTKControl.setData(dataset);
+    plotRTKControl.setupGrid();
     plotRTKControl.draw();
 
     if (dataRTK.length > Configurations.graphs.maxPoints) {
@@ -158,25 +163,20 @@ function resetAllClick() {
     };
 }
 
-
-
-$("<div class='button' style='left:20px;top:20px'>zoom out</div>")
-    .appendTo(plotRTKControl.getPlaceholder())
-    .click(function(event) {
-        event.preventDefault();
-        plot.zoomOut();
-    });
-
 function addValueClick() {
     savedData.two = savedData.one;
     savedData.one = currentGPSOdometry;
+    Messenger().post({
+        type: "success",
+        "message": "Adding point x: " + currentGPSOdometry.x.toFixed(2) + " y: " + currentGPSOdometry.y.toFixed(2) + " value"
+    });
     updateDistance();
 }
 
 function updateDistance() {
-    $('#data1').val("(" + savedData.one.x + "," + savedData.one.y + ") m");
-    $('#data2').val("(" + savedData.two.x + "," + savedData.two.y + ") m");
-    $('#distance').val("distance: " + Math.pow(Math.pow((savedData.one.x - savedData.two.x), 2) + Math.pow((savedData.one.y - savedData.two.y), 2), 0.5) + "m");
+    $('#data1').val("(" + savedData.one.x.toFixed(2) + "," + savedData.one.y.toFixed(2) + ") m");
+    $('#data2').val("(" + savedData.two.x.toFixed(2) + "," + savedData.two.y.toFixed(2) + ") m");
+    $('#distance').val("distance: " + Math.pow(Math.pow((savedData.one.x - savedData.two.x), 2) + Math.pow((savedData.one.y - savedData.two.y), 2), 0.5).toFixed(2) + "m");
 }
 
 plotLocalRTK({
