@@ -1,0 +1,41 @@
+# Configurations
+markdown: kramdown
+markdown_ext:  markdown,mkdown,mkdn,mkd,md
+highlighter: pygments
+
+# Needed for backward compatibility
+gems: [jekyll-paginate]
+
+# Permalinks
+permalink:        /blog/:year/:month/:day/:title
+
+# Setup
+title:            "Drone ROS-compatible interface"
+tagline:          'Drone interface ROS UCL MIT Alexis Paques'
+description:      'This project is a pretty complete example of a multicopter control via ROS & PX4 firmware'
+url:              'http://alexistm.github.io/Indoor_Position_lasers'
+baseurl:          ''
+
+# Navigation
+navigation:
+- text: Complete interface
+  url: /Interface/index.html
+- text: RTK only
+  url: /Interface/rtk.html
+- text: Tablet compatible
+  url: /Interface/tablet.html
+
+
+# Author Details
+author:         'Alexis Paques'
+github:         'https://github.com/AlexisTM'
+linkedin:       'https://be.linkedin.com/in/alexispaques'
+stackoverflow:  'http://stackoverflow.com/users/3540247/alexis-paquesace'
+
+# Google Analytics
+gahandler: ''
+
+destination: ./_site
+
+# Custom vars
+version:          '1.0'
