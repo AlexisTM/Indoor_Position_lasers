@@ -1,124 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
+---
+layout: page
+title: Archive
+description: Page with links to all old articles of the blog
+theme: green
+---
 
-<head>
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-    <!-- Meta, title, CSS, favicons, etc. -->
-    <meta charset="utf-8">
-    <meta content="IE=edge" http-equiv="X-UA-Compatible">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>Interface</title>
-    <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font-awesome.min.css ajoute les outils sur les box -->
-    <link href="fonts/css/font-awesome.min.css" rel="stylesheet">
-    <link href="css/animate.min.css" rel="stylesheet">
-    <!-- Custom styling plus plugins -->
-    <link href="css/custom.css" rel="stylesheet">
-    <link href="css/maps/jquery-jvectormap-2.0.3.css" rel="stylesheet" type="text/css">
-    <link href="css/icheck/flat/green.css" rel="stylesheet">
-    <link href="css/floatexamples.css" rel="stylesheet" type="text/css">
-    <script src="js/roslibjs/eventemitter2.min.js" type="text/javascript"></script>
-    <script src="js/roslibjs/roslib.min.js" type="text/javascript"></script>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <!-- bootstrap progress js -->
-    <script src="js/progressbar/bootstrap-progressbar.min.js"></script>
-    <script src="js/nicescroll/jquery.nicescroll.min.js"></script>
-    <!-- icheck -->
-    <script src="js/icheck/icheck.min.js"></script>
-    <!-- gauge js
-        <script type="text/javascript" src="js/gauge/gauge.min.js"></script>
-        <script type="text/javascript" src="js/gauge/gauge_demo.js"></script>-->
-    <!-- daterangepicker -->
-    <script src="js/moment/moment.min.js" type="text/javascript"></script>
-    <script src="js/datepicker/daterangepicker.js" type="text/javascript"></script>
-    <!-- chart js -->
-    <script src="js/chartjs/chart.min.js"></script>
-    <!-- sparkline -->
-    <script src="js/sparkline/jquery.sparkline.min.js"></script>
-    <script src="js/custom.js"></script>
-    <!-- skycons -->
-    <script src="js/skycons/skycons.min.js"></script>
-    <!-- flot js -->
-    <!--[if lte IE 8]><script type="text/javascript" src="js/excanvas.min.js"></script><![endif]-->
-    <script src="js/flot/jquery.flot.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.pie.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.orderBars.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.time.min.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.spline.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.stack.js" type="text/javascript"></script>
-    <script src="js/flot/curvedLines.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.resize.js" type="text/javascript"></script>
-    <script src="js/flot/jquery.flot.symbol.min.js" type="text/javascript"></script>
-    <!-- range slider -->
-    <script src="js/ion_range/ion.rangeSlider.min.js"></script>
-    <!-- pace -->
-    <script src="js/pace/pace.min.js"></script>
-    <!-- flot -->
-    <script src="js/flot/jquery.flot.navigate.js"></script>
-    <script src="js/flot/jquery.flot.coordinate.js"></script>
-    <!-- Messenger - notifications from Hubspot -->
-    <script src="js/messenger/messenger.min.js"></script>
-    <script src="js/messenger/messenger-theme-flat.js"></script>
-    <link href="css/messenger/messenger.css" rel="stylesheet" type="text/css">
-    <link href="css/messenger/messenger-theme-flat.css" rel="stylesheet" type="text/css"> </head>
-
-<body class="nav-md">
-    <div class="container body">
-        <div class="main_container">
-            <div class="col-md-3 left_col">
-                <div class="left_col scroll-view">
-                    <div class="navbar nav_title" style="border: 0;"> <a class="site_title" href="index.html"><i class="fa fa-paw"></i> <span>Drone interface</span></a> </div>
-                    <div class="clearfix"> </div>
-                    <br>
-                    <!-- sidebar menu -->
-                    <div class="main_menu_side hidden-print main_menu" id="sidebar-menu">
-                        <div class="menu_section">
-                            <h3>General</h3>
-                            <ul class="nav side-menu">
-                                <li> <a href="index.html"><i class="fa fa-desktop"></i>GPS - RTK</a> </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <!-- /sidebar menu -->
+<div class="right_col" role="main">
+    <!-- début 2ème ligne  -->
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="dashboard_graph x_panel">
+                <div class="row x_title">
+                    <div class="col-md-12">
+                        <h3>Position GPS RTK</h3> </div>
                 </div>
-            </div>
-            <!-- page content -->
-            <div class="right_col" role="main">
-                <!-- début 2ème ligne  -->
-                <div class="row">
-                    <div class="col-md-12 col-sm-12 col-xs-12">
-                        <div class="dashboard_graph x_panel">
-                            <div class="row x_title">
-                                <div class="col-md-12">
-                                    <h3>Position GPS RTK</h3> </div>
-                            </div>
-                            <div class="x_content">
-                                <div class="demo-container" style="width:100%; height:800px;">
-                                    <div class="demo-placeholder" id="PlotRTKControl" style="width: 100%; height: 100%;"> </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3 col-sm-6 col-xs-12 text-center">
-                        <button class="btn btn-primary btn-lg" onclick="resetAllClick()">Reset graph</button>
-                    </div>
-                    <div class="col-md-3 col-sm-6 col-xs-12 text-center">
-                        <button class="btn btn-primary btn-lg" onclick="addValueClick()">Save last value</button>
-                    </div>
-                    <div class="col-md-6 col-sm-12 col-xs-12 text-center">
-                        <div class="form-inline">
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="data1" placeholder="First value"> </div>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="data2" placeholder="Second value"> </div>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="distance" placeholder="Distance"> </div>
-                        </div>
+                <div class="x_content">
+                    <div class="demo-container" style="width:100%; height:800px;">
+                        <div class="demo-placeholder" id="PlotRTKControl" style="width: 100%; height: 100%;"> </div>
                     </div>
                 </div>
             </div>
-            <script src="rtk.js" type="text/javascript"></script>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-6 col-xs-12 text-center">
+            <button class="btn btn-primary btn-lg" onclick="resetAllClick()">Reset graph</button>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-12 text-center">
+            <button class="btn btn-primary btn-lg" onclick="addValueClick()">Save last value</button>
+        </div>
+        <div class="col-md-6 col-sm-12 col-xs-12 text-center">
+            <div class="form-inline">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="data1" placeholder="First value"> </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="data2" placeholder="Second value"> </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="distance" placeholder="Distance"> </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="rtk.js" type="text/javascript"></script>
