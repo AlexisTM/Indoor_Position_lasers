@@ -1,10 +1,6 @@
 <head>
-    {% assign base = '' %}
-    {% assign depth = page.url | split: '/' | size | minus: 1 %}
-    {% if    depth == 1 %}{% assign base = '.' %}
-    {% elsif depth == 2 %}{% assign base = '..' %}
-    {% elsif depth == 3 %}{% assign base = '../..' %}
-    {% elsif depth == 4 %}{% assign base = '../../..' %}{% endif %}
+    {% assign base = 'https://github.com/AlexisTM/Indoor_Position_lasers/' %}
+    
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
     <!-- Meta, title, CSS, favicons, etc. -->
     <meta charset="utf-8">
