@@ -18,7 +18,7 @@ var plotRTKControl = $.plot($("#PlotRTKControl"), [
         ratioXY: 1
     },
     zoom: {
-        interactive: true
+        interactive: false
     },
     pan: {
         interactive: true
@@ -87,9 +87,9 @@ function init() {
     });
 
     var odomlitener = new ROSLIB.Topic({
-          ros: ros,
-          name: 'gps/rtkfix',
-          messageType: 'nav_msgs/Odometry'
+        ros: ros,
+        name: 'gps/rtkfix',
+        messageType: 'nav_msgs/Odometry'
     })
 
     cmd = {
@@ -110,6 +110,13 @@ cmd.odometry.subscribe(function(message) {
 function plotLocalRTK(odometry) {
     currentGPSOdometry = odometry
     dataRTK.push([odometry.x, odometry.y])
+    //plotRTKControl.setupGrid();
+    if (dataRTK.length > Configurations.graphs.maxPoints) {
+        dataRTK.shift()
+    }
+}
+
+setInterval(function() {
     var dataset = [{
         label: "Position RTK",
         data: dataRTK,
@@ -143,13 +150,9 @@ function plotLocalRTK(odometry) {
 
     }];
     plotRTKControl.setData(dataset);
-    plotRTKControl.setupGrid();
     plotRTKControl.draw();
+}, 500);
 
-    if (dataRTK.length > Configurations.graphs.maxPoints) {
-        dataRTK.shift()
-    }
-}
 
 plotLocalRTK({
     x: 0,
@@ -175,8 +178,6 @@ function resetAllClick() {
         z: 0
     };
 }
-
-Mess
 
 function addValueClick() {
     savedData.two = savedData.one;
