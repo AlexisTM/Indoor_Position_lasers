@@ -1,58 +1,78 @@
 <head>
-    <link href="http://gmpg.org/xfn/11" rel="profile">
-    <meta charset="UTF-8"> {% if page.description %}
-    <meta name="description" content="{{page.description}}"> {% else %}
-    <meta name="description" content="{{site.description}}"> {% endif %}
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    {% if page.description %}
+    <meta name="description" content="{{page.description}}">
+    {% else %}
+    <meta name="description" content="{{site.description}}">
+    {% endif %}
     <meta name="author" content="{{site.author}}">
     <!-- Enable responsiveness on mobile devices-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-    <title> {% if page.title %} {{ page.title }} &middot; {{ site.title }} {% else %} {{ site.title }} {% endif %} </title> {% if page.path contains '_posts' %}
-    <!-- Twitter Card data -->
-    <meta name="twitter:card" value="summary">
-    <!-- Open Graph data -->
-    <meta property="og:title" content="{{page.title}}" />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="{{page.url}}" />
-    <meta property="og:description" content="{{page.description}}" /> {% endif %}
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{site.url}}/assets/css/bootstrap.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/app.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/colors.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/github.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/icomoon.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/magnific-popup.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/controls.css">
-    <link rel="stylesheet" href="/assets/css/neural.css">
-    <script src="/assets/js/jquery.min.js"></script>
-    <script src="/assets/js/bootstrap.min.js"></script>
-    <script src="/assets/js/jekyll-search.js"></script>
-    <script src="/assets/js/jquery.magnific-popup.min.js"></script>
-    <script src="/assets/js/app.js"></script> {% if page.title == "Home" %}
-    <!-- Add background-image -->
-    <script>
-var backgroundImage = [];
-backgroundImage[0] = 'bcg1.jpg';
-backgroundImage[1] = 'bcg2.jpg';
-backgroundImage[2] = 'bcg3.jpg';
-backgroundImage[3] = 'bcg4.jpg';
-var random = Math.floor(Math.random() * 4);
-document.write("<style>body {background: url(" + "/assets/images/" + backgroundImage[random] +
-    ") no-repeat center center fixed;-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;color:#fff;background-color:#333;}</style>")
+    <title>
+      
+      {% if page.title == "Home" %}
+      {{ site.title }} &middot; {{ site.tagline }}
+      {% else %}
+      {{ page.title }} &middot; {{ site.title }}
+      {% endif %}
 
-    </script>
-    <link rel="stylesheet" href="{{site.url}}/assets/css/bcg.css">
-    <link rel="stylesheet" href="{{site.url}}/assets/css/MetroJs.min.css">
-    <script src="/assets/js/MetroJs.min.js"></script> {% endif %} {% if page.bloghome == true %}
-    <style type="text/css">
-a,
-a:hover,
-a:focus {
-    color: #DC572E;
-}
-
-    </style> {% endif %}
-    <!-- Icons -->
-    <link rel="apple-touch-icon-precomposed" sizes="128x128" href="{{site.url}}/assets/images/favicon-128.png">
-    <link rel="shortcut icon" href="{{site.url}}/assets/images/favicon-16.ico">
-    <!-- RSS -->
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml"> </head>
+    </title>
+    <!-- Bootstrap core CSS-->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font-awesome.min.css ajoute les outils sur les box -->
+    <link href="../fonts/css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/animate.min.css" rel="stylesheet">
+    <!-- Custom styling plus plugins -->
+    <link href="../css/custom.css" rel="stylesheet">
+    <link href="../css/maps/jquery-jvectormap-2.0.3.css" rel="stylesheet" type="text/css">
+    <link href="../css/icheck/flat/green.css" rel="stylesheet">
+    <link href="../css/floatexamples.css" rel="stylesheet" type="text/css">
+    <script src="../js/roslibjs/eventemitter2.min.js" type="text/javascript"></script>
+    <script src="../js/roslibjs/roslib.min.js" type="text/javascript"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- bootstrap progress js -->
+    <script src="../js/progressbar/bootstrap-progressbar.min.js"></script>
+    <script src="../js/nicescroll/jquery.nicescroll.min.js"></script>
+    <!-- icheck -->
+    <script src="../js/icheck/icheck.min.js"></script>
+    <!-- gauge js
+        <script type="text/javascript" src="../js/gauge/gauge.min.js"></script>
+        <script type="text/javascript" src="../js/gauge/gauge_demo.js"></script>-->
+    <!-- daterangepicker -->
+    <script src="../js/moment/moment.min.js" type="text/javascript"></script>
+    <script src="../js/datepicker/daterangepicker.js" type="text/javascript"></script>
+    <!-- chart js -->
+    <script src="../js/chartjs/chart.min.js"></script>
+    <!-- sparkline -->
+    <script src="../js/sparkline/jquery.sparkline.min.js"></script>
+    <script src="../js/custom.js"></script>
+    <!-- skycons -->
+    <script src="../js/skycons/skycons.min.js"></script>
+    <!-- flot js -->
+    <!--[if lte IE 8]><script type="text/javascript" src="../js/excanvas.min.js"></script><![endif]-->
+    <script src="../js/flot/jquery.flot.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.pie.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.orderBars.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.time.min.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.spline.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.stack.js" type="text/javascript"></script>
+    <script src="../js/flot/curvedLines.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.resize.js" type="text/javascript"></script>
+    <script src="../js/flot/jquery.flot.symbol.min.js" type="text/javascript"></script>
+    <!-- range slider -->
+    <script src="../js/ion_range/ion.rangeSlider.min.js"></script>
+    <!-- pace -->
+    <script src="../js/pace/pace.min.js"></script>
+    <!-- flot -->
+    <script src="../js/flot/jquery.flot.navigate.js"></script>
+    <script src="../js/flot/jquery.flot.coordinate.js"></script>
+    <!-- Messenger - notifications from Hubspot -->
+    <script src="../js/messenger/messenger.min.js"></script>
+    <script src="../js/messenger/messenger-theme-flat.js"></script>
+    <link href="../css/messenger/messenger.css" rel="stylesheet" type="text/css">
+    <link href="../css/messenger/messenger-theme-flat.css" rel="stylesheet" type="text/css"> </head>
