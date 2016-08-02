@@ -1,9 +1,35 @@
 var cmd = {}
-var setpoint_x = 0;
+var altitudes = {
+    laser: 0,
+    setpoint: 0,
+    piksi: 0,
+    position: 0
+}
 
+dataXYZ = {
+    x: [
+        [0,0]
+    ],
+    y: [
+        [0,0]
+    ],
+    z: [
+        [0,0]
+    ]
+}
 
+var dataXY = {
+    position: [
+        [0,0]
+    ],
+    gps: [
+        [0,0]
+    ],
+    setpoint: [
+        [0,0]
+    ]
+};
 
-init();
 var Configurations = {
     ip: 'ws://192.168.0.1:9090',
     setpoints: {
@@ -15,7 +41,9 @@ var Configurations = {
     }
 }
 
-var currentPosition =  {
+init();
+
+var currentPosition = {
     x: 1.5,
     y: 1.5,
     z: 0
@@ -34,20 +62,10 @@ var clickedSelection = {
 }
 
 
-var dataXYZ = {
-    x: [
-        []
-    ],
-    y: [
-        []
-    ],
-    z: [
-        []
-    ]
-};
 
-
-var plotZControl = $.plot($("#PlotLocalZControl"), [[]], {
+var plotZControl = $.plot($("#PlotLocalZControl"), [
+    []
+], {
     yaxis: {
         min: 0,
         max: 3,
@@ -95,28 +113,14 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
     label: "Local XY",
 }], {
     yaxis: {
-        min: 0,
-        max: 3,
-        position: "right",
-        reverseSpace: true,
-        transform: function(a) {
-            return -a;
-        },
-        inverseTransform: function(a) {
-            return -a;
-        }
+        min: -20,
+        max: 20,
+        position: "center"
     },
     xaxis: {
-        min: 0,
-        max: 3*$("#PlotLocalXY").width()/$("#PlotLocalXY").height(),
-        position: "top",
-        reverseSpace: true,
-        transform: function(a) {
-            return -a;
-        },
-        inverseTransform: function(a) {
-            return -a;
-        }
+        min: -20,
+        max: 20, // * $("#PlotLocalXY").width() / $("#PlotLocalXY").height() / 2,
+        position: "center"
     },
     points: {
         fill: false,
@@ -145,8 +149,6 @@ var plotXY = $.plot($("#PlotLocalXY"), [{
         color: 'rgba(0,0,0,0)'
     }
 });
-
-
 
 plotXY.getPlaceholder().bind("plothover", function(event, pos) {
     if (pos.x < Configurations.setpoints.min)
@@ -206,7 +208,7 @@ plotZControl.getPlaceholder().bind("plotclick", function(event, pos) {
 
 });
 
-var plotXYZ = $.plot($("#PlotLocalZ"), [{
+var plotXYZ = $.plot($("#PlotLocalXYZ"), [{
     label: "Local position variations",
 }], {
     series: {
@@ -251,7 +253,7 @@ function init() {
     //var cmd = {}
     var ros = new ROSLIB.Ros({
         //url: 'ws://192.168.43.174:9090'
-        url: 'ws://192.168.0.101:9090'
+        url: Configurations.ip
     });
 
     ros.on('connection', function() {
@@ -302,6 +304,12 @@ function init() {
         messageType: 'std_msgs/String'
     });
 
+    var odomlitener = new ROSLIB.Topic({
+        ros: ros,
+        name: 'gps/rtkfix',
+        messageType: 'nav_msgs/Odometry'
+    })
+
     cmd = {
         Mission: sendMission,
         Task: sendTask,
@@ -310,77 +318,52 @@ function init() {
             Save: sendSaveCSV
         },
         listen: listener,
-        listen2: listener2
+        listen2: listener2,
+        odometry: odomlitener
     };
-    //return cmd
 }
-/*
-var ros = new ROSLIB.Ros({
-    url: 'ws://192.168.137.18:9090'
-});
-ros.on('connection', function() {
-    console.log('Connected to websocket server.');
-});
-ros.on('error', function(error) {
-    console.log('Error connecting to websocket server: ', error);
-});
-ros.on('close', function() {
-    console.log('Connection to websocket server closed.');
-});*/
-
-// Publishing a Topic
-// ------------------
-
-/*var cmdVel = new ROSLIB.Topic({
-  ros : ros,
-  name : '/cmd_vel',
-  messageType : 'geometry_msgs/Twist'
-});
-var exampleTopic = new ROSLIB.Topic({
-      ros: ros,
-    name: '/com/endpoint/examp', // use a sensible namespace
-      messageType: 'std_msgs/String'
-});
-var twist = new ROSLIB.Message({
-linear : {
-  x : 0.1,
-  y : 0.2,
-  z : 0.3
-},
-angular : {
-  x : -0.1,
-  y : -0.2,
-  z : -0.3
-}
-});
-var msg = new ROSLIB.Message({
-    data : "yesouiok"
-});
-  console.log("Publishing cmd_vel");
-  cmdVel.publish(twist);
-  console.log("Publishing data");
-  exampleTopic.publish(msg);   
-*/
-
-
-var data = {};
 
 cmd.listen.subscribe(function(message) {
-    //console.log(message);
-    data = message;
+    dataXY.position = [[message.local.position.x, message.local.position.y]];
+    dataXY.setpoint = [[message.local.setpoint.x, message.local.setpoint.y]];
 
-    plotLocalXY(data.local.position.x, data.local.position.y,
-        data.setpoint.position.x, data.setpoint.position.y);
-    plotLocalZ(data.local.position.z, data.setpoint.position.z),
-    plotLocalXYZ(data.header.seq / 25, data.local.position);
+    addLocalXYZ(message.header.seq / 5, message.local.position);
 
     $("div#selector").children().removeClass("btn-primary")
-    $("button:contains('" + data.mode + "')").addClass("btn-primary")
+    $("button:contains('" + message.mode + "')").addClass("btn-primary")
 
+    altitudes.laser = message.laser.position.z;
+    altitudes.setpoint = message.setpoint.position.z;
+    altitudes.position = message.local.position.z;
 
-    currentPosition = data.local.position
+    currentPosition = message.local.position
 });
 
+cmd.odometry.subscribe(function(message) {
+    altitudes.piksi = message.pose.pose.position.z;
+    addLocalRTK(message.pose.pose.position)
+});
+
+function addLocalRTK(odometry) {
+    dataXY.gps.push([odometry.x, odometry.y])
+        //plotRTKControl.setupGrid();
+    if (dataXY.gps.length > Configurations.graphs.maxPoints) {
+        dataXY.gps.shift()
+    }
+}
+
+/* PLOT XYZ Temporel */
+function addLocalXYZ(time, point) {
+    dataXYZ.x.push([time, point.x])
+    dataXYZ.y.push([time, point.y])
+    dataXYZ.z.push([time, point.z])
+
+    if (dataXYZ.x.length > Configurations.graphs.maxPoints) {
+        dataXYZ.x.shift()
+        dataXYZ.y.shift()
+        dataXYZ.z.shift()
+    }
+}
 
 $("button.landing").click(landing)
 
@@ -438,8 +421,6 @@ $("button.actualpose").click(actualpose)
 function actualpose() {
     clickedSelection = currentPosition;
     console.log("Selection is now the current position");
-
-
 }
 
 
@@ -467,7 +448,7 @@ $("input.arm").change(function() {
         clickedSelection = currentPosition;
         var msg = new ROSLIB.Message({
             mission_type: 13,
-            position: {                
+            position: {
                 x: clickedSelection.x,
                 y: clickedSelection.y,
                 z: clickedSelection.z
@@ -479,7 +460,7 @@ $("input.arm").change(function() {
     } else {
         clickedSelection = currentPosition;
         var msg = new ROSLIB.Message({
-            mission_type: 11,   
+            mission_type: 11,
             position: {
                 x: clickedSelection.x,
                 y: clickedSelection.y,
@@ -494,42 +475,40 @@ $("input.arm").change(function() {
     }
 });
 
-
-function plotLocalXY(x, y, sx, sy) {
+function plotLocalXY(position) {
     var dataset = [{
-        label: "position",
-        data: [
-            [x, y]
-        ],
+        label: "Position RTK",
+        data: dataXY.gps,
         hoverable: false,
-        points: {
-            symbol: "circle",
+        lines: {
+            show: true
         }
     }, {
-        label: "setpoint",
+        label: "Setpoint",
+        data: dataXY.setpoint,
+        hoverable: false,
+        points: {
+            show: true,
+            radius: 8,
+            symbol: "circle"
+        }
+    }, {
+        label: "Base RTK",
         data: [
-            [sx, sy]
+            [0, 0]
         ],
         hoverable: false,
-
         points: {
+            show: true,
+            radius: 8,
             symbol: "cross"
-        }
-    }, {
-        data: [
-            [currentSelection.x, currentSelection.y]
-        ],
-        hoverable: false,
-
-        points: {
-            symbol: "square"
         }
     }];
     plotXY.setData(dataset);
     plotXY.draw();
 }
 
-function plotLocalZ(z, sz) {
+function plotLocalZ() {
     var dataset = [{
         label: "position",
         data: [
@@ -579,12 +558,10 @@ function plotLocalZ(z, sz) {
     plotZControl.draw();
 }
 
-function plotLocalXYZ(time, point) {
 
-    dataXYZ.x.push([time, point.x])
-    dataXYZ.y.push([time, point.y])
-    dataXYZ.z.push([time, point.z])
 
+setInterval(function() {
+    /* PLOT XYZ Temporel */
     var dataset = [{
         label: "X",
         data: dataXYZ.x,
@@ -597,16 +574,46 @@ function plotLocalXYZ(time, point) {
     }];
 
     plotXYZ.setData(dataset);
-    if (dataXYZ.x.length > Configurations.graphs.maxPoints) {
-        dataXYZ.x.shift()
-        dataXYZ.y.shift()
-        dataXYZ.z.shift()
-    }
-
     plotXYZ.setupGrid();
     plotXYZ.draw();
-}
+    /* FIN PLOT XYZ Temporel */
 
 
-plotLocalXY(1,1,1,1);
-plotLocalZ(1.2,1.1);
+    var dataset = [{
+        label: "Position RTK",
+        data: dataRTK,
+        hoverable: false,
+        lines: {
+            show: true
+        }
+    }, {
+        label: "Distance meter",
+        data: [
+            [savedData.one.x, savedData.one.y],
+            [savedData.two.x, savedData.two.y]
+        ],
+        hoverable: false,
+        points: {
+            show: true,
+            radius: 8,
+            symbol: "circle"
+        }
+    }, {
+        label: "Base RTK",
+        data: [
+            [0, 0]
+        ],
+        hoverable: false,
+        points: {
+            show: true,
+            radius: 8,
+            symbol: "cross"
+        }
+
+    }];
+    plotRTKControl.setData(dataset);
+    plotRTKControl.draw();
+}, 500);
+
+plotLocalXY(1, 1, 1, 1);
+plotLocalZ(1.2, 1.1);
