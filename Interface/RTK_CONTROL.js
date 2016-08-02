@@ -1,3 +1,16 @@
+var Configurations = {
+    ip: 'ws://192.168.0.101:9090',
+    setpoints: {
+        min: -15.0,
+        max: 15.0,
+        altitude: 15
+    },
+
+    graphs: {
+        maxPoints: 200
+    }
+}
+
 var cmd = {}
 var altitudes = {
     laser: 0,
@@ -6,58 +19,47 @@ var altitudes = {
     position: 0
 }
 
-dataXYZ = {
+var dataXYZ = {
     x: [
-        [0,0]
+        [0, 0]
     ],
     y: [
-        [0,0]
+        [0, 0]
     ],
     z: [
-        [0,0]
+        [0, 0]
     ]
 }
 
 var dataXY = {
     position: [
-        [0,0]
+        [0, 0]
     ],
     gps: [
-        [0,0]
+        [0, 0]
     ],
     setpoint: [
-        [0,0]
+        [0, 0]
     ]
 };
-
-var Configurations = {
-    ip: 'ws://192.168.0.1:9090',
-    setpoints: {
-        min: 0.5,
-        max: 3.0
-    },
-    graphs: {
-        maxPoints: 50
-    }
-}
 
 init();
 
 var currentPosition = {
-    x: 1.5,
-    y: 1.5,
+    x: 0,
+    y: 0,
     z: 0
 }
 
 var currentSelection = {
-    x: 1.5,
-    y: 1.5,
+    x: 0,
+    y: 0,
     z: 0
 }
 
 var clickedSelection = {
-    x: 1.5,
-    y: 1.5,
+    x: 0,
+    y: 0,
     z: 0
 }
 
@@ -68,7 +70,7 @@ var plotZControl = $.plot($("#PlotLocalZControl"), [
 ], {
     yaxis: {
         min: 0,
-        max: 3,
+        max: 20,
         position: "center"
     },
     xaxis: {
@@ -112,6 +114,13 @@ var plotZControl = $.plot($("#PlotLocalZControl"), [
 var plotXY = $.plot($("#PlotLocalXY"), [{
     label: "Local XY",
 }], {
+    series: {
+        curvedLines: {
+            apply: true,
+            active: true,
+            monotonicFit: true
+        }
+    },
     yaxis: {
         min: -20,
         max: 20,
@@ -184,10 +193,10 @@ plotXY.getPlaceholder().bind("plotclick", function(event, pos) {
 });
 
 plotZControl.getPlaceholder().bind("plothover", function(event, pos) {
-    if (pos.y < Configurations.setpoints.min)
-        currentSelection.z = Configurations.setpoints.min
-    else if (pos.y > Configurations.setpoints.max)
-        currentSelection.z = Configurations.setpoints.max
+    if (pos.y < 0)
+        currentSelection.z = 0
+    else if (pos.y > Configurations.setpoints.altitude)
+        currentSelection.z = Configurations.setpoints.altitudek
     else
         currentSelection.z = pos.y
 });
@@ -219,8 +228,8 @@ var plotXYZ = $.plot($("#PlotLocalXYZ"), [{
         }
     },
     yaxis: {
-        min: 0,
-        max: 2.5
+        min: -10,
+        max: 10
     },
     lines: {
         fillColor: "rgba(150, 0, 89, 0.12)",
@@ -324,8 +333,12 @@ function init() {
 }
 
 cmd.listen.subscribe(function(message) {
-    dataXY.position = [[message.local.position.x, message.local.position.y]];
-    dataXY.setpoint = [[message.local.setpoint.x, message.local.setpoint.y]];
+    dataXY.position = [
+        [message.local.position.x, message.local.position.y]
+    ];
+    dataXY.setpoint = [
+        [message.local.setpoint.x, message.local.setpoint.y]
+    ];
 
     addLocalXYZ(message.header.seq / 5, message.local.position);
 
@@ -482,7 +495,8 @@ function plotLocalXY(position) {
         hoverable: false,
         lines: {
             show: true
-        }
+        },
+        points:{show:false}
     }, {
         label: "Setpoint",
         data: dataXY.setpoint,
@@ -512,7 +526,7 @@ function plotLocalZ() {
     var dataset = [{
         label: "position",
         data: [
-            [0, z]
+            [0, altitudes.position]
         ],
         hoverable: false,
         bars: {
@@ -522,7 +536,39 @@ function plotLocalZ() {
     }, {
         label: "setpoint",
         data: [
-            [0.5, sz]
+            [0.5, altitudes.setpoint]
+        ],
+        hoverable: false,
+        bars: {
+            show: false
+        },
+        points: {
+            symbol: function(ctx, x, y, radius, shadow) {
+                ctx.moveTo(x - radius * 25, y);
+                ctx.lineTo(x + radius * 25, y);
+            },
+            show: true
+        }
+    }, {
+        label: "Laser",
+        data: [
+            [0.5, altitudes.laser]
+        ],
+        hoverable: false,
+        bars: {
+            show: false
+        },
+        points: {
+            symbol: function(ctx, x, y, radius, shadow) {
+                ctx.moveTo(x - radius * 25, y);
+                ctx.lineTo(x + radius * 25, y);
+            },
+            show: true
+        }
+    }, {
+        label: "Piksi",
+        data: [
+            [0.5, altitudes.piksi]
         ],
         hoverable: false,
         bars: {
@@ -558,9 +604,7 @@ function plotLocalZ() {
     plotZControl.draw();
 }
 
-
-
-setInterval(function() {
+function plotLocalXYZ() {
     /* PLOT XYZ Temporel */
     var dataset = [{
         label: "X",
@@ -572,48 +616,57 @@ setInterval(function() {
         label: "Z",
         data: dataXYZ.z,
     }];
-
     plotXYZ.setData(dataset);
     plotXYZ.setupGrid();
     plotXYZ.draw();
-    /* FIN PLOT XYZ Temporel */
+}
 
 
-    var dataset = [{
-        label: "Position RTK",
-        data: dataRTK,
-        hoverable: false,
-        lines: {
-            show: true
-        }
-    }, {
-        label: "Distance meter",
-        data: [
-            [savedData.one.x, savedData.one.y],
-            [savedData.two.x, savedData.two.y]
-        ],
-        hoverable: false,
-        points: {
-            show: true,
-            radius: 8,
-            symbol: "circle"
-        }
-    }, {
-        label: "Base RTK",
-        data: [
-            [0, 0]
-        ],
-        hoverable: false,
-        points: {
-            show: true,
-            radius: 8,
-            symbol: "cross"
-        }
-
-    }];
-    plotRTKControl.setData(dataset);
-    plotRTKControl.draw();
+setInterval(function() {
+    plotLocalXYZ();
+    plotLocalXY();
+    plotLocalZ();
 }, 500);
 
-plotLocalXY(1, 1, 1, 1);
-plotLocalZ(1.2, 1.1);
+
+var time = 1
+function test() {
+    randomValue = 10 * Math.random();
+
+    altitudes = {
+        laser: randomValue,
+        setpoint: randomValue + 1,
+        piksi: randomValue + 2,
+        position: randomValue + 3
+    }
+
+    randomValueX = Math.floor((Math.random() * 30) - 15);
+    randomValueY = Math.floor((Math.random() * 30) - 15);
+    randomValueZ = Math.floor((Math.random() * 30) - 15);
+
+    position = {
+        x: randomValueX,
+        y: randomValueY + 1,
+        z: randomValueZ + 2
+    }
+    addLocalRTK(position)
+    addLocalXYZ(time, position)
+    time +=0.1
+    position = {
+        x: randomValueX + 2,
+        y: randomValueY + 3,
+        z: randomValueZ + 5
+    }
+    addLocalRTK(position)
+    addLocalXYZ(time, position)
+    time +=0.1
+    position = {
+        x: randomValueX + 3,
+        y: randomValueY + 4,
+        z: randomValueZ + 6
+    }
+    addLocalRTK(position)
+    addLocalXYZ(time, position)
+    time +=0.1
+
+}
