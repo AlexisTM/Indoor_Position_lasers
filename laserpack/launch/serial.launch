@@ -15,6 +15,7 @@
 		<arg name="tgt_system" value="$(arg tgt_system)" />
 		<arg name="tgt_component" value="$(arg tgt_component)" />
 		<arg name="log_output" value="$(arg log_output)" />
+		<param name="startup_px4_usb_quirk" value="true" />
 	</include>
 
 
@@ -24,5 +25,5 @@
 		<param name="port" value="$(arg port)" />
 	</node>
 	<node pkg="rosserial_python" type="message_info_service.py" name="rosserial_message_info" />
-	
+
 </launch>
