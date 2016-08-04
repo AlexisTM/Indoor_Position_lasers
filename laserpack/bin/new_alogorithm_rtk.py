@@ -107,6 +107,7 @@ def init():
     position_gps = Point()
     imu_euler = RPY()
 
+    rospy.init_node('algorithm_mocap_rtk')
 
     # Subscribers
     laser_sub   = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback_altitude_only)
