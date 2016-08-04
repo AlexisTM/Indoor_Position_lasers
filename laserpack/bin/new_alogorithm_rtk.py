@@ -36,18 +36,32 @@ from threading import Thread
 
 # Messages
 from geometry_msgs.msg import PoseStamped, Point
-from laserpack.msg import Distance
+from laserpack.msg import Distance, RPY
 from nav_msgs.msg import Odometry
 
-def lasers_raw_callback(lasers_raw):
+# Imu callback
+# Converts the quaternion to eulers for less compute power needed
+def imu_callback(imu):
+    global imu_euler, imu_quaternion
+    quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    imu_euler = RPY()
+    imu_euler.roll = roll
+    imu_euler.pitch = pitch
+    imu_euler.yaw = yaw
+
+# Lasers callback
+# Basic pitch & roll correction
+# sqrt(measure*cos(pitch)*measure*cos(pitch) + measure*cos(roll)*measure*cos(roll))
+def lasers_raw_callback_altitude_only(lasers_raw):
     global laser_altitude
-    laser_altitude = float(lasers_raw.lasers[0] + lasers_raw.lasers[1]) / 200.0
+    mean_laser = float(lasers_raw.lasers[0] + lasers_raw.lasers[1]) / 200.0
+    laser_altitude = ((mean_laser*cos(imu_euler.roll))**2 + (mean_laser*cos(imu_euler.pitch))**2)**0.5
 
 # Piksi callback
 def piksi_callback(odometry):
     global position_gps
     position_gps = data.pose.pose.position
-    pass
 
 # Thread sending the mocap position
 def thread_mocap():
@@ -58,7 +72,7 @@ def thread_mocap():
     mocap_publisher = rospy.Publisher(
         'mavros/mocap/pose', PoseStamped, queue_size=1)
 
-    while run:
+    while (run and not rospy.is_shutdown()):
         msg = PoseStamped()
         msg.header.stamp = rospy.Time.now()
         msg.header.seq = mocap_sent
@@ -73,6 +87,7 @@ def thread_mocap():
         mocap_sent += 1
         rate.sleep()
 
+# Minimale interface
 def InterfaceKeyboard():
     global run
     what = getch()
@@ -81,16 +96,21 @@ def InterfaceKeyboard():
         time.sleep(1)
         exit()
 
+# Initialisation
 def init():
     # Global initialisation
-    global run, laser_altitude, position_gps
+    global run, laser_altitude, position_gps, imu_euler, imu_quaternion
     run = True
     laser_altitude = 0
+    imu_quaternion = (0,0,0,1)
     position_gps = Point()
+    imu_euler = RPY()
+
 
     # Subscribers
-    laser_sub = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
-    gps_sub = rospy.Subscriber('gps/rtkfix', Odometry, piksi_callback)
+    laser_sub   = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback_altitude_only)
+    gps_sub     = rospy.Subscriber('gps/rtkfix', Odometry, piksi_callback)
+    imu_sub     = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)
 
     # Threads
     tMocap = Thread(target=thread_mocap).start()
