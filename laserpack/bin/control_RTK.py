@@ -104,7 +104,7 @@ def Task_Callback(data):
     if data.mission_type == 122:
         set_mode_client(custom_mode="OFFBOARD")
         arming_client(True)
-        setpoint.z = 0
+        setpoint.z = 0.0
         setpoint.x = pose.pose.position.x
         setpoint.y = pose.pose.position.y
         time.sleep(1)
@@ -149,10 +149,10 @@ def piksi_callback(data):
     else:
         msg.pose.position.z = data.pose.pose.position.z
 
-    msg.pose.orientation.x = 0
-    msg.pose.orientation.y = 0
-    msg.pose.orientation.z = 0
-    msg.pose.orientation.w = 1
+    msg.pose.orientation.x = 0.0
+    msg.pose.orientation.y = 0.0
+    msg.pose.orientation.z = 0.0
+    msg.pose.orientation.w = 1.0
     local_pos_pub.publish(msg)
     laser_position_count = laser_position_count + 1
 
@@ -170,8 +170,14 @@ def Pose_Callback(data):
 def lasers_raw_callback(data):
     global lasers_raw
     global laser_altitude
-    laser_altitude = (laser_raw.lasers[4] + laser_raw.lasers[5]) / 200
+    laser_altitude = float(lasers_raw.lasers[0] + lasers_raw.lasers[1]) / 200.0
     lasers_raw = data
+
+    ## force update
+    # msg = Odometry()
+    # msg.pose.pose.position.x = 1
+    # msg.pose.pose.position.y = 2
+    # piksi_callback(msg)
 
 
 def sendLidar():
