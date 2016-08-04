@@ -46,8 +46,8 @@ from sensor_msgs.msg import Imu
 # Converts the quaternion to eulers for less compute power needed
 def imu_callback(imu):
     global imu_euler, imu_quaternion
-    quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
-    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    imu_quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(imu_quaternion, axes="sxyz")
     imu_euler = RPY()
     imu_euler.roll = roll
     imu_euler.pitch = pitch
@@ -68,9 +68,9 @@ def piksi_callback(odometry):
 
 # Thread sending the mocap position
 def thread_mocap():
-    global laser_altitude, position_gps, mocap_sent
+    global laser_altitude, position_gps, mocap_sent, imu_quaternion
     mocap_sent = 0
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(30)
 
     mocap_publisher = rospy.Publisher(
         'mavros/mocap/pose', PoseStamped, queue_size=1)
@@ -82,10 +82,10 @@ def thread_mocap():
         msg.pose.position.x = float(position_gps.x)
         msg.pose.position.y = float(position_gps.y)
         msg.pose.position.z = float(laser_altitude)
-        msg.pose.orientation.x = 0
-        msg.pose.orientation.y = 0
-        msg.pose.orientation.z = 0
-        msg.pose.orientation.w = 1
+        msg.pose.orientation.x = imu_quaternion[0]
+        msg.pose.orientation.y = imu_quaternion[1]
+        msg.pose.orientation.z = imu_quaternion[2]
+        msg.pose.orientation.w = imu_quaternion[3]
         mocap_publisher.publish(msg)
         mocap_sent += 1
         rate.sleep()
@@ -144,7 +144,7 @@ def init():
 
     # Threads
     tMocap = Thread(target=thread_mocap).start()
-    tSetPoints = Thread(target=sendSetpoint).start()
+    #tSetPoints = Thread(target=sendSetpoint).start()
     
 
     # Minimal interface
