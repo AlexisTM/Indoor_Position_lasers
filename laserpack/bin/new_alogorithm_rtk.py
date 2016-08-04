@@ -38,6 +38,7 @@ from threading import Thread
 from geometry_msgs.msg import PoseStamped, Point
 from laserpack.msg import Distance, RPY
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import Imu
 
 # Imu callback
 # Converts the quaternion to eulers for less compute power needed
