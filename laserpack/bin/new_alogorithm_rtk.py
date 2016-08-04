@@ -33,6 +33,8 @@ import mavros
 import time
 from getch import *
 from threading import Thread
+from transformations import euler_from_quaternion, quaternion_from_euler
+from math import cos
 
 # Messages
 from geometry_msgs.msg import PoseStamped, Point
@@ -62,7 +64,7 @@ def lasers_raw_callback_altitude_only(lasers_raw):
 # Piksi callback
 def piksi_callback(odometry):
     global position_gps
-    position_gps = data.pose.pose.position
+    position_gps = odometry.pose.pose.position
 
 # Thread sending the mocap position
 def thread_mocap():
@@ -87,6 +89,32 @@ def thread_mocap():
         mocap_publisher.publish(msg)
         mocap_sent += 1
         rate.sleep()
+
+# Debug only sendsetpoints
+def sendSetpoint():
+    global run
+
+    setPointsCount = 0
+    local_setpoint_pub = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=1)
+
+    rate = rospy.Rate(20)
+
+    while run:
+        q = quaternion_from_euler(0, 0, 0, axes="sxyz")
+        msg = PoseStamped()
+        msg.header.stamp = rospy.Time.now()
+        msg.header.seq=setPointsCount
+        msg.pose.position.x = 0
+        msg.pose.position.y = 0
+        msg.pose.position.z = 0
+        msg.pose.orientation.x = q[0]
+        msg.pose.orientation.y = q[1]
+        msg.pose.orientation.z = q[2]
+        msg.pose.orientation.w = q[3]
+        local_setpoint_pub.publish(msg)
+        setPointsCount = setPointsCount + 1
+        rate.sleep()
+
 
 # Minimale interface
 def InterfaceKeyboard():
@@ -116,6 +144,8 @@ def init():
 
     # Threads
     tMocap = Thread(target=thread_mocap).start()
+    tSetPoints = Thread(target=sendSetpoint).start()
+    
 
     # Minimal interface
     while not rospy.is_shutdown():

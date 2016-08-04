@@ -35,6 +35,7 @@ import tf
 import numpy as np
 from getch import *
 from threading import Thread
+from math import cos
 from geometry_msgs.msg import PoseStamped, Point, Pose
 from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
@@ -44,7 +45,7 @@ from sensor_msgs.msg import Range
 from mavros.utils import *
 from algorithm_functions import rad2degf, deg2radf
 from transformations import *
-from laserpack.msg import Distance, Task
+from laserpack.msg import Distance, Task, RPY
 from nav_msgs.msg import Odometry
 
 # Callbacks
@@ -129,56 +130,65 @@ def Task_Callback(data):
 
 
 # MOCAP_HDG !!
-def piksi_callback(data):
-    global laser_altitude
-    global piksi_altitude
-    global mode_altitude_laser
-    # Input data
-    global local_pos_pub
-    # Output data
-    global laser_position_count
+# def piksi_callback(data):
+#     global laser_altitude
+#     global piksi_altitude
+#     global mode_altitude_laser
+#     # Input data
+#     global local_pos_pub
+#     # Output data
+#     global laser_position_count
 
-    msg = PoseStamped()
-    msg.header.stamp = rospy.Time.now()
-    msg.header.seq = laser_position_count
-    msg.pose.position.x = data.pose.pose.position.x
-    msg.pose.position.y = data.pose.pose.position.y
+#     msg = PoseStamped()
+#     msg.header.stamp = rospy.Time.now()
+#     msg.header.seq = laser_position_count
+#     msg.pose.position.x = data.pose.pose.position.x
+#     msg.pose.position.y = data.pose.pose.position.y
 
-    if mode_altitude_laser:
-        msg.pose.position.z = laser_altitude
-    else:
-        msg.pose.position.z = data.pose.pose.position.z
+#     if mode_altitude_laser:
+#         msg.pose.position.z = laser_altitude
+#     else:
+#         msg.pose.position.z = data.pose.pose.position.z
 
-    msg.pose.orientation.x = 0.0
-    msg.pose.orientation.y = 0.0
-    msg.pose.orientation.z = 0.0
-    msg.pose.orientation.w = 1.0
-    local_pos_pub.publish(msg)
-    laser_position_count = laser_position_count + 1
+#     msg.pose.orientation.x = 0.0
+#     msg.pose.orientation.y = 0.0
+#     msg.pose.orientation.z = 0.0
+#     msg.pose.orientation.w = 1.0
+#     local_pos_pub.publish(msg)
+#     laser_position_count = laser_position_count + 1
 
 
 def State_Callback(data):
     global state
     state = data
 
+# Imu callback
+# Converts the quaternion to eulers for less compute power needed
+def imu_callback(imu):
+    global imu_euler, imu_quaternion
+    quaternion = (imu.orientation.x, imu.orientation.y, imu.orientation.z, imu.orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion, axes="sxyz")
+    imu_euler = RPY()
+    imu_euler.roll = roll
+    imu_euler.pitch = pitch
+    imu_euler.yaw = yaw
+
 
 def Pose_Callback(data):
     global pose
     pose = data
 
-
-def lasers_raw_callback(data):
-    global lasers_raw
-    global laser_altitude
-    laser_altitude = float(lasers_raw.lasers[0] + lasers_raw.lasers[1]) / 200.0
-    lasers_raw = data
-
-    ## force update
-    # msg = Odometry()
-    # msg.pose.pose.position.x = 1
-    # msg.pose.pose.position.y = 2
-    # piksi_callback(msg)
-
+# # Lasers callback
+# # Basic pitch & roll correction
+# # sqrt(measure*cos(pitch)*measure*cos(pitch) + measure*cos(roll)*measure*cos(roll))
+# def lasers_raw_callback(lasers_raw):
+#     global laser_altitude
+#     mean_laser = float(lasers_raw.lasers[0] + lasers_raw.lasers[1]) / 200.0
+#     laser_altitude = ((mean_laser*cos(imu_euler.roll))**2 + (mean_laser*cos(imu_euler.pitch))**2)**0.5
+#     msg = Odometry()
+#     msg.pose.pose.position.x = 1
+#     msg.pose.pose.position.y = 1
+#     piksi_callback(msg)
 
 def sendLidar():
     global lasers_raw
@@ -344,7 +354,7 @@ def init():
     # Output data
     global state, setpoint, yawSetPoint, setPointsCount, PositionsCount, \
         run, laser_position_count, laserposition, pose, lasers_raw, \
-        mode_altitude_laser, laser_altitude, piksi_altitude
+        mode_altitude_laser, laser_altitude, piksi_altitude, imu_euler, imu_quaternion
     # Publishers
     global local_pos_pub, arming_client, set_mode_client
     # Objects
@@ -367,14 +377,14 @@ def init():
     PositionsCount = 0
     laser_altitude = 0
     piksi_altitude = 0
+    imu_euler = RPY()
+    imu_quaternion = (0,0,0,0)
     state = State()
 
     # Node initiation
     rospy.init_node('laserpack_control')
 
-    local_pos_pub = rospy.Publisher(
-        'mavros/mocap/pose', PoseStamped, queue_size=1)
-
+    #local_pos_pub = rospy.Publisher('mavros/mocap/pose', PoseStamped, queue_size=1)
     time.sleep(1)
 
     # Publishers, subscribers and services
@@ -382,9 +392,12 @@ def init():
         'mavros/local_position/pose', PoseStamped, Pose_Callback)
     state_sub = rospy.Subscriber('mavrqos/state', State, State_Callback)
     laser_sub = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
-    gps_sub = rospy.Subscriber('gps/rtkfix', Odometry, piksi_callback)
+    #piksi_sub = rospy.Subscriber('gps/rtkfix', Odometry, piksi_callback)
     task_sub = rospy.Subscriber('web/task', Task, Task_Callback)
+    imu_sub     = rospy.Subscriber('mavros/imu/data', Imu, imu_callback)    
 
+
+    
     rospy.wait_for_service('mavros/set_mode')
     set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
     rospy.wait_for_service('mavros/cmd/arming')
@@ -393,7 +406,7 @@ def init():
     # Thread to send setpoints
     tSetPoints = Thread(target=sendSetpoint).start()
     # Thread to send Lidar height
-    tLidarZ = Thread(target=sendLidar).start()
+    # tLidarZ = Thread(target=sendLidar).start()
     # In case we want to send positions with reduced rate, just use this thread
     # tPositions = Thread(target=sendPosition).start()
 
