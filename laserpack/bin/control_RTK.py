@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-send_setpoint.py
+control_RTK.py
 
 This script sends positions to control the UAV in X, Y, Z
 
@@ -382,7 +382,7 @@ def init():
         'mavros/local_position/pose', PoseStamped, Pose_Callback)
     state_sub = rospy.Subscriber('mavrqos/state', State, State_Callback)
     laser_sub = rospy.Subscriber('lasers/raw', Distance, lasers_raw_callback)
-    laser_sub = rospy.Subscriber('gps/rtkfix', Odometry, piksi_callback)
+    gps_sub = rospy.Subscriber('gps/rtkfix', Odometry, piksi_callback)
     task_sub = rospy.Subscriber('web/task', Task, Task_Callback)
 
     rospy.wait_for_service('mavros/set_mode')
