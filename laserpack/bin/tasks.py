@@ -122,7 +122,7 @@ class UAV:
         self.setpoint.yaw_rate = 0.0
 
     def local_position_callback(self, local):
-        self.local_position = local.pose.position
+        self.local_position = Point(local.pose.position.x, local.pose.position.y,local.pose.position.z)
         q = (local.pose.orientation.x, local.pose.orientation.y, local.pose.orientation.z, local.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
         self.local_yaw = yaw
@@ -217,6 +217,9 @@ class taskController:
     def setRate(self, rate):
         self.rate = rospy.Rate(rate)
 
+    def getUAV(self):
+        return self.UAV
+
     def spinOnce(self):
         if self.current < self.count :
             task = self.tasks[self.current]
@@ -262,7 +265,7 @@ class task:
 class target(task, object):
     """The target class is a task. It says to the UAV to go to
     the target"""
-    def __init__(self, name, pointXYZ, yaw, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
+    def __init__(self, name, pointXYZ, yaw = 0, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
         super(target, self).__init__("target", name)
         self.target       = pointXYZ
         self.orientation  = yaw
@@ -467,7 +470,7 @@ class init_UAV(task, object):
         return self.isDone(UAV)
 
     def isDone(self, UAV):
-        return UAV.home.x != 0 and UAV.home.y != 0
+        return True
 
 
 # Arm the pixHawk
