@@ -55,7 +55,6 @@ Controller.addTasks(tasks)
 rospy.loginfo("Tasks added")
 """
 
-
 """ Solution 3 :  Directly add tasks via Controller.addTask
 Preferred if we just want to try some tasks, added manually.
 rospy.loginfo("Adding tasks")
@@ -69,9 +68,11 @@ rospy.loginfo("Tasks added")
 
 rospy.loginfo("Adding tasks")
 Controller.addTask(init_UAV("Init UAV"))
-Controller.addTask(target("target1", Point(0,0,1))
-Controller.addTask(arm("Arming")
-Controller.addTask(disarm("Disarming")
+Controller.addTask(loiter("WAAAAIT", 2))
+Controller.addTask(loiter_callback("WAAAAIT", 2))
+Controller.addTask(target("target1", Point(0,0,1)))
+Controller.addTask(arm("Arming"))
+Controller.addTask(disarm("Disarming"))
 rospy.loginfo("Tasks added")
 
 # for i in range(100):

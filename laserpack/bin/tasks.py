@@ -37,7 +37,7 @@ from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import CommandBool
-from algotithm_functions import deg2radf
+from algorithm_functions import deg2radf
 
 class UAV:
     def __init__(self, setpoint_rate=10):
@@ -294,7 +294,7 @@ class target(task, object):
 
         Better solution for more complex surfaces :
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
-        rospy.loginfo("X %s, prec : %s", UAV.local_position.x - self.target.x, self.precision.x)
+        rospy.loginfo("X %s, prec : %s", UAV.ition.x - self.target.x, self.precision.x)
         rospy.loginfo("Y %s, prec : %s", UAV.local_position.y - self.target.y, self.precision.y)
         rospy.loginfo("Z %s, prec : %s", UAV.local_position.z - self.target.z, self.precision.z)
         rospy.loginfo("yaw: %s", UAV.local_yaw)
@@ -311,6 +311,7 @@ class target(task, object):
 
 
 # Sleeping the right time
+# Tested, working
 class loiter(task, object):
     """The loiter class is a task. It aims to loiter for X seconds"""
     def __init__(self, name, waitTime):
@@ -325,7 +326,7 @@ class loiter(task, object):
     def run(self, UAV):
         if(self.start == None):
             self.start = rospy.Time.now().to_sec()
-            self.end = self.start + waitTime
+            self.end = self.start + self.waitTime
             UAV.setpoint_loiter()
         return self.isDone()
 
@@ -336,6 +337,7 @@ class loiter(task, object):
         return False
 
 # Sleeping the right time
+# NOT WORKING
 class loiter_callback(task, object):
     """The loiter_callback class is a task. It aims to loiter for X seconds"""
     def __init__(self, name, waitTime):
@@ -357,9 +359,7 @@ class loiter_callback(task, object):
         return self.isDone()
 
     def isDone(self):
-        if self.done:
-            return True
-        return False
+        return self.done
 
 class takeoff(task, object):
     """The takeoff class is a task. It says to the UAV to go to
