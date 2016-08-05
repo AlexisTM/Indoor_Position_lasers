@@ -72,8 +72,10 @@ class UAV:
         self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
 
         #Arming & mode Services
+        rospy.loginfo("Subscribing to arming service")
         rospy.wait_for_service('mavros/cmd/arming')
         self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
+        rospy.loginfo("Subscribing to setmode service")
         rospy.wait_for_service('mavros/set_mode')
         self.set_mode_client = rospy.ServiceProxy('mavros/set_mode', SetMode)
 
@@ -86,7 +88,6 @@ class UAV:
         # Senders threads
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
         self.positionCount = 0
-
 
     def setpoint_position(self, position, yaw):
         self.setpoint.type_mask = self.type_mask_Fly
@@ -161,9 +162,9 @@ class UAV:
 
     def die(self):
         self.setpoint_land()
-        self.sleep(3)
+        time.sleep(3)
         self.stopped = True
-        self.sleep(1)
+        time.sleep(1)
         self.arm(False)
 
     def __del__(self):
@@ -224,6 +225,14 @@ class taskController:
                 self.current = self.current + 1
                 self.runTask()
         return
+
+    def __del__(self):
+        self.UAV.__del__()
+        del self.UAV
+
+    def __exit__(self):
+        self.UAV.__exit__()
+        del self.UAV
 
 class task:
     """The Task class defines a class & the needed methods to
@@ -307,7 +316,7 @@ class loiter(task, object):
 
     def isDone(self):
         now = rospy.Time.now().to_sec()
-        if rospy.Time.now().to_sec() > self.end
+        if rospy.Time.now().to_sec() > self.end:
             return True
         return False
 
@@ -333,7 +342,7 @@ class loiter_callback(task, object):
         return self.isDone()
 
     def isDone(self):
-        if self.done
+        if self.done:
             return True
         return False
 
