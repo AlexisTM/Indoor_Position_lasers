@@ -206,13 +206,19 @@ class taskController:
         return -1 if (self.index >= self.count) else self.tasks[index]
 
     def getCurrentTask(self):
-        return self.tasks[self.current];
+        if self.current <  self.count :
+            return self.tasks[self.current]
+        else :
+            return None
 
     def runTask(self):
         if self.current == -1 :
             rospy.loginfo("No task running (-1)")
         else :
-            rospy.loginfo("Running task {0}/{1} - {2}".format(self.current+1, self.count, self.tasks[self.current]))
+            if self.current <  self.count :
+                rospy.loginfo("Running task {0}/{1} - {2}".format(self.current+1, self.count, self.tasks[self.current]))
+            else :
+                rospy.loginfo("Out of task {0}/{1}".format(self.current+1, self.count))
 
     def setRate(self, rate):
         self.rate = rospy.Rate(rate)
@@ -286,6 +292,10 @@ class target(task, object):
 
         Better solution for more complex surfaces :
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
+        rospy.loginfo("X %s, prec : %s", UAV.local_position.x - self.target.x, self.precision.x)
+        rospy.loginfo("Y %s, prec : %s", UAV.local_position.y - self.target.y, self.precision.y)
+        rospy.loginfo("Z %s, prec : %s", UAV.local_position.z - self.target.z, self.precision.z)
+        rospy.loginfo("yaw: %s", UAV.local_yaw)
         if(fabs(UAV.local_position.x - self.target.x) > self.precision.x):
             return False
         if(fabs(UAV.local_position.y - self.target.y) > self.precision.y):

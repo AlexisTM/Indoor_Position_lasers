@@ -40,7 +40,7 @@ task1 = init_UAV("Init UAV")
 # precision_z = 0.05 - default
 # precision_yaw = 1 - default
 
-task2 = target("target1", Point(0,0,2))
+task2 = target("target1", Point(0,0,1))
 tasks = [task1, task2]
 Controller.addTasks(tasks)
 rospy.loginfo("Tasks added")
