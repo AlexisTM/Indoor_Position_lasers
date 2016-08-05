@@ -20,8 +20,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ILPS.  If not, see <http://www.gnu.org/licenses/>.
 
-Software created by Alexis Paques and Nabil Nehri for the UCL 
-in a Drone-Based Additive Manufacturing of Architectural Structures 
+Software created by Alexis Paques and Nabil Nehri for the UCL
+in a Drone-Based Additive Manufacturing of Architectural Structures
 project financed by the MIT Seed Fund
 
 Copyright (c) Alexis Paques 2016
@@ -40,11 +40,11 @@ from mavros_msgs.srv import CommandBool
 
 class UAV:
     def __init__(self, setpoint_rate=10):
-        # Configurations : 
+        # Configurations :
         self.type_mask_Fly = 2552 # 2552 - 0000 1001 1111 1000, position setpoint + Pxyz Yaw
         self.type_mask_Takeoff = 6599 # 6599 - 0001 1001 1100 0111, Takeoff setpoint + Vxyz Yaw
         self.type_mask_Land = 10695 # 10695 - 0010 1001 1100 0111, Land setpoint + Vxyz Yaw
-        # Could be : 
+        # Could be :
         # self.type_mask_Land = 10688 # 10695 - 0010 1001 1100 0000, Land setpoint + Pxyz Vxyz Yaw
         self.type_mask_Loiter = 14784 # 14784 - 0011 1001 1100 0000, Loiter setpoint + Pxyz Vxyz Yaw
 
@@ -67,10 +67,10 @@ class UAV:
 
         # PixHawk position subscriber
         self.local_position_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        
+
         # State subscriber
         self.state_subscriber = rospy.Subscriber('mavros/state', State, self.state_callback)
-        
+
         #Arming & mode Services
         rospy.wait_for_service('mavros/cmd/arming')
         self.arming_client   = rospy.ServiceProxy('mavros/cmd/arming', CommandBool)
@@ -87,7 +87,7 @@ class UAV:
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
         self.positionCount = 0
 
-       
+
     def setpoint_position(self, position, yaw):
         self.setpoint.type_mask = self.type_mask_Fly
         self.setpoint.velocity = Vector3()
@@ -121,7 +121,7 @@ class UAV:
         self.setpoint.yaw_rate = 0.0
 
     def local_position_callback(self, local):
-        self.local_position = Point(local.pose.position.x, local.pose.position.y, local.pose.position.z)
+        self.local_position = local.pose.position
         q = (local.pose.orientation.x, local.pose.orientation.y, local.pose.orientation.z, local.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
         self.local_yaw = yaw
@@ -181,10 +181,10 @@ class taskController:
         self.current = 0
         self.setRate(rate)
         self.UAV = UAV(setpoint_rate=setpoint_rate)
-        
+
     def __str__(self):
         controller_string = "Task Controller :\n"
-        for task in self.tasks: 
+        for task in self.tasks:
             controller_string += task.__str__()
             controller_string += "\n"
 
@@ -199,10 +199,10 @@ class taskController:
 
     def getTasks(self):
         return self.tasks
-    
+
     def getTask(self, index):
-        index = index - 1  # ??
-        return -1 if (self.current >= self.count) else self.tasks[index]
+        # if index = 5, it is the last of a 6 task list
+        return -1 if (self.index >= self.count) else self.tasks[index]
 
     def getCurrentTask(self):
         return self.tasks[self.current];
@@ -223,10 +223,10 @@ class taskController:
             if result: # returns True if done
                 self.current = self.current + 1
                 self.runTask()
-        return 
+        return
 
 class task:
-    """The Task class defines a class & the needed methods to 
+    """The Task class defines a class & the needed methods to
     be compatible with the taskController"""
     def __init__(self, Type, name):
         self.name = name
@@ -237,7 +237,7 @@ class task:
         # check if task is ended
         # return True if done, False if not done
         return True
-       
+
     def run(self, UAV):
         # do something then return isDone
         return self.isDone()
@@ -251,8 +251,8 @@ class task:
 
 
 class target(task, object):
-    """The target class is a task. It says to the UAV to go to 
-    the target""" 
+    """The target class is a task. It says to the UAV to go to
+    the target"""
     def __init__(self, name, pointXYZ, yaw, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
         super(target, self).__init__("target", name)
         self.target       = pointXYZ
@@ -272,7 +272,7 @@ class target(task, object):
     def isDone(self, UAV):
         """ Method to know if the UAV arrived at his position or not
 
-        Better solution for more complex surfaces : 
+        Better solution for more complex surfaces :
         http://stackoverflow.com/questions/2752725/finding-whether-a-point-lies-inside-a-rectangle-or-not/2752753#2752753 """
         if(fabs(UAV.local_position.x - self.target.x) > self.precision.x):
             return False
@@ -288,29 +288,58 @@ class target(task, object):
 
 # Sleeping the right time
 class loiter(task, object):
-    """The loiter class is a task. It is just a waiting task"""
+    """The loiter class is a task. It aims to loiter for X seconds"""
     def __init__(self, name, waitTime):
-        self.waitTime = rospy.Rate(1.0/waitTime)
-        self.last = None
+        self.waitTime = waitTime
+        self.start = None
+        self.end = None
         super(loiter, self).__init__("loiter", name)
 
     def __str__(self):
         return super(loiter, self).__str__()
 
     def run(self, UAV):
-        if(self.last == None):
-            self.last = time.time()
+        if(self.start == None):
+            self.start = rospy.Time.now().to_sec()
+            self.end = self.start + waitTime
             UAV.setpoint_loiter()
-
         return self.isDone()
 
     def isDone(self):
-        waitTime.sleep()
-        return True
+        now = rospy.Time.now().to_sec()
+        if rospy.Time.now().to_sec() > self.end
+            return True
+        return False
+
+# Sleeping the right time
+class loiter_callback(task, object):
+    """The loiter_callback class is a task. It aims to loiter for X seconds"""
+    def __init__(self, name, waitTime):
+        self.duration = rospy.Duration(waitTime)
+        self.called = False
+        self.done = False
+        super(loiter_callback, self).__init__("loiter callback", name)
+
+    def __str__(self):
+        return super(loiter_callback, self).__str__()
+
+    def callbackTimer(self, event):
+        self.done = True
+
+    def run(self, UAV):
+        if(self.called):
+            rospy.Timer(self.duration, self.callbackTimer)
+            self.called = True
+        return self.isDone()
+
+    def isDone(self):
+        if self.done
+            return True
+        return False
 
 class takeoff(task, object):
-    """The takeoff class is a task. It says to the UAV to go to 
-    takeoff""" 
+    """The takeoff class is a task. It says to the UAV to go to
+    takeoff"""
     def __init__(self, name, precision=0.05):
         super(takeoff, self).__init__("target", name)
         self.sent             = False
@@ -335,8 +364,8 @@ class takeoff(task, object):
 
 
 class land(task, object):
-    """The land class is a task. It says to the UAV to go to 
-    land""" 
+    """The land class is a task. It says to the UAV to go to
+    land"""
     def __init__(self, name, precision=0.05):
         super(land, self).__init__("target", name)
         self.sent             = False
@@ -381,7 +410,7 @@ class grab(task, object):
 
 
 
-# Waiting testing time 
+# Waiting testing time
 class test(task, object):
     """The test class is a task. It is just a testing task"""
     def __init__(self, name, waitTime):
@@ -402,7 +431,7 @@ class test(task, object):
         now = time.time()
         print(now - self.last)
 
-        #Simplify by using : 
+        #Simplify by using :
         # return (now - self.last) > self.waitTime
 
         if(now - self.last > self.waitTime):
@@ -411,7 +440,7 @@ class test(task, object):
         else :
             print("waiting")
             return False
-        
+
 # Init the the pixHawk with a home
 class init_UAV(task, object):
     """The init_UAV class is a task. It wait the UAV to be initialized, set home and set the setpoint to hom"""
@@ -473,4 +502,4 @@ class disarm(task, object):
         return self.isDone(UAV)
 
     def isDone(self, UAV):
-        return not UAV.state.armed 
+        return not UAV.state.armed
