@@ -20,7 +20,7 @@ signal(SIGINT, signal_handler)
 tasks = []
 
 """
-# Typical fill
+# Typical way to fill from any source
 for data in dataIn :
     if data.type == "init" :
         task = init_UAV("Init UAV")
@@ -41,7 +41,9 @@ task1 = init_UAV("Init UAV")
 # precision_yaw = 1 - default
 
 task2 = target("target1", Point(0,0,1))
-tasks = [task1, task2]
+task3 = arm("Arming")
+task4 = disarm("Disarming")
+tasks = [task1, task3, task2, task4]
 Controller.addTasks(tasks)
 rospy.loginfo("Tasks added")
 

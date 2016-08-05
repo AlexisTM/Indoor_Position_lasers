@@ -37,6 +37,7 @@ from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import CommandBool
+from algotithm_functions import deg2radf
 
 class UAV:
     def __init__(self, setpoint_rate=10):
@@ -267,14 +268,15 @@ class task:
         return "Task {0} - {1}".format(self.Type, self.name)
 
 
-
+# Go to a certain position
+# Tested, working
 class target(task, object):
     """The target class is a task. It says to the UAV to go to
     the target"""
     def __init__(self, name, pointXYZ, yaw = 0, precisionXY = 0.05, precisionZ = 0.05, precisionYAW = 1):
         super(target, self).__init__("target", name)
         self.target       = pointXYZ
-        self.orientation  = yaw
+        self.orientation  = deg2radf(yaw)
         self.precision    = Point(precisionXY, precisionXY, precisionZ)
         self.precisionYAW = precisionYAW
         self.sent         = False
@@ -464,6 +466,7 @@ class test(task, object):
             return False
 
 # Init the the pixHawk with a home
+# Tested, working
 class init_UAV(task, object):
     """The init_UAV class is a task. It wait the UAV to be initialized, set home and set the setpoint to hom"""
     def __init__(self, name, sleep = 10):
@@ -484,6 +487,7 @@ class init_UAV(task, object):
 
 
 # Arm the pixHawk
+# Tested, working
 class arm(task, object):
     """The arm class is a task. It put the UAV in OFFBOARD mode and arm it"""
     def __init__(self, name, timeout = 1):
@@ -507,6 +511,7 @@ class arm(task, object):
 
 
 # Disarm the pixHawk
+# Tested, working
 class disarm(task, object):
     """The disarm Class disarms the UAV"""
     def __init__(self, name, timeout = 1):
