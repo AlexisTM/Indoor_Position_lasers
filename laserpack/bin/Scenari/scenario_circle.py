@@ -32,7 +32,7 @@ tasks.append(arm("Arming"))
 #Targetting circle points
 CirclePoints = PointsInCircum(3)
 for circle in CirclePoints:
-    tasks.append(target("target", Point(circle)))
+    tasks.append(target("target", Point(circle[0], circle[1], circle[2])))
 
 #Disarming
 tasks.append(disarm("Disarming"))

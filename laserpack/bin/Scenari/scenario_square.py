@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from tasks import *
+from math import cos, sin, pi
 import rospy
 from signal import signal, SIGINT
 from geometry_msgs.msg import Point
@@ -12,18 +13,10 @@ def signal_handler(signal, frame):
         Controller.__exit__()
         sys.exit(0)
 
-def DoStair(num, size, a=-2, b=2, c=1):
-    #StairWay following x axis
-    #GO up then GO straight (num times)
-    #size give the size of the step
-    #Default begin on (-2,2,1)
-    x = [a]
-    y = [b] * ((num*2)+1)
-    z = [c]
-    for i in range(num):
-        x.extend((x[i*2]       , x[i*2] + size))
-        z.extend((z[i*2] + size, z[i*2] + size))
-    return [(x[l], y[l], z[l]) for l in range(0,(num*2+1))]
+def PointsInCircum(r,z=3,n=4):
+    #return (x,y,z) points of a square
+    #PointsInCircum(Rayon(m), Altitude{defaut:3}(m), NombreDePoints{defaut:4})
+    return [(round(cos(2*pi/n*x)*r,3),round(sin(2*pi/n*x)*r,3),z) for x in range(0,n+1)]
 
 rospy.init_node('test_tasks')
 Controller = taskController(rate=3, setpoint_rate=10)
@@ -33,17 +26,15 @@ signal(SIGINT, signal_handler)
 
 #Initialisation
 tasks = []
-rospy.loginfo("Stairway sequencing")
+rospy.loginfo("Square sequencing")
 tasks.append(init_UAV("Init UAV"))
 tasks.append(arm("Arming"))
 
-#Make the stair path
-#   Every step, he takes rest
-StairPoints = DoStair(3,2)
-for i in range(0, len(StairPoints)):
-    tasks.append(target("target", Point(StairPoints[i])))
-    if i % 2 == 0:
-        tasks.append(loiter("Waiting", WaitingTime))
+#Targetting Square and wait for seconds
+CirclePoints = PointsInCircum(6)
+for circle in CirclePoints:
+    tasks.append(target("target", Point(circle[0], circle[1], circle[2])))
+    tasks.append(loiter("Waiting", WaitingTime))
 
 #Disarming
 tasks.append(disarm("Disarming"))
