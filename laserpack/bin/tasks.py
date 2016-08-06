@@ -31,7 +31,7 @@ import rospy
 import time
 from math import fabs
 from threading import Thread
-from geometry_msgs.msg import PoseStamped, Quaternion, Pose, Point, Vector3
+from geometry_msgs.msg import PoseStamped, Quaternion, Pose, Point, Vector3, TwistStamped
 from transformations import *
 from sensor_msgs.msg import Imu
 from mavros_msgs.srv import SetMode
@@ -58,7 +58,7 @@ class UAV:
         self.stopped = False
         self.flying = True
         self.home = Point()
-
+        self.quaternion = Quaternion()
 
         # Configurations
         self.landing_speed = -0.1 # 0.1 meters/s to go down
@@ -88,13 +88,27 @@ class UAV:
         self.setPointsCount = 0
         # Senders threads
         self.setpoint_thread = Thread(target=self.setpoint_sender).start()
-        self.positionCount = 0
+        self.laser_position_count = 0
 
     def setpoint_position(self, position, yaw):
         self.setpoint.type_mask = self.type_mask_Fly
         self.setpoint.velocity = Vector3()
         self.setpoint.position = position
         self.setpoint.yaw = yaw
+
+    def setpoint_takeoff_here_position(self, altitude):
+        self.setpoint.type_mask = self.type_mask_Fly
+        self.setpoint.velocity = Vector3()
+        self.setpoint.position = self.position
+        self.setpoint.position.z = altitude
+        self.setpoint.yaw = self.local_yaw
+
+    def setpoint_land_here_position(self):
+        self.setpoint.type_mask = self.type_mask_Fly
+        self.setpoint.velocity = Vector3()
+        self.setpoint.position = self.position
+        self.setpoint.position.z = 0.3
+        self.setpoint.yaw = self.local_yaw
 
     def setpoint_takeoff(self):
         self.setpoint.type_mask = self.type_mask_Takeoff
@@ -122,7 +136,11 @@ class UAV:
         self.setpoint.acceleration_or_force = Vector3()
         self.setpoint.yaw_rate = 0.0
 
+        self.setpoint_position = PoseStamped()
+        self.laser_position_count = 0
+
     def local_position_callback(self, local):
+        self.quaternion = local.pose.orientation
         self.local_position = Point(local.pose.position.x, local.pose.position.y,local.pose.position.z)
         q = (local.pose.orientation.x, local.pose.orientation.y, local.pose.orientation.z, local.pose.orientation.w)
         _, _, yaw = euler_from_quaternion(q, axes="sxyz")
@@ -144,6 +162,7 @@ class UAV:
             self.setpoint_rate.sleep()
 
     def setpoint_sender(self):
+        # setpoint_raw
         setpoint_publisher = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
         while(not self.stopped):
             self.setpoint.header.stamp = rospy.Time.now()
@@ -151,6 +170,18 @@ class UAV:
             self.setPointsCount = self.setPointsCount + 1
             setpoint_publisher.publish(self.setpoint)
             self.setpoint_rate.sleep()
+
+        # setpoint position only
+        # setpoint_publisher = rospy.Publisher('mavros/setpoint_position/local', PoseStamped, queue_size=1)
+        # while(not self.stopped):
+        #     self.setpoint_position.header.stamp = rospy.Time.now()
+        #     self.setpoint_position.header.stamp = self.laser_position_count
+        #     self.setpoint_position.pose.orientation = self.quaternion
+        #     self.setpoint_position.pose.position = self.setpoint.position
+        #     setpoint_publisher.publish(self.setpoint)
+        #     self.laser_position_count += 1
+        #     self.setpoint_rate.sleep
+
 
     def getPosition(self):
         return [self.local_position, self.local_yaw]
@@ -376,6 +407,7 @@ class takeoff(task, object):
     def run(self, UAV):
         if(not self.sent):
             UAV.setpoint_takeoff()
+            # UAV.setpoint_takeoff_here_position(self.takeoff_altitude)
             self.takeoff_altitude = UAV.takeoff_altitude
         return self.isDone(UAV)
 
@@ -402,6 +434,7 @@ class land(task, object):
     def run(self, UAV):
         if(not self.sent):
             UAV.setpoint_land()
+            #UAV.setpoint_land_here_position()
             self.landing_altitude = UAV.landing_altitude
         return self.isDone(UAV)
 
