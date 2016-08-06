@@ -28,12 +28,13 @@ tasks = []
 rospy.loginfo("Circle sequencing")
 tasks.append(init_UAV("Init UAV"))
 tasks.append(arm("Arming"))
-
+tasks.append(takeoff("TAKEOFF"))
 #Targetting circle points
 CirclePoints = PointsInCircum(3)
 for circle in CirclePoints:
     tasks.append(target("target", Point(circle[0], circle[1], circle[2])))
 
+tasks.append(land("LANDING"))
 #Disarming
 tasks.append(disarm("Disarming"))
 

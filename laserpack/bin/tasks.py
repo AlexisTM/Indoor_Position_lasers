@@ -398,7 +398,7 @@ class takeoff(task, object):
     def __init__(self, name, precision=0.05):
         super(takeoff, self).__init__("target", name)
         self.sent             = False
-        self.takeoff_altitude = 0.5
+        self.takeoff_altitude = 1
         self.precision        = precision
 
     def __str__(self):
@@ -425,7 +425,7 @@ class land(task, object):
     def __init__(self, name, precision=0.05):
         super(land, self).__init__("target", name)
         self.sent             = False
-        self.landing_altitude = 0.1
+        self.landing_altitude = 0.2
         self.precision        = precision
 
     def __str__(self):

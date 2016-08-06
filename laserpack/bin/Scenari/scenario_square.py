@@ -29,6 +29,7 @@ tasks = []
 rospy.loginfo("Square sequencing")
 tasks.append(init_UAV("Init UAV"))
 tasks.append(arm("Arming"))
+tasks.append(takeoff("TAKEOFF"))
 
 #Targetting Square and wait for seconds
 CirclePoints = PointsInCircum(6)
@@ -36,6 +37,7 @@ for circle in CirclePoints:
     tasks.append(target("target", Point(circle[0], circle[1], circle[2])))
     tasks.append(loiter("Waiting", WaitingTime))
 
+tasks.append(land("TAKEOFF"))
 #Disarming
 tasks.append(disarm("Disarming"))
 

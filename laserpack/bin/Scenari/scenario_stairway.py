@@ -36,6 +36,7 @@ tasks = []
 rospy.loginfo("Stairway sequencing")
 tasks.append(init_UAV("Init UAV"))
 tasks.append(arm("Arming"))
+tasks.append(takeoff("TAKEOFF"))
 
 #Make the stair path
 #   Every step, he takes rest
@@ -45,6 +46,7 @@ for i in range(0, len(StairPoints)):
     if i % 2 == 0:
         tasks.append(loiter("Waiting", WaitingTime))
 
+tasks.append(takeoff("TAKEOFF"))
 #Disarming
 tasks.append(disarm("Disarming"))
 
